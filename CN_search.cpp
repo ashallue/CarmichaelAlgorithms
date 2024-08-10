@@ -9,11 +9,15 @@ int main()
 	// n is P*r where r is the least positive residue of P^{-1} mod lambda(P)
 	// I used the online magma calculator to compute these and pasted them in
 	// http://magma.maths.usyd.edu.au/calc/
+
+	// The current hardcoded example is for F_5, the fifth Fermat number
 	n = "21415192274146561";
 	offset = "143890337981477760";
+
+	//  This is for F_6
 	// n = "370031963673555618862708354823205121";
 	// offset = "1329223147719610607895840242550071040";
-	// n+= 2'000'000'000*offset;
+
 	nm1 = n - 1;
 
 
