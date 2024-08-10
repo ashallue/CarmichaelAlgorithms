@@ -7,3 +7,6 @@ One issue with our 2024 ANTS paper (and the associated codebase github.com/ashal
 Another issue with the ANTS 2024 tabulation was the amount of duplicated work.  The way we parallelized had each processer duplicate work.  Tabulating by the count of distinct prime divisors duplicates work, too.  E.g., many of the admissibility checks done for the d=6 case are just repeated again for the d=7 case. 
 
 I'm going to write some things that really shouldn't be in a readme.  We will need a makefile.  We will need classes.  What should we call those classes?
+
+On the topic of ignoring files, see https://www.atlassian.com/git/tutorials/saving-changes/gitignore
+A potential problem: this is in the repository, so I think it would be ignored for all collaborators.  I don't yet know how to get a single collaborator to ignore a file that is tracked by a different collaborator.
