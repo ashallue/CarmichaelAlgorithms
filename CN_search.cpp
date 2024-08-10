@@ -7,7 +7,9 @@
 int main()
 {
 
-
+	// version 1: 401k ms
+	// version 2: 376k ms
+	// version 3: 338k ms
 
 	using std::chrono::high_resolution_clock;
 	using std::chrono::duration_cast;
@@ -17,7 +19,7 @@ int main()
 	auto t1 = high_resolution_clock::now();
 
 	// version 1
-	// version 1 took 401k ms
+
 
 	/*
 	mpz_class P, L, r_star, n, nm1,  offset, output, base, result;
@@ -94,7 +96,8 @@ int main()
 	ms_double = t2 - t1;
 	std::cout << ms_double.count() << "ms\n";
 
-	//version 3 only uses mpz_t
+	// version 3 only uses mpz_t
+
 
 	t1 = high_resolution_clock::now();
 
