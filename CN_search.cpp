@@ -1,3 +1,5 @@
+// compiled with  g++ CN_search.cpp -gmpxx -O3
+
 #include <gmpxx.h>
 #include <iostream>
 
