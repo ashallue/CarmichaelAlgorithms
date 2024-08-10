@@ -1,4 +1,4 @@
-// compiled with  g++ CN_search.cpp -gmpxx -O3
+// compiled with  g++ CN_search.cpp -lgmpxx -lgmp -O3
 
 #include <gmpxx.h>
 #include <iostream>
