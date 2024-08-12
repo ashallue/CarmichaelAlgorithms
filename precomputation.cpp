@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <numeric>
 #include <cmath>
@@ -57,7 +58,7 @@ int main()
 					new_jobs.push_back( {current_preproduct[0],current_preproduct[1],primes[i], current_preproduct[3] } );
 					if( std::gcd( current_preproduct[0], primes[i] - 1 ) == 1 )
 					{
-						new_jobs.push_back({ current_preproduct[0]*primes[i], current_preproduct[1]*((primes[i] - 1)/ std::gcd(current_preproduct[1], primes[i] -1 ) ), primes[i], current_preproduct[3]++ });
+						new_jobs.push_back({ current_preproduct[0]*primes[i], current_preproduct[1]*((primes[i] - 1)/ std::gcd(current_preproduct[1], primes[i] -1 ) ), primes[i], ++current_preproduct[3] });
 					}
 
 				}
@@ -68,6 +69,28 @@ int main()
 	}
 
 	// output the two jobs lists here:
+
+	std::ofstream output_file("output_jobs.txt");
+	for( int i = 0; i < output_jobs.size(); i++ )
+	{
+		for( int j = 0; j < 4; j++)
+		{
+		 	output_file << output_jobs[i][j] << " ";
+		}
+			output_file << std::endl;
+	}
+	output_file.close();
+
+	std::ofstream working_file("working_jobs.txt");
+	for( int i = 0; i < old_jobs.size(); i++ )
+	{
+		for( int j = 0; j < 4; j++)
+		{
+		 	working_file << old_jobs[i][j] << " ";
+		}
+			working_file << std::endl;
+	}
+	working_file.close();
 
 
 }
