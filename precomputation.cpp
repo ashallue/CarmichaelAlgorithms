@@ -51,7 +51,7 @@ int main()
 				old_jobs.pop_back();
 
 				// This is the log version of P*L*p^4 > B
-				if( log( current_preproduct[0]) + log( current_preproduct[1]) + 5*log( primes[i] ) > bound )
+				if( log( current_preproduct[0]) + log( current_preproduct[1]) + 4*log( primes[i] ) > bound )
 				{
 					output_jobs.push_back( { current_preproduct[0], current_preproduct[1], current_preproduct[2] }  );
 				}
