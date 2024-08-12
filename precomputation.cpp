@@ -28,37 +28,39 @@ int main()
    947, 953, 967, 971, 977, 983, 991, 997
   };
 
-	//
-	// [i][0] stores P
-	// [i][1] stores L = lambda(P)
-	// [i][2] stores b.  If n = PR is a CN, primes dividing R > b.
-	// [i][3] stores k = omega(P), the count of distinct prime divisors of P
 
-	std::vector< std::array<uint64_t, 4> > new_jobs, old_jobs, output_jobs;
+	std::vector< std::array<uint64_t, 3> > new_jobs, old_jobs, output_jobs;
+	// The order of the 3-tuple {P, L, b }
+	// P, the preproduct
+	// L = CarmichaelLambda(P)
+	// if n = PR is a CN from a 4-tuple, then the primes dividing R have to exceed b
 
-	old_jobs.push_back({1, 1, 1, 0});
+	// The trivial preproduct
+	old_jobs.push_back({1, 1, 1});
 
+	// intended bound for the computation is 10^23
+	// bounds testing is done with logarithms
 	double bound = 23*log(10);
 
-	for( uint64_t i = 0; i < 35; i ++ )
+	for( uint64_t i = 0; i < 80; i ++ )
 	{
-		uint64_t prime_preprod[4] = { primes[i], primes[i] - 1, primes[i], 1};
+		uint64_t prime_preprod[3] = { primes[i], primes[i] - 1, primes[i]};
 		while( !old_jobs.empty() )
 		{
-				uint64_t current_preproduct[4] = { old_jobs.back()[0], old_jobs.back()[1],old_jobs.back()[2],old_jobs.back()[3] };
+				uint64_t current_preproduct[3] = { old_jobs.back()[0], old_jobs.back()[1], old_jobs.back()[2] };
 				old_jobs.pop_back();
 
 				// This is the log version of P*L*p^4 > B
-				if( log( current_preproduct[0]) + log( current_preproduct[1]) + 4*log( primes[i] ) > bound )
+				if( log( current_preproduct[0]) + log( current_preproduct[1]) + 5*log( primes[i] ) > bound )
 				{
-					output_jobs.push_back( {current_preproduct[0],current_preproduct[1],current_preproduct[2],current_preproduct[3]}  );
+					output_jobs.push_back( { current_preproduct[0], current_preproduct[1], current_preproduct[2] }  );
 				}
 				else // so current_preproduct is small enough to create more jobs
 				{
-					new_jobs.push_back( {current_preproduct[0],current_preproduct[1],primes[i], current_preproduct[3] } );
+					new_jobs.push_back( { current_preproduct[0], current_preproduct[1], primes[i] } );
 					if( std::gcd( current_preproduct[0], primes[i] - 1 ) == 1 )
 					{
-						new_jobs.push_back({ current_preproduct[0]*primes[i], current_preproduct[1]*((primes[i] - 1)/ std::gcd(current_preproduct[1], primes[i] -1 ) ), primes[i], ++current_preproduct[3] });
+						new_jobs.push_back( { current_preproduct[0]*primes[i], current_preproduct[1]*((primes[i] - 1)/ std::gcd(current_preproduct[1], primes[i] -1 ) ), primes[i] });
 					}
 
 				}
@@ -68,12 +70,13 @@ int main()
 			new_jobs.clear();
 	}
 
-	// output the two jobs lists here:
 
+	// output the two jobs lists here:
+	/*
 	std::ofstream output_file("output_jobs.txt");
 	for( int i = 0; i < output_jobs.size(); i++ )
 	{
-		for( int j = 0; j < 4; j++)
+		for( int j = 0; j < 3; j++)
 		{
 		 	output_file << output_jobs[i][j] << " ";
 		}
@@ -84,13 +87,13 @@ int main()
 	std::ofstream working_file("working_jobs.txt");
 	for( int i = 0; i < old_jobs.size(); i++ )
 	{
-		for( int j = 0; j < 4; j++)
+		for( int j = 0; j < 3; j++)
 		{
 		 	working_file << old_jobs[i][j] << " ";
 		}
 			working_file << std::endl;
 	}
 	working_file.close();
-
+ */
 
 }
