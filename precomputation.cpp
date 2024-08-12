@@ -40,7 +40,7 @@ int main()
 
 	double bound = 23*log(10);
 
-	for( uint64_t i = 0; i < 40; i ++ )
+	for( uint64_t i = 0; i < 35; i ++ )
 	{
 		uint64_t prime_preprod[4] = { primes[i], primes[i] - 1, primes[i], 1};
 		while( !old_jobs.empty() )
