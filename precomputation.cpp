@@ -42,7 +42,24 @@ int main()
 	// bounds testing is done with logarithms
 	double bound = 23*log(10);
 
-	for( uint64_t i = 0; i < 80; i ++ )
+	uint64_t prime_count;
+	std::cout << "How many primes to use? " ;
+	std::cin >> prime_count ;
+
+	std::cout << "The elimination rule is of the form P*L*f(p) where, " << std::endl;
+	std::cout << " f(p) = C*p^n and p is the current prime. " << std::endl;
+	std::cout << "The paper currently recommends n = 4 and C = 1" << std::endl;
+	std::cout << "What power n of p do you want? " ;
+	uint64_t p_exponent;
+	std::cin >> p_exponent;
+	std::cout << "What constant C do you want? " ;
+	uint64_t C_constant;
+	std::cin >> C_constant;
+	std::cout << std::endl;
+
+	bound = bound - log(C_constant);
+
+	for( uint64_t i = 0; i < prime_count; i ++ )
 	{
 		uint64_t prime_preprod[3] = { primes[i], primes[i] - 1, primes[i]};
 		while( !old_jobs.empty() )
@@ -50,8 +67,7 @@ int main()
 				uint64_t current_preproduct[3] = { old_jobs.back()[0], old_jobs.back()[1], old_jobs.back()[2] };
 				old_jobs.pop_back();
 
-				// This is the log version of P*L*p^4 > B
-				if( log( current_preproduct[0]) + log( current_preproduct[1]) + 4*log( primes[i] ) > bound )
+				if( log( current_preproduct[0]) + log( current_preproduct[1]) + p_exponent*log( primes[i] ) > bound )
 				{
 					output_jobs.push_back( { current_preproduct[0], current_preproduct[1], current_preproduct[2] }  );
 				}
