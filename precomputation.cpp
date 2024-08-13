@@ -6,6 +6,9 @@
 #include <vector>
 #include <array>
 
+// if the bound or elimination rule is changed drastically
+// the use of uint64_t to store preproducts will fail
+
 int main()
 {
   const uint64_t primes[167] = {
@@ -30,13 +33,14 @@ int main()
 
 
   std::vector< std::array<uint64_t, 3> > new_jobs, old_jobs, output_jobs;
-  // The order of the 3-tuple {P, L, b }
+  // The order of the 3-tuple {P, L, b}
   // P, the preproduct
   // L = CarmichaelLambda(P)
   // if n = PR is a CN from a 4-tuple, then the primes dividing R have to exceed b
 
   // The trivial preproduct
   old_jobs.push_back({1, 1, 1});
+
 
   // intended bound for the computation is 10^23
   // bounds testing is done with logarithms
@@ -61,6 +65,8 @@ int main()
 
   for( uint64_t i = 0; i < prime_count; i ++ )
   {
+    uint64_t p = primes[i];
+
     while( !old_jobs.empty() )
     {
         uint64_t P = old_jobs.back()[0];
@@ -68,23 +74,25 @@ int main()
         uint64_t b = old_jobs.back()[2];
         old_jobs.pop_back();
 
-        if( log( P ) + log( L ) + p_exponent*log( primes[i] ) > bound )
+        if( log( P ) + log( L ) + p_exponent*log( p ) > bound )
         {
           output_jobs.push_back( { P, L, b }  );
         }
         else // so current_preproduct is small enough to create more jobs
         {
-          new_jobs.push_back( { P, L, primes[i] } );
-          if( std::gcd( P, primes[i] - 1 ) == 1 )
+          new_jobs.push_back( { P, L, p } );
+
+          // admissibility check to create new preproduct
+          if( std::gcd( P, p-1 ) == 1 )
           {
-            new_jobs.push_back( { P*primes[i], L*((primes[i] - 1)/ std::gcd(L, primes[i] -1 ) ), primes[i] });
+            new_jobs.push_back( { P*p, L*( (p-1) / std::gcd( L, p-1 ) ), p });
           }
 
         }
-      }
-      std::cout << " The prime " << primes[i] << " has " << new_jobs.size() << " working jobs and " << output_jobs.size() << " are output jobs" << std::endl;
-      old_jobs = new_jobs;
-      new_jobs.clear();
+    }
+    std::cout << " The prime " << p << " has " << new_jobs.size() << " working jobs and " << output_jobs.size() << " are output jobs" << std::endl;
+    old_jobs = new_jobs;
+    new_jobs.clear();
   }
 
 
