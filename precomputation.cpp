@@ -63,19 +63,21 @@ int main()
   {
         while( !old_jobs.empty() )
     {
-        uint64_t current_preproduct[3] = { old_jobs.back()[0], old_jobs.back()[1], old_jobs.back()[2] };
+        uint64_t P = old_jobs.back()[0];
+        uint64_t L = old_jobs.back()[1];
+        uint64_t b = old_jobs.back()[2];
         old_jobs.pop_back();
 
-        if( log( current_preproduct[0]) + log( current_preproduct[1]) + p_exponent*log( primes[i] ) > bound )
+        if( log( P ) + log( L ) + p_exponent*log( primes[i] ) > bound )
         {
-          output_jobs.push_back( { current_preproduct[0], current_preproduct[1], current_preproduct[2] }  );
+          output_jobs.push_back( { P, L, b }  );
         }
         else // so current_preproduct is small enough to create more jobs
         {
-          new_jobs.push_back( { current_preproduct[0], current_preproduct[1], primes[i] } );
-          if( std::gcd( current_preproduct[0], primes[i] - 1 ) == 1 )
+          new_jobs.push_back( { P, L, primes[i] } );
+          if( std::gcd( P, primes[i] - 1 ) == 1 )
           {
-            new_jobs.push_back( { current_preproduct[0]*primes[i], current_preproduct[1]*((primes[i] - 1)/ std::gcd(current_preproduct[1], primes[i] -1 ) ), primes[i] });
+            new_jobs.push_back( { P*primes[i], L*((primes[i] - 1)/ std::gcd(L, primes[i] -1 ) ), primes[i] });
           }
 
         }
