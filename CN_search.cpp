@@ -45,11 +45,10 @@ int main()
   mpz_mul( n, P, r_star);
 
   // exponent is n - 1
-  mpz_t( fermat_exp );
-  mpz_init( fermat_exp );
-  // since we need (n-1)/2 and truncated division ignores the last bit
-  // The below correcly computes (n-1)/2
-  mpz_tdiv_q_2exp( fermat_exp, n, 1 );
+  mpz_t( EJ_exp );
+  mpz_init( EJ_exp );
+  // truncated division by 2 acocmplishes (n-1)/2
+  mpz_tdiv_q_2exp( EJ_exp, n, 1 );
 
   // common difference for n
   mpz_t PL;
@@ -69,7 +68,7 @@ int main()
   while( mpz_cmp( n , bound ) < 0 )
   {
     // result1 has Euler-Jacobi test
-    mpz_powm( result1,  base,  fermat_exp, n);
+    mpz_powm( result1,  base,  EJ_exp, n);
 
     // result2 has Fermat test
     mpz_powm_ui( result2,  result1,  2, n);
@@ -85,7 +84,9 @@ int main()
 
     // next candidate in arithmetic progression
     mpz_add( n, n, PL);
-    mpz_tdiv_q_2exp( fermat_exp, n, 1 );
+
+    // truncated division by 2 acocmplishes (n-1)/2
+    mpz_tdiv_q_2exp( EJ_exp, n, 1 );
 
     // and the next R in arithmetic progression
     mpz_add( r_star, r_star, L);
@@ -95,7 +96,7 @@ int main()
   mpz_clear( L );
   mpz_clear( r_star );
   mpz_clear( n );
-  mpz_clear( fermat_exp );
+  mpz_clear( EJ_exp );
   mpz_clear( PL );
   mpz_clear( base );
   mpz_clear( result1 );
