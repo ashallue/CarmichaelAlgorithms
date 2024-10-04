@@ -87,8 +87,8 @@ int main()
     }
     */
 
-    // what belongs here:  
-    // while( mpz_cmp_si( result2, 1 ) == 0 )
+    // what belongs here:
+    // while( mpz_cmp_si( result2, 1 ) == 0 && R_comp not empty )
     // we want to enter this loop if Fermat test has passed and R_composite queue is not empty
     if( mpz_cmp_si( result2, 1 ) == 0 )
     {
