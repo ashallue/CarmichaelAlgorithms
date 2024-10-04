@@ -68,18 +68,44 @@ int main()
 
   while( mpz_cmp( n , bound ) < 0 )
   {
-    // result1 has Euler-Jacobi test
+    // result1 has EJ test and result2 has Fermat test
     mpz_powm( result1,  base,  EJ_exp, n);
+    mpz_powm_ui( result2,  result1, 2, n);
 
-    // result2 has Fermat test
-    mpz_powm_ui( result2,  result1,  2, n);
-
-    // check if we have a Fermat pseudoprime
+    // set-up for main factoring loop
+    /*
     if( mpz_cmp_si( result2, 1 ) == 0 )
     {
-      // need gcd( R, result1 + 1 ) or gcd( R, result1 - 1)
+      //if( IsPrime(R) )
+      {
+        //Check n is a CN and write to file or whatever
+      }
+      else
+      {
+        // put R in R_composite queue
+      }
+    }
+    */
 
+    // what belongs here:  
+    // while( mpz_cmp_si( result2, 1 ) == 0 )
+    // we want to enter this loop if Fermat test has passed and R_composite queue is not empty
+    if( mpz_cmp_si( result2, 1 ) == 0 )
+    {
+      // For each R_i in R_compsite to factor
+      // use gcd( R_i, result1 + 1 ) or gcd( R_i, result1 - 1)
+      // nontrivial creates two factors
+      // check each for primality.
+      // put result either into prime or composite datastructure.
+
+
+      // if R_composite is empty
+      // check CN with Korselt
       std::cout << "n = " << n << " and R = " << r_star << std::endl;
+      // else get next valid base and try again
+      mpz_powm( result1,  base,  EJ_exp, n);
+      mpz_powm_ui( result2,  result1,  2, n);
+
     }
 
     // move to next candidate in arithmetic progression for n and R
