@@ -33,21 +33,20 @@ int main()
   mpz_init_set_ui( L, 2289560 );
 
   // compute r^* = p^{-1} mod L
+  // this is the start of  R = (r^* + kL) w/ k = 0
   mpz_t r_star;
   mpz_init(r_star);
   mpz_invert(r_star, P, L);
 
-  // keep track of two arithmetic progressions
-  // R = r^* + kL, L is as above
-  // n = P( r^* + k*L) = Pr + kPL
+  // This is the start of n = Pr^* + kPL w/ k = 0
   mpz_t n;
   mpz_init(n);
   mpz_mul( n, P, r_star);
 
-  // exponent is n - 1
+  // exponent is (n - 1)/2
+  // accomplished by using trucated division of n/2
   mpz_t( EJ_exp );
   mpz_init( EJ_exp );
-  // truncated division by 2 acocmplishes (n-1)/2
   mpz_tdiv_q_2exp( EJ_exp, n, 1 );
 
   // common difference for n
@@ -56,6 +55,8 @@ int main()
   mpz_mul( PL, P, L );
 
   // will need more bases later
+  // use bases from the prime divisors of L
+  // naturally, 2 is guaranteed
   mpz_t base;
   mpz_init_set_ui( base, 2 );
 
@@ -78,18 +79,15 @@ int main()
     {
       // need gcd( R, result1 + 1 ) or gcd( R, result1 - 1)
 
-
       std::cout << "n = " << n << " and R = " << r_star << std::endl;
     }
 
-    // next candidate in arithmetic progression
+    // move to next candidate in arithmetic progression for n and R
+    // update exponent for next round
     mpz_add( n, n, PL);
-
-    // truncated division by 2 acocmplishes (n-1)/2
+    mpz_add( r_star, r_star, L);
     mpz_tdiv_q_2exp( EJ_exp, n, 1 );
 
-    // and the next R in arithmetic progression
-    mpz_add( r_star, r_star, L);
   }
 
   mpz_clear( P );
