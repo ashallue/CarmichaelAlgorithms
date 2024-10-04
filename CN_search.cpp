@@ -86,14 +86,18 @@ int main()
     // we want to enter this loop if Fermat test has passed and R_composite queue is not empty
     if( mpz_cmp_si( result2, 1 ) == 0 )
     {
+
       // For each R_i in R_compsite attempt to factor with gcd with EJ result1
       // use gcd( R_i, result1 + 1 ) or gcd( R_i, result1 - 1)
       // nontrivial creates two factors:  check both for primality
       // put result either into prime or composite datastructure.
+      // need to be mindful of the minimum bound that the precomputation requires prime factors to satisfy
+      // could have an "abort" here upin finding a factor that is too small or... see ahead
 
       // if R_composite is empty
       //    check CN with Korselt
-      // else 
+      //    we could incorporate the requirement on prime factors in R /w/r/t k here, too.
+      // else
       //    get next valid base and try again
       //    mpz_powm( result1,  new_base,  EJ_exp, n);
       //    mpz_powm_ui( result2,  result1,  2, n);
