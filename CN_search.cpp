@@ -94,7 +94,7 @@ int main()
     R_composite_factors.push( r_star64 );
     R_prime_factors.clear();
 
-    int i = 1; //counter for fermat_bases
+    int i = 0; //counter for fermat_bases
 
     do
     {
