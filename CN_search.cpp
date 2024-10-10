@@ -9,6 +9,12 @@
 
 int main()
 {
+  // the below has the following quantities hard-coded:
+  // The upper bound of the computation:      lines 33,34
+  // The quantity P:                          line 38
+  // The quantity L = lambda(P)               lines 44,45
+  // The array holding the primes dividing L  lines 46 and 166
+  // e = v_2( LCM( P-1, L0 ) )                line 54
 
   // version 1: 401 s, mpz_class version
   // version 2: 376 s, machine words where possible, import to mpz_t for exponentiation
@@ -157,7 +163,7 @@ int main()
       // the number is a Fermat psp and
       // R_composite queue is not empty
     }
-    while( is_fermat_psp && !R_composite_factors.empty() && i < 7 );
+    while( is_fermat_psp && !R_composite_factors.empty() && i < 6 );
 
     // empty queue
     while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }
