@@ -31,14 +31,22 @@ int main()
   mpz_t P;
   mpz_init_set_ui( P, 6682828353 );
 
+  //mpz_init_set_ui( P, 67491742686737 );
+
   // set L = lambda(P)
   mpz_t L;
   mpz_init_set_ui( L, 2289560 );
   uint64_t L64 = 2289560;
-
-  // primes dividing L will serve as Fermat bases
   uint64_t fermat_bases[6] = { 2, 5, 7, 13, 17, 37 };
 
+  //mpz_init_set_ui( L, 36756720 );
+  //uint64_t L64 = 36756720;
+  //uint64_t fermat_bases[7] = { 2, 3, 5, 7, 11, 13, 17 };
+
+  // need power of 2 dividing LCM( P-1, L )
+  // for the stronger fermat exponent
+  int32_t exp_on_2 = 3;
+  int32_t pow_of_2 = ( 1 << exp_on_2 );
 
   // compute r^* = p^{-1} mod L
   // this is the start of  R = (r^* + kL) w/ k = 0
@@ -55,11 +63,8 @@ int main()
   mpz_init(n);
   mpz_mul( n, P, r_star);
 
-  // exponent is (n - 1)/2
-  // accomplished by using trucated division of n/2
-  mpz_t( EJ_exp );
-  mpz_init( EJ_exp );
-  mpz_tdiv_q_2exp( EJ_exp, n, 1 );
+  mpz_t( strong_exp );
+  mpz_init( strong_exp );
 
   // common difference for n
   mpz_t PL;
@@ -98,30 +103,35 @@ int main()
 
     do
     {
+      // set up strong base:  truncated divsion by 4 means the exponent holds (n-1)/(2^e)
+      mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
       mpz_set_ui( base, fermat_bases[i] );
-      mpz_powm( result1,  base,  EJ_exp, n);
-      mpz_powm_ui( result2,  result1, 2, n);
+      mpz_powm( result1,  base,  strong_exp, n); // b^( (n-1)/(2^e) )
+      mpz_powm_ui( result2,  result1, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
 
       is_fermat_psp = ( mpz_cmp_si( result2, 1 ) == 0 );
 
       // this conditional is not expected to be entered
+      // so the do-while loop is not expected to be invoked
       // most numbers are not Fermat pseudoprimes
       if( is_fermat_psp )
       {
         int start_size = R_composite_factors.size();
+        // use a for loop to go through all factors that are currently in the queue
         for( int j = 0; j < start_size; j++ )
         {
-          // get element out of queue and put into mpz_tdiv_q_2exp
-          // first time through, this is just r_star
+          // get element out of queue and put into mpz_t
+          // first time through, this is just r_factor will have the value of r_star
           temp = R_composite_factors.front();
           R_composite_factors.pop();
           mpz_import (r_factor, 1, 1, sizeof(uint64_t), 0, 0, &temp );
+
           // check gcd before prime testing
           // result1 holds the algebraic factor assoicated with b^((n-1)/2) + 1
-          mpz_add_ui (result1, result1, 1);
-          mpz_gcd (gcd_result, result1, r_factor);
+          mpz_add_ui( result1, result1, 1);
+          mpz_gcd( gcd_result, result1, r_factor);
 
-          // check that gcd_result has a nontrivial divisor of r_star
+          // check that gcd_result has a nontrivial divisor of r_factor
           if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
           {
             // will need to add a check about a lower bound on these divisors
@@ -147,24 +157,21 @@ int main()
       // the number is a Fermat psp and
       // R_composite queue is not empty
     }
-    while( is_fermat_psp && !R_composite_factors.empty() && i < 6 );
+    while( is_fermat_psp && !R_composite_factors.empty() && i < 7 );
 
     // empty queue
     while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }
 
     // move to next candidate in arithmetic progression for n and R
-    // update exponent for next round
     mpz_add( n, n, PL);
     r_star64 += L64;
-    mpz_tdiv_q_2exp( EJ_exp, n, 1 );
-
   }
 
   mpz_clear( P );
   mpz_clear( L );
   mpz_clear( r_star );
   mpz_clear( n );
-  mpz_clear( EJ_exp );
+  mpz_clear( strong_exp );
   mpz_clear( PL );
   mpz_clear( base );
   mpz_clear( gcd_result );
