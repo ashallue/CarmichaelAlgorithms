@@ -23,7 +23,7 @@ class Preproduct{
     // 5 is chosen because that's the limit of the recursion depth.
     uint8_t len_appended_primes;
     uint64_t next_inadmissable[5];
-    bool mod_three_status[5];
+    uint8_t mod_three_status[5];
     uint64_t appended_primes[5];
 
 
@@ -31,7 +31,7 @@ class Preproduct{
 
 
     //
-    bool is_addmissable( uint64_t prime to append );
+    bool is_addmissable( uint64_t prime_to_append );
 
 };
 
