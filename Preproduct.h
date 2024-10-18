@@ -20,11 +20,18 @@ class Preproduct{
     //  The other classes are the derived preproducts from appending primes
     //  attempting as a single class for the moment
 
-    // 5 is chosen because that's the limit of the recursion depth.  
-    uint8_t primes_appended;
-    uint64_t next_inadmissible_prime[5];
+    // 5 is chosen because that's the limit of the recursion depth.
+    uint8_t len_appended_primes;
+    uint64_t next_inadmissable[5];
     bool mod_three_status[5];
-    uint64_t P_primes[5];
+    uint64_t appended_primes[5];
+
+
+    // constructor and destructor here
+
+
+    //
+    bool is_addmissable( uint64_t prime to append );
 
 };
 
