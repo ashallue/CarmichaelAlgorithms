@@ -4,6 +4,8 @@
 
 class Preproduct{
   public:
+
+    // all of these could be const type.  I do not see how they should change after initialization
     mpz_t P;
     uint64_t P_primes[20];
     uint16_t P_len;
@@ -23,18 +25,19 @@ class Preproduct{
     // 5 is chosen because that's the limit of the recursion depth.
     uint16_t len_appended_primes;
 
-    // these arrays are used to avoid gcd computations for admissbility checks
-    // they are updated assuming primes are tested for admissability in increasing order
-    uint64_t next_inadmissable[5];
-    uint16_t mod_three_status[5];
-    uint64_t appended_primes[5];
+    // these arrays are used to avoid gcd computations for admissibility checks
+    // they are updated assuming primes are tested for admissibility in increasing order
+    // These three arrays are the only non const type - requires updating
+    uint64_t next_inadmissible[5]; 
+    uint16_t mod_three_status[5];  
+    uint64_t appended_primes[5];   
 
 
     // constructor and destructor here
 
 
     //
-    bool is_addmissable( uint64_t prime_to_append );
+    bool is_addmissible( uint64_t prime_to_append );
 
 };
 
