@@ -13,7 +13,7 @@ class Preproduct{
     // Information about L = CarmichaelLambda(P)
     const uint64_t L;
     const uint64_t L_distinct_primes[20];
-    const uint16_t  L_exponents[20];   
+    const uint16_t L_exponents[20];   
     const uint16_t L_len;
 
     // 5 is chosen because that's the limit of the recursion depth.
