@@ -28,7 +28,7 @@ class Preproduct{
 
 
     // constructor and destructor here
-    Preproduct( uint64_t init_preproduct, uint64 init_LofP, uint64 init_append_bound );
+    Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
 
     //
     bool is_admissible( uint64_t prime_to_append );
