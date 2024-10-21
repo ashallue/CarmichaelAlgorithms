@@ -6,7 +6,7 @@ class Preproduct{
   public:
     mpz_t P;
     uint64_t P_primes[20];
-    uint8_t P_len;
+    uint16_t P_len;
     uint64_t append_bound;  // primes appended to P need to exceed this bound
 
     // Information about L = CarmichaelLambda(P)
@@ -21,9 +21,12 @@ class Preproduct{
     //  attempting as a single class for the moment
 
     // 5 is chosen because that's the limit of the recursion depth.
-    uint8_t len_appended_primes;
+    uint16_t len_appended_primes;
+
+    // these arrays are used to avoid gcd computations for admissbility checks
+    // they are updated assuming primes are tested for admissability in increasing order
     uint64_t next_inadmissable[5];
-    uint8_t mod_three_status[5];
+    uint16_t mod_three_status[5];
     uint64_t appended_primes[5];
 
 
