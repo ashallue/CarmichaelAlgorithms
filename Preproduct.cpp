@@ -1,6 +1,7 @@
 
 
-
+// admissibility check with no gcd
+// if the while loop is not taken, this will execute with less than 10 instructions
 bool Preproduct::is_admissible( int64_t prime_to_append )
 {
   // if this works how we want it to, this while loop will not be entered often
