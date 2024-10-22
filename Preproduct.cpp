@@ -1,3 +1,55 @@
+#include "Preproduct.h"
+#include <algorithm>
+#include <cstdint>
+#include <stdio.h>
+#include <gmp.h>
+
+Preproduct::Preproduct( uint64_t init_preproduct, uint64 init_LofP, uint64 init_append_bound )
+{
+  uint64_t = temp;
+  temp = init_preproduct;
+
+  mpz_init( P ) ;
+  mpz_import( P, 1, 1, sizeof(uint64_t), 0, 0, &temp );
+  L = init_LofP;
+  append_bound = init_append_bound;
+
+	P_len = 0;
+
+  if( init_prepoduct != 1 )
+  {
+	  temp = 1;
+	  while( temp*temp < init_preproduct )
+	  {
+		  temp+= 2;
+		  if( ( init_preproduct % temp ) == 0 )
+		  {
+			  init_preproduct = init_preproduct / temp;
+			  P_primes[ P_len ] = temp;
+			  P_len++;
+		  }
+	  }
+	  // possible remaining factor
+	  if( init_preproduct > 1 )
+	  {
+		  P_primes[ P_len ] = init_preproduct;
+		  P_len++;
+	  }
+	  
+  }
+
+  if( init_LofP == 1 )
+  { 
+     L_len = 0;
+   }
+  else
+  {
+     //factor L here for L_exponents, L_distinct_primes, and L_len
+   }
+
+  appended_primes = 0;     
+
+}
 
 
 // admissibility check with no gcd
