@@ -1,6 +1,8 @@
 #include "Preproduct.h"
 #include <algorithm>
 #include <iostream>
+#include <bit>
+#include <bitset>
 #include <cstdint>
 #include <stdio.h>
 #include <gmp.h>
@@ -49,8 +51,28 @@ Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t i
    	}
 	else
   	{
-     //factor L here for L_exponents, L_distinct_primes, and L_len
-   	}
+		L_len = 1;
+	    L_distinct_primes[0] = 2;
+	    L_exponents[0] = __builtin_ctzl(init_LofP );
+		init_LofP = ( init_LofP >>  __builtin_ctzl( init_LofP ) );
+		// the prime 2 is now taken care of.  Account for odd primes:
+		temp = 3;
+		while( init_LofP != 1 )
+		{	
+			L_exponents[ L_len ] = 0;
+			if( init_LofP % temp == 0 )
+			{
+				L_distinct_primes[L_len] = temp;
+				while( init_LofP % temp == 0 )
+				{
+					L_exponents[ L_len ]++;
+					init_LofP /= temp;
+				}
+				L_len++;
+			}	
+			temp += 2;
+		}
+	}
   	len_appended_primes = 0;     
 }
 
@@ -84,9 +106,9 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 
 int main(void) {
 
-   Preproduct P0( 143, 60, 13 ); 
+   Preproduct P0( 143, 120, 13 ); 
 
-   std::cout << "Initializing Preproduct : " << 143 << std::endl;
+   std::cout << "Initializing Preproduct : " << P0.L_distinct_primes[0] << " " << P0.L_exponents[0] << std::endl;
    
 
    return 0;
