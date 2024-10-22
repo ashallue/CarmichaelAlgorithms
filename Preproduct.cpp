@@ -82,10 +82,121 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 {
 	mpz_init( P ) ;
 	mpz_mul_ui( P, PP.P, p.prime );
+	// preproduct now has the correct value
 
+	P_len = PP.P_len + 1;
+	std::copy( PP.P_primes,PP.P_primes + PP.P_len, P_primes );
+	P_primes[ P_len ] =  p.prime;
+	// primes array now has the correct primes
+	
+	append_bound = p.prime;
+	// append bound is updated
+	
+	//initialize L to be PP.L and increase only when new factors are seen
+	L = PP.L;
+
+	int i = 0; //counter for PP
+	int j = 0; //counter for p
+	L_len = 0; // counter for P
+	
 	//merge L and p-1
+	while( i < PP.L_len && j < p.pm1_len )
+	{
+		// check if they have the same prime
+		if( PP.L_distinct_primes[i] == p.pm1_distinct_primes[j] )
+		{
+			L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
+			L_exponents[ L_len ] = std::max( PP.L_exponents[i], p.pm1_exponents[j] );
+			//we need to update L if  L_exp < pm1_exp
+			if( PP.L_exponents[i] <  p.pm1_exponents[j])
+			{
+				for( int L_update = PP.L_exponents[i]; L_update < p.pm1_exponents[j]; L_update++ )
+				{
+					L *= PP.L_distinct_primes[i];
+				}
+			}
+			i++; j++; L_len++;
+		}
+		else if( PP.L_distinct_primes[i] < p.pm1_distinct_primes[j] )
+		{
+			L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
+			L_exponents[ L_len ] = PP.L_exponents[i];
+			// no update to L required
+			i++; L_len++;
+		}
+		else
+		{
+			L_distinct_primes[ L_len ] = p.pm1_distinct_primes[j];
+			L_exponents[ L_len ] = p.pm1_exponents[j];
+			for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
+			{
+				L *= p.pm1_distinct_primes[j];
+			}
+			j++; L_len++;
+		}
+	}
+	while( i < PP.L_len )
+	{
+		L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
+		L_exponents[ L_len ] = PP.L_exponents[i];
+		i++; L_len++;
+	}	
+	while( j < p.pm1_len  )
+	{
+		L_distinct_primes[ L_len ] = p.pm1_distinct_primes[j];
+		L_exponents[ L_len ] = p.pm1_exponents[j];
+		for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
+		{
+			L *= p.pm1_distinct_primes[j];
+		}
+		j++; L_len++;
+	}
 	
 	//set appended prime info for further admissibility checks
+	len_appended_primes = PP.len_appended_primes + 1;
+	// the next inadmissible prime to p.prime is 2*p.prime + 1 or 4*p.prime + 1
+	// case is chosen to avoid divisibility by 3
+	uint64_t temp_next_inad;
+	uint16_t temp_mod_3;
+	if( p.prime % 3 == 1 )
+	{
+		temp_next_inad = 4*p.prime + 1;
+		temp_mod_3 = 1; //next time add 2^1 * p
+	}
+	else
+	{
+		temp_next_inad = 2*p.prime + 1;
+		temp_mod_3 = 2; //next time add 2^2 * p
+	}
+	if( len_appended_primes == 1 )
+	{
+	    next_inadmissible[0] = temp_next_inad; 
+	    mod_three_status[0] = temp_mod_3;  
+	    appended_primes[0] = p.prime; 
+	}
+	else
+	{
+		int i = 0;
+		while( PP.next_inadmissible[i] < temp_next_inad )
+		{
+		    next_inadmissible[i] = PP.next_inadmissible[i];
+		    mod_three_status[i] = PP.mod_three_status[i];
+		    appended_primes[i] = PP.appended_primes[i];
+			i++;
+		}
+	    next_inadmissible[i] = temp_next_inad; 
+	    mod_three_status[i] = temp_mod_3;  
+	    appended_primes[i] = p.prime; 
+		while( i < PP.len_appended_primes )
+		{
+		    next_inadmissible[i+1] = PP.next_inadmissible[i];
+		    mod_three_status[i+1] = PP.mod_three_status[i];
+		    appended_primes[i+1] = PP.appended_primes[i];
+			i++;
+		}
+
+	}
+	
 
 }
 
