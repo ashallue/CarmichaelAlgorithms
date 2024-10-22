@@ -7,10 +7,12 @@
 #include <stdio.h>
 #include <gmp.h>
 
+
+// assumes valid inputs: 
+// 1) does not check that P is cylic 
+// 2) does not check that init_LofP is actually CarmichaelLambda(P)
+// uses trial division because the intended use case is relatively small initializing preproducts
 // could consider a constructor that passes in the factors of P and lambda(P)
-// does not check that init_LofP is actually lambda(P)
-// right now this uses trial division
-// intended use case is relatively small initializing preproducts
 Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
   	uint64_t temp;
@@ -23,7 +25,6 @@ Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t i
 
 	P_len = 0;
 
-  	// factory by trial division
   	if( init_preproduct != 1 )
   	{
 		temp = 1;
@@ -59,9 +60,9 @@ Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t i
 		temp = 3;
 		while( init_LofP != 1 )
 		{	
-			L_exponents[ L_len ] = 0;
 			if( init_LofP % temp == 0 )
 			{
+				L_exponents[ L_len ] = 0;
 				L_distinct_primes[L_len] = temp;
 				while( init_LofP % temp == 0 )
 				{
@@ -76,6 +77,22 @@ Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t i
   	len_appended_primes = 0;     
 }
 
+// assumes prime_stuff is valid and admissible to PP
+Preproduct::Preproduct( Preproduct PP, primes_stuff p )
+{
+	mpz_init( P ) ;
+	mpz_mul_ui( P, PP.P, p.prime );
+
+	//merge L and p-1
+	
+	//set appended prime info for further admissibility checks
+
+}
+
+Preproduct::~Preproduct()
+{
+	mpz_clear( P ); 
+}
 
 // admissibility check with no gcd
 // if the while loop is not taken, this will execute with less than 10 instructions
@@ -106,10 +123,15 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 
 int main(void) {
 
-   Preproduct P0( 143, 120, 13 ); 
+   Preproduct P0( 143, 60, 13 ); 
 
-   std::cout << "Initializing Preproduct : " << P0.L_distinct_primes[0] << " " << P0.L_exponents[0] << std::endl;
+   std::cout << "Initializing Lambda : " << P0.L << " =  " ;
    
+   for( int i = 0; i < ( P0.L_len - 1 ) ; i++ )
+   {
+	   std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;		
+   }
+   std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;	
 
    return 0;
 }

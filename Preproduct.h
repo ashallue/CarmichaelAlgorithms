@@ -6,6 +6,15 @@
 #include <stdio.h>
 #include <gmp.h>
 
+// contains a prime p and the factorization information for p-1 = Lambda(p)
+struct primes_stuff
+{
+	uint32_t prime;
+    uint32_t pm1_distinct_primes[10];
+    uint16_t pm1_exponents[10];   
+    uint16_t pm1_len;	
+};
+
 class Preproduct{
     
 	
@@ -32,9 +41,18 @@ public:
     uint16_t mod_three_status[5];  
     uint64_t appended_primes[5];   
 
-
-    // constructor and destructor here
+	// initializing constructor
     Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
+	// appending constructor
+	Preproduct( Preproduct PP, primes_stuff p );
+
+	~Preproduct();
+    
+	// assume we have an admissible prime to append. 
+	// contains a merge computation of LCM( lambda(PP), p-1 )
+
+	
+
 
 	// member functions
     bool is_admissible( uint64_t prime_to_append );
