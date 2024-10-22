@@ -94,37 +94,61 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 	
 	// initialize L to be PP.L and increase only when new factors are seen
 	L = PP.L;
-
-	int i = 0; //counter for PP
-	int j = 0; //counter for p
-	L_len = 0; // counter for P
 	
-	//merge L and p-1
-	while( i < PP.L_len && j < p.pm1_len )
+	if( (PP.L) % (p.prime - 1) == 0 )
 	{
-		// check if they have the same prime
-		if( PP.L_distinct_primes[i] == p.pm1_distinct_primes[j] )
+		std::copy( PP.L_distinct_primes,PP.L_distinct_primes + PP.L_len, L_distinct_primes );
+		std::copy( PP.L_exponents, PP.L_exponents + PP.L_len, L_exponents );
+		L_len = P.L_len;
+	}
+	else
+	{
+		//merge L and p-1
+		int i = 0; //counter for PP
+		int j = 0; //counter for p
+		L_len = 0; // counter for P
+		while( i < PP.L_len && j < p.pm1_len )
 		{
-			L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
-			L_exponents[ L_len ] = std::max( PP.L_exponents[i], p.pm1_exponents[j] );
-			//we need to update L if  L_exp < pm1_exp
-			if( PP.L_exponents[i] <  p.pm1_exponents[j])
+			// check if they have the same prime
+			if( PP.L_distinct_primes[i] == p.pm1_distinct_primes[j] )
 			{
-				for( int L_update = PP.L_exponents[i]; L_update < p.pm1_exponents[j]; L_update++ )
+				L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
+				L_exponents[ L_len ] = std::max( PP.L_exponents[i], p.pm1_exponents[j] );
+				//we need to update L if  L_exp < pm1_exp
+				if( PP.L_exponents[i] <  p.pm1_exponents[j])
 				{
-					L *= PP.L_distinct_primes[i];
+					for( int L_update = PP.L_exponents[i]; L_update < p.pm1_exponents[j]; L_update++ )
+					{
+						L *= PP.L_distinct_primes[i];
+					}
 				}
+				i++; j++; L_len++;
 			}
-			i++; j++; L_len++;
+			else if( PP.L_distinct_primes[i] < p.pm1_distinct_primes[j] )
+			{
+				L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
+				L_exponents[ L_len ] = PP.L_exponents[i];
+				// no update to L required
+				i++; L_len++;
+			}
+			else
+			{
+				L_distinct_primes[ L_len ] = p.pm1_distinct_primes[j];
+				L_exponents[ L_len ] = p.pm1_exponents[j];
+				for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
+				{
+					L *= p.pm1_distinct_primes[j];
+				}
+				j++; L_len++;
+			}
 		}
-		else if( PP.L_distinct_primes[i] < p.pm1_distinct_primes[j] )
+		while( i < PP.L_len )
 		{
 			L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
 			L_exponents[ L_len ] = PP.L_exponents[i];
-			// no update to L required
 			i++; L_len++;
-		}
-		else
+		}	
+		while( j < p.pm1_len  )
 		{
 			L_distinct_primes[ L_len ] = p.pm1_distinct_primes[j];
 			L_exponents[ L_len ] = p.pm1_exponents[j];
@@ -134,22 +158,6 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 			}
 			j++; L_len++;
 		}
-	}
-	while( i < PP.L_len )
-	{
-		L_distinct_primes[ L_len ] = PP.L_distinct_primes[i];
-		L_exponents[ L_len ] = PP.L_exponents[i];
-		i++; L_len++;
-	}	
-	while( j < p.pm1_len  )
-	{
-		L_distinct_primes[ L_len ] = p.pm1_distinct_primes[j];
-		L_exponents[ L_len ] = p.pm1_exponents[j];
-		for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
-		{
-			L *= p.pm1_distinct_primes[j];
-		}
-		j++; L_len++;
 	}
 	
 	//set appended prime info for further admissibility checks
