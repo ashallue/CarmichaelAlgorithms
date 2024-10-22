@@ -92,7 +92,7 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 	append_bound = p.prime;
 	// append bound is updated
 	
-	//initialize L to be PP.L and increase only when new factors are seen
+	// initialize L to be PP.L and increase only when new factors are seen
 	L = PP.L;
 
 	int i = 0; //counter for PP
@@ -156,18 +156,14 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 	len_appended_primes = PP.len_appended_primes + 1;
 	// the next inadmissible prime to p.prime is 2*p.prime + 1 or 4*p.prime + 1
 	// case is chosen to avoid divisibility by 3
-	uint64_t temp_next_inad;
-	uint16_t temp_mod_3;
+	uint64_t temp_next_inad = 2*p.prime + 1;
+	uint16_t temp_mod_3 = 2;
 	if( p.prime % 3 == 1 )
 	{
-		temp_next_inad = 4*p.prime + 1;
+		temp_next_inad += 2*p.prime;
 		temp_mod_3 = 1; //next time add 2^1 * p
 	}
-	else
-	{
-		temp_next_inad = 2*p.prime + 1;
-		temp_mod_3 = 2; //next time add 2^2 * p
-	}
+	
 	if( len_appended_primes == 1 )
 	{
 	    next_inadmissible[0] = temp_next_inad; 
