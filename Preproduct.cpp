@@ -21,7 +21,7 @@ Preproduct::~Preproduct()
 // 1) does not check that P is cylic 
 // 2) does not check that init_LofP is actually CarmichaelLambda(P)
 // uses trial division because the intended use case is relatively small initializing preproducts
-// could consider a constructor that passes in the factors of P and lambda(P)
+// could consider another version that passes in arrays of factors
 void Preproduct::initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
   	uint64_t temp;
