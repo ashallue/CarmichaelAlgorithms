@@ -69,7 +69,7 @@ void Preproduct::initialization( uint64_t init_preproduct, uint64_t init_LofP, u
             if( init_LofP % temp == 0 )
             {
                 L_exponents[ L_len ] = 0;
-                L_distinct_primes[L_len] = temp;
+                L_distinct_primes[ L_len ] = temp;
                 while( init_LofP % temp == 0 )
                 {
                     L_exponents[ L_len ]++;
@@ -224,6 +224,11 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
   return ( prime_to_append < next_inadmissible[0] ) ;
 }
 
+// some analysis could be done to minimize mpz_init calls
+// other optimizations in the if( is_fermat_psp ) branch
+    // data structure choice?
+    // check modular exponentation prior to computing gcd
+    // note that these optimizations effect a minority of the computation
 void Preproduct::CN_search( uint64_t bound_on_R )
 {
 
@@ -247,7 +252,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 
     // compute r^* = p^{-1} mod L
     // this is the start of  R = (r^* + kL) w/ k = 0
-    // now it holds the correct value
+    // r_star is no longer being used as a temporary variable
+    // it now it holds the correct value
     mpz_invert(r_star, P, L_gmp);
 
     // having computed r_star, we now use uint64_t for this quantity
@@ -273,9 +279,13 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     mpz_t base;
     mpz_init( base );
 
+    // storage for the gcd result
     mpz_t( gcd_result );
     mpz_init( gcd_result );
+    
     // storage for the result of the exponentiation
+    // result1 will hold the stronger test
+    // result2 will hold the Fermat test
     mpz_t result1;
     mpz_init( result1 );
     mpz_t result2;
@@ -302,6 +312,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
       {
         // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
         mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
+        // we use prime divisors of L as the Fermat bases
         mpz_set_ui( base, L_distinct_primes[ i ] );
         mpz_powm( result1,  base,  strong_exp, n); // b^( (n-1)/(2^e) )
         mpz_powm_ui( result2,  result1, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
@@ -329,6 +340,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             mpz_gcd( gcd_result, result1, r_factor);
 
             // check that gcd_result has a nontrivial divisor of r_factor
+            // could probably be a check on result1 = +/- 1 mod n
+            // before computing the gcd
             if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
             {
               // will need to add a check about a lower bound on these divisors
@@ -344,6 +357,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             }
           }
           // if R_composite is empty, check n is CN *here*
+         
+          // 
           // std::cout << "n = " << n << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
           // std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
         }
@@ -353,6 +368,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
         // do it again if
         // the number is a Fermat psp and
         // R_composite queue is not empty
+        // if i == L_len, we should probably output or factor directly
+        // room for improvement here
       }
       while( is_fermat_psp && !R_composite_factors.empty() && i < L_len );
 
@@ -365,15 +382,15 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     }    
 
     mpz_clear( L_gmp );
-     mpz_clear( r_star );
-     mpz_clear( n );
-     mpz_clear( strong_exp );
-     mpz_clear( PL );
-     mpz_clear( base );
-     mpz_clear( gcd_result );
-     mpz_clear( r_factor );
-     mpz_clear( result1 );
-     mpz_clear( result2 );
+    mpz_clear( r_star );
+    mpz_clear( n );
+    mpz_clear( strong_exp );
+    mpz_clear( PL );
+    mpz_clear( base );
+    mpz_clear( gcd_result );
+    mpz_clear( r_factor );
+    mpz_clear( result1 );
+    mpz_clear( result2 );
     
 }
 
