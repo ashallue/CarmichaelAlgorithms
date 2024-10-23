@@ -20,10 +20,10 @@
 // contains a prime p and the factorization information for p-1 = Lambda(p)
 struct primes_stuff
 {
-	uint32_t prime;
+    uint32_t prime;
     uint32_t pm1_distinct_primes[10];
-    uint16_t pm1_exponents[10];   
-    uint16_t pm1_len;	
+    uint16_t pm1_exponents[10];
+    uint16_t pm1_len;
 };
 
 class Preproduct{
@@ -32,17 +32,16 @@ class Preproduct{
 public:
 
 	mpz_t P;
-    uint64_t P_primes[MAX_PRIME_FACTORS];
+    uint64_t P_primes[ MAX_PRIME_FACTORS ];
     uint16_t P_len;
     uint64_t append_bound;  // primes appended to P need to exceed this bound
 
     // Information about L = CarmichaelLambda(P)
     uint64_t L;
-    uint64_t L_distinct_primes[MAX_PRIME_FACTORS];
-    uint16_t L_exponents[MAX_PRIME_FACTORS];   
+    uint64_t L_distinct_primes[ MAX_PRIME_FACTORS ];
+    uint16_t L_exponents[ MAX_PRIME_FACTORS ];   
     uint16_t L_len;
 
-    // 5 is chosen because that's the limit of the recursion depth.
     uint16_t len_appended_primes;
 
     // these arrays are used to avoid gcd computations for admissibility checks
