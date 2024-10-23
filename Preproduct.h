@@ -41,6 +41,7 @@ public:
     uint16_t mod_three_status[5];  
     uint64_t appended_primes[5];   
 
+
 	// initializing constructor
     Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
 	// appending constructor
@@ -49,10 +50,7 @@ public:
 	~Preproduct();
     
 	// assume we have an admissible prime to append. 
-	// contains a merge computation of LCM( lambda(PP), p-1 )
-
-	
-
+	// contains a merge computation of LCM( lambda(PP), p-1 )	
 
 	// member functions
     bool is_admissible( uint64_t prime_to_append );

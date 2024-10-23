@@ -15,10 +15,10 @@
 // could consider a constructor that passes in the factors of P and lambda(P)
 Preproduct::Preproduct( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
+	mpz_init( P ) ;
   	uint64_t temp;
   	temp = init_preproduct;
 
-  	mpz_init( P ) ;
   	mpz_import( P, 1, 1, sizeof(uint64_t), 0, 0, &temp );
   	L = init_LofP;
 	append_bound = init_append_bound;
@@ -99,14 +99,14 @@ Preproduct::Preproduct( Preproduct PP, primes_stuff p )
 	{
 		std::copy( PP.L_distinct_primes,PP.L_distinct_primes + PP.L_len, L_distinct_primes );
 		std::copy( PP.L_exponents, PP.L_exponents + PP.L_len, L_exponents );
-		L_len = P.L_len;
+		L_len = PP.L_len;
 	}
 	else
 	{
 		//merge L and p-1
 		int i = 0; //counter for PP
 		int j = 0; //counter for p
-		L_len = 0; // counter for P
+		L_len = 0; //counter for P
 		while( i < PP.L_len && j < p.pm1_len )
 		{
 			// check if they have the same prime
