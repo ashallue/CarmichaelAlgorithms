@@ -31,7 +31,7 @@ class Preproduct{
 	
 public:
 
-	mpz_t P;
+    mpz_t P;
     uint64_t P_primes[ MAX_PRIME_FACTORS ];
     uint16_t P_len;
     uint64_t append_bound;  // primes appended to P need to exceed this bound
@@ -51,20 +51,20 @@ public:
     uint16_t mod_three_status[ APPEND_LIMIT ];  
     uint64_t appended_primes[ APPEND_LIMIT ];   
 
-	// constructor and destructor
-	Preproduct();
-	~Preproduct();
+    // constructor and destructor
+    Preproduct();
+    ~Preproduct();
     
-	// initializing call
-	// has to factor init_preproduct and init_LofP
-	void initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
-	// appending call
-	// assume we have an admissible prime to append. 
-	// contains a merge computation of LCM( lambda(PP), p-1 )	
-	void appending( Preproduct PP, primes_stuff p );
+    // initializing call
+    // has to factor init_preproduct and init_LofP
+    void initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
+    // appending call
+    // assume we have an admissible prime to append. 
+    // contains a merge computation of LCM( lambda(PP), p-1 )	
+    void appending( Preproduct PP, primes_stuff p );
 
-	// member functions
-	// done with no gcd check
+    // member functions
+    // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
 
