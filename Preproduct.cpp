@@ -301,7 +301,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 
     uint64_t temp;
 
-    while( r_star64 < bound_on_R )
+    while( r_star64 <= bound_on_R )
     {
       R_composite_factors.push( r_star64 );
       R_prime_factors.clear();

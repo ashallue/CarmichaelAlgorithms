@@ -67,13 +67,13 @@ public:
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
-    // finds all R = (r^* + k*L) satisfying P*R < B
+    // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // checks that each candidate is a Fermat psuedoprime
     // uses a stronger Fermat test to factor composite R
     // if R is fully factored (and has passed the Fermat tests)
-    // the P*R is checked with Korselt's criterion
+    // then P*R is to be checked with Korselt's criterion  NYI
     // meant to be called when it is no longer efficient to do prime-by-prime appending 
-    // this takes the bound on R as an argument which implies R < (B/P) should be 
+    // this takes the bound on R as an argument which implies R <= (B/P)  
     // less than 2^64
     void CN_search( uint64_t bound_on_R );
 
