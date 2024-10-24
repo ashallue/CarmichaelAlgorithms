@@ -365,8 +365,9 @@ void Preproduct::CN_search( uint64_t bound_on_R )
           // if R_composite is empty, check n is CN *here*
          
           // 
-          // std::cout << "n = " << n << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
-          // std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
+          gmp_printf ("n = %Zd", n);
+          std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
+          std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
         }
 
         // get next Fermat base
@@ -404,13 +405,25 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 int main(void) {
     
     Preproduct P0;
-    P0.initialization( 143, 60, 13 ); 
-    std::cout << "Initializing Lambda : " << P0.L << " =  " ;
+    P0.initialization( 6682828353, 2289560, 13 );   
     
+    std::cout << "Initializing P : " ;
+    gmp_printf ("%Zd = ", P0.P );
+    
+    for( int i = 0; i < ( P0.P_len - 1 ); i++)
+    {
+        std::cout << P0.P_primes[i] << " * "  ;       
+    }
+    std::cout << P0.P_primes[P0.P_len - 1 ] << std::endl ;  
+    
+    std::cout << "Initializing Lambda : " << P0.L << " =  " ;
     for( int i = 0; i < ( P0.L_len - 1 ); i++)
     {
         std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;       
     }
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
+    
+    P0.CN_search(149637241475922);
+    
     return 0;
 }
