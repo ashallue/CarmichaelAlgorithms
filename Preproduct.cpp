@@ -406,6 +406,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 //
 bool Preproduct::is_CN( )
 {
+    // need to subtract 1 from P first...  fix later
     return (bool) mpz_divisible_ui_p( P , L );
 }
 

@@ -64,8 +64,9 @@ public:
     // initializing call
     // has to factor init_preproduct and init_LofP
     void initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
+    
     // appending call
-    // assume we have an admissible prime to append. 
+    // assume we have an admissible prime to append.
     // contains a merge computation of LCM( lambda(PP), p-1 )	
     void appending( Preproduct PP, primes_stuff p );
 
@@ -73,6 +74,10 @@ public:
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
+    // This will update L with a gcd computation
+    // it will not initialize 
+    void appending_L_arrays_ignored( uint64_t prime_to_append );
+    
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // checks that each candidate is a Fermat psuedoprime
     // uses a stronger Fermat test to factor composite R
