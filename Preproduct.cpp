@@ -24,7 +24,7 @@ Preproduct::~Preproduct()
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
 // uses trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes in arrays of factors
-void Preproduct::initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
+void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     mpz_set_ui( P, init_preproduct );
     L = init_LofP;
@@ -406,7 +406,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 //
 bool Preproduct::is_CN( )
 {
-    // need to subtract 1 from P first...  fix later
+    // L divides (P-1)  <==> P-1 = 0 mod L <==> 1 == P mod L
+    // need to reduce P mod L and return a comparison with 1
     return (bool) mpz_divisible_ui_p( P , L );
 }
 
@@ -415,7 +416,7 @@ bool Preproduct::is_CN( )
 int main(void) {
     
     Preproduct P0;
-    P0.initialization( 6682828353, 2289560, 13 );   
+    P0.initializing( 6682828353, 2289560, 13 );   
     
     std::cout << "Initializing P : " ;
     gmp_printf ("%Zd = ", P0.P );

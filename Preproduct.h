@@ -43,17 +43,19 @@ public:
     uint64_t append_bound;  // primes appended to P need to exceed this bound
 
     // Information about L = CarmichaelLambda(P)
+    // should change L to mpz_t
     uint64_t L;
     uint64_t L_distinct_primes[ MAX_PRIME_FACTORS ];
     uint16_t L_exponents[ MAX_PRIME_FACTORS ];   
     uint16_t L_len;
 
+    // two forms of initialization
+    // 1) "intializing" preproduct from the precomputation phase
+    //
     uint16_t len_appended_primes;
-
     // these arrays are used to avoid gcd computations for admissibility checks
-    // they are updated assuming primes are tested for admissibility in increasing order
-    // These three arrays are the only data members that can change after initialization
-    uint64_t next_inadmissible[ APPEND_LIMIT ]; 
+    // updated assuming primes are tested for admissibility in increasing order
+    uint64_t next_inadmissible[ APPEND_LIMIT ];
     uint16_t mod_three_status[ APPEND_LIMIT ];  
     uint64_t appended_primes[ APPEND_LIMIT ];   
 
@@ -63,7 +65,7 @@ public:
     
     // initializing call
     // has to factor init_preproduct and init_LofP
-    void initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
+    void initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
     
     // appending call
     // assume we have an admissible prime to append.
@@ -75,7 +77,7 @@ public:
     bool is_admissible( uint64_t prime_to_append );
 
     // This will update L with a gcd computation
-    // it will not initialize 
+    // it will not initialize
     void appending_L_arrays_ignored( uint64_t prime_to_append );
     
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
