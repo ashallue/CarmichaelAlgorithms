@@ -26,14 +26,14 @@ Preproduct::~Preproduct()
 // could consider another version that passes in arrays of factors
 void Preproduct::initialization( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
-    uint64_t temp;
-    temp = init_preproduct;
-
-    mpz_import( P, 1, 1, sizeof(uint64_t), 0, 0, &temp );
+    mpz_set_ui( P, init_preproduct );
     L = init_LofP;
     append_bound = init_append_bound;
     P_len = 0;
 
+       
+    uint64_t temp;
+    // set primes array for P
     if( init_preproduct != 1 )
     {
         temp = 1;
@@ -55,6 +55,7 @@ void Preproduct::initialization( uint64_t init_preproduct, uint64_t init_LofP, u
         }
     }
     
+    // set primes and exponent arrays for L
     if( init_LofP == 1 ) { L_len = 0; }
     else
     {
@@ -237,7 +238,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     // 2) n = PR = Pr^* + kPL - common difference of PL
 
     mpz_t L_gmp;
-    mpz_import (L_gmp, 1, 1, sizeof(uint64_t), 0, 0, &L );
+    mpz_init_set_ui( L_gmp, L );
     
     mpz_t r_star;
     mpz_init( r_star );
@@ -338,8 +339,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             // first time through, this is just r_factor will have the value of r_star
             temp = R_composite_factors.front();
             R_composite_factors.pop();
-            mpz_import (r_factor, 1, 1, sizeof(uint64_t), 0, 0, &temp );
-
+            mpz_set_ui( r_factor, temp );
+              
             // check gcd before prime testing
             // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
             mpz_add_ui( result1, result1, 1);
