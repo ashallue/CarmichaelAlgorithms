@@ -226,13 +226,16 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 
 // some analysis could be done to minimize mpz_init calls
 // other optimizations in the if( is_fermat_psp ) branch
-    // data structure choice?
-    // check modular exponentation prior to computing gcd
-    // note that these optimizations effect a minority of the computation
+// data structure choice? queue right now
+// check modular exponentation prior to computing gcd
+// note that these optimizations effect a minority of the computation
 void Preproduct::CN_search( uint64_t bound_on_R )
 {
+    // there are two arithmetic progressions associated with n = P*R
+    // letting r^* = P^{-1} mod L where 0 < r^* < L
+    // 1) R = r^* + kL - common difference of L
+    // 2) n = PR = Pr^* + kPL - common difference of PL
 
-    // set L = lambda(P)
     mpz_t L_gmp;
     mpz_import (L_gmp, 1, 1, sizeof(uint64_t), 0, 0, &L );
     
@@ -247,6 +250,9 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     
     // need power of 2 dividing LCM( P-1, L )
     // for the stronger fermat exponent
+    // we could dynamically choose for each n
+    // but we choose the largest power of 2 that works for all n
+    // does this matter?  if so, this needs to be moved to the primary while loop
     int32_t exp_on_2 = std::min( L_exponents[ 0 ], (uint16_t) mpz_scan1( r_star, 0) );
     int32_t pow_of_2 = ( 1 << exp_on_2 );
 
@@ -335,7 +341,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             mpz_import (r_factor, 1, 1, sizeof(uint64_t), 0, 0, &temp );
 
             // check gcd before prime testing
-            // result1 holds the algebraic factor assoicated with b^((n-1)/2) + 1
+            // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
             mpz_add_ui( result1, result1, 1);
             mpz_gcd( gcd_result, result1, r_factor);
 
@@ -368,7 +374,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
         // do it again if
         // the number is a Fermat psp and
         // R_composite queue is not empty
-        // if i == L_len, we should probably output or factor directly
+        // if i == L_len, we should probably output or factor directly 
+            // could be some strange multi-base Fermat pseudoprime - very rare?
         // room for improvement here
       }
       while( is_fermat_psp && !R_composite_factors.empty() && i < L_len );
