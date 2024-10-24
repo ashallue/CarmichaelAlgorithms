@@ -18,11 +18,17 @@
 #define APPEND_LIMIT 5
 
 // contains a prime p and the factorization information for p-1 = Lambda(p)
+// prime_stuff is for the appended prime that come from
+// sieving up to sqrt( B/P )
+// for our computation the least such P is 10^8 and B = 10^24
+// so sqrt(B/P) < 10^8   note that 2*3*5*7*11*13*17*19*23 > 10^8
+#define L_PRIME_FACTORS 10
+
 struct primes_stuff
 {
     uint32_t prime;
-    uint32_t pm1_distinct_primes[10];
-    uint16_t pm1_exponents[10];
+    uint32_t pm1_distinct_primes[ L_PRIME_FACTORS ];
+    uint16_t pm1_exponents[ L_PRIME_FACTORS ];
     uint16_t pm1_len;
 };
 
@@ -76,6 +82,8 @@ public:
     // this takes the bound on R as an argument which implies R <= (B/P)  
     // less than 2^64
     void CN_search( uint64_t bound_on_R );
+    
+    bool is_CN( );
 
 };
 

@@ -402,6 +402,14 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     
 }
 
+//
+bool Preproduct::is_CN( )
+{
+    return (bool) mpz_divisible_ui_p( P , L );
+}
+
+
+
 int main(void) {
     
     Preproduct P0;
