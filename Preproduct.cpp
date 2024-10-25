@@ -425,13 +425,13 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     mpz_init_set_ui( gcd_result, 1);
     
     bool return_val = true;
-    
+
+    // not meaningful optimization availalbe
+    // break the loop(s) when return_val is detected to be false
     for( auto app_prime : primes_to_append )
     {
         for( int i = 0; i < P_len; i ++ )
         {
-            // admissibility check - check if the app_prime is of
-            // 1 mod (P_primes) which would be inadmissible
             return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
         }
         // update the preproduct by this prime
@@ -457,16 +457,16 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 //
 bool Preproduct::is_CN( )
 {
-    // L divides (P-1)  <==> P-1 = 0 mod L <==> 1 == P mod L
-    // need to reduce P mod L and return a comparison with 1
     bool return_val;
-    mpz_t temp;
+   
+    // subtract 1 from P
+    mpz_sub_ui( P, P, 1);
     
-    mpz_init_set( temp, P );
-    mpz_sub_ui( temp, temp, 1);
-    return_val = mpz_divisible_p( temp  , L );
+    // check if L exactly divides P-1
+    return_val = mpz_divisible_p( P  , L );
     
-    mpz_clear( temp );
+    // return P to its correct value
+    mpz_add( P, P, 1);
     
     return return_val;
 }

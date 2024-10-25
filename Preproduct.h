@@ -79,7 +79,7 @@ public:
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
-    // This will compute L and P with gcd computations and return if P = 1 mod L
+    // This will compute L and P with gcd computations
     // does *not* create a Preproduct structure
     // future version should probably have a filestream argument
     // and have this method be void but write output to file
