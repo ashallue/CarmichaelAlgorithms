@@ -79,9 +79,8 @@ public:
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
-    // This will update compute the implied L and P with gcd computations
-    // and return if P = 1 mod L
-    // does not create a Preproduct structure
+    // This will compute L and P with gcd computations and return if P = 1 mod L
+    // does *not* create a Preproduct structure
     // future version should probably have a filestream argument
     // and have this method be void but write output to file
     bool appending_is_CN( std::vector< uint64_t >&  primes_to_append );
