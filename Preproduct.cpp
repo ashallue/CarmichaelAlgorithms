@@ -12,22 +12,27 @@
 Preproduct::Preproduct()
 {
     mpz_init( P ) ;
+    mpz_init( L ) ;
 }
 
 Preproduct::~Preproduct()
 {
-    mpz_clear( P ); 
+    mpz_clear( P );
+    mpz_clear( L );
 }
 
 // assumes valid inputs: 
 // 1) does not check that init_preproduct is cylic 
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
+// intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes in arrays of factors
+// precomputation would need to be re-written
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     mpz_set_ui( P, init_preproduct );
-    L = init_LofP;
+    // L = init_LofP;
+    mpz_set_ui( L, init_LofP );
     append_bound = init_append_bound;
     P_len = 0;
 
@@ -94,8 +99,11 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
     append_bound = p.prime;
     
     // initialize L to be PP.L and increase only when new factors are seen
-    L = PP.L;
-    if( (PP.L) % (p.prime - 1) == 0 )
+    // L = PP.L;
+    // if( (PP.L) % (p.prime - 1) == 0 )
+
+    mpz_set( L, PP.L );
+    if( mpz_divisible_ui_p( L, ( p.prime - 1 ) )  )
     {
         std::copy( PP.L_distinct_primes,PP.L_distinct_primes + PP.L_len, L_distinct_primes );
         std::copy( PP.L_exponents, PP.L_exponents + PP.L_len, L_exponents );
@@ -119,7 +127,8 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
                 {
                     for( int L_update = PP.L_exponents[i]; L_update < p.pm1_exponents[j]; L_update++ )
                     {
-                        L *= PP.L_distinct_primes[i];
+                        mpz_mul_ui( L, L, PP.L_distinct_primes[i] );
+                        //L *= PP.L_distinct_primes[i];
                     }
                 }
                 i++; j++; L_len++;
@@ -136,7 +145,8 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
                 L_exponents[ L_len ] = p.pm1_exponents[j];
                 for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
                 {
-                    L *= p.pm1_distinct_primes[j];
+                    mpz_mul_ui( L, L, p.pm1_distinct_primes[j] );
+                    //L *= p.pm1_distinct_primes[j];
                 }
                 j++; L_len++;
             }
@@ -153,7 +163,8 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
             L_exponents[ L_len ] = p.pm1_exponents[j];
             for( int L_update = 0; L_update < p.pm1_exponents[j]; L_update++ )
             {
-                L *= p.pm1_distinct_primes[j];
+                mpz_mul_ui( L, L, p.pm1_distinct_primes[j] );
+                // L *= p.pm1_distinct_primes[j];
             }
             j++; L_len++;
         }
@@ -237,8 +248,6 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     // 1) R = r^* + kL - common difference of L
     // 2) n = PR = Pr^* + kPL - common difference of PL
 
-    mpz_t L_gmp;
-    mpz_init_set_ui( L_gmp, L );
     
     mpz_t r_star;
     mpz_init( r_star );
@@ -261,12 +270,15 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     // this is the start of  R = (r^* + kL) w/ k = 0
     // r_star is no longer being used as a temporary variable
     // it now it holds the correct value
-    mpz_invert(r_star, P, L_gmp);
+    mpz_invert(r_star, P, L);
 
     // having computed r_star, we now use uint64_t for this quantity
     uint64_t r_star64;
     mpz_export( &r_star64, 0, 1, sizeof(uint64_t), 0, 0, r_star);
 
+    uint64_t L64;
+    mpz_export( &L64, 0, 1, sizeof(uint64_t), 0, 0, L);
+    
     // This is the start of n = Pr^* + kPL w/ k = 0
     // so n = Pr^*
     mpz_t n;
@@ -279,7 +291,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     // common difference for n
     mpz_t PL;
     mpz_init( PL );
-    mpz_mul( PL, P, L_gmp );
+    mpz_mul( PL, P, L );
 
     // will need more bases later
     // use bases from the prime divisors of L
@@ -387,10 +399,9 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 
       // move to next candidate in arithmetic progression for n and R
       mpz_add( n, n, PL);
-      r_star64 += L;
-    }    
+      r_star64 += L64;
+    }
 
-    mpz_clear( L_gmp );
     mpz_clear( r_star );
     mpz_clear( n );
     mpz_clear( strong_exp );
@@ -408,7 +419,7 @@ bool Preproduct::is_CN( )
 {
     // L divides (P-1)  <==> P-1 = 0 mod L <==> 1 == P mod L
     // need to reduce P mod L and return a comparison with 1
-    return (bool) mpz_divisible_ui_p( P , L );
+    return (bool) mpz_divisible_p( P , L );
 }
 
 
@@ -416,7 +427,7 @@ bool Preproduct::is_CN( )
 int main(void) {
     
     Preproduct P0;
-    P0.initializing( 6682828353, 2289560, 13 );   
+    P0.initializing( 6682828353, 2289560, 13 );
     
     std::cout << "Initializing P : " ;
     gmp_printf ("%Zd = ", P0.P );
@@ -427,7 +438,9 @@ int main(void) {
     }
     std::cout << P0.P_primes[P0.P_len - 1 ] << std::endl ;  
     
-    std::cout << "Initializing Lambda : " << P0.L << " =  " ;
+    std::cout << "Initializing Lambda : " ;
+    gmp_printf ("%Zd = ", P0.L );
+    
     for( int i = 0; i < ( P0.L_len - 1 ); i++)
     {
         std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;       
