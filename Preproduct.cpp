@@ -466,7 +466,7 @@ bool Preproduct::is_CN( )
     return_val = mpz_divisible_p( P  , L );
     
     // return P to its correct value
-    mpz_add( P, P, 1);
+    mpz_add_ui( P, P, 1);
     
     return return_val;
 }
