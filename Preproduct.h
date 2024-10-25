@@ -11,6 +11,8 @@
 // the least CN with a fixed number of prime factors is known
 // array lengths set at fixed length to accomodate this
 // for B = 10^24 there is 1 CN with 14 prime factors
+// could be set smaller since the last prime(s) to be
+// appended are done so without forming explicitly forming a Preproduct
 #define MAX_PRIME_FACTORS 14
 
 // the intended use of this is with a precomputation that limits
@@ -95,7 +97,7 @@ public:
     // less than 2^64
     void CN_search( uint64_t bound_on_R );
     
-    // check that P = 1 mod L
+    // check that L exactly divides P - 1
     // in the future modify to take filestream?
     // to return true, means we need to output which is the actual goal
     bool is_CN( );
