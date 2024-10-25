@@ -2,12 +2,13 @@
 #define PREPRODUCT_H
 
 #include <algorithm>
+#include <vector>
 #include <cstdint>
 #include <stdio.h>
 #include <gmp.h>
 
 // http://www.s369624816.websitehome.co.uk/rgep/cartable.html
-// the least carmichael number with a fixed number of prime factors is known
+// the least CN with a fixed number of prime factors is known
 // array lengths set at fixed length to accomodate this
 // for B = 10^24 there is 1 CN with 14 prime factors
 #define MAX_PRIME_FACTORS 14
@@ -51,7 +52,8 @@ public:
 
     // two forms of initialization
     // 1) "intializing" preproduct from the precomputation phase
-    //
+    // 2) "appending" to the initializing product when prime by prime is justified
+    // in case 2, we count these appended primes
     uint16_t len_appended_primes;
     // these arrays are used to avoid gcd computations for admissibility checks
     // updated assuming primes are tested for admissibility in increasing order
@@ -76,9 +78,12 @@ public:
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );
 
-    // This will update L with a gcd computation
-    // it will not initialize
-    void appending_L_arrays_ignored( uint64_t prime_to_append );
+    // This will update compute the implied L and P with gcd computations
+    // and return if P = 1 mod L
+    // does not create a Preproduct structure
+    // future version should probably have a filestream argument
+    // and have this method be void but write output to file
+    bool appending_is_CN( std::vector< uint64_t >&  primes_to_append );
     
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // checks that each candidate is a Fermat psuedoprime
@@ -90,6 +95,9 @@ public:
     // less than 2^64
     void CN_search( uint64_t bound_on_R );
     
+    // check that P = 1 mod L
+    // in the future modify to take filestream?
+    // to return true, means we need to output which is the actual goal
     bool is_CN( );
 
 };
