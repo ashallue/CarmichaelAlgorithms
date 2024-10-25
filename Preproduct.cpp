@@ -414,12 +414,61 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     
 }
 
+bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
+{
+    mpz_t P_temp;
+    mpz_t L_temp;
+    mpz_t gcd_result;
+
+    mpz_init_set( P_temp, P );
+    mpz_init_set( L_temp, L );
+    mpz_init_set_ui( gcd_result, 1);
+    
+    bool return_val = true;
+    
+    for( auto app_prime : primes_to_append )
+    {
+        for( int i = 0; i < P_len; i ++ )
+        {
+            // admissibility check - check if the app_prime is of
+            // 1 mod (P_primes) which would be inadmissible
+            return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
+        }
+        // update the preproduct by this prime
+        mpz_mul_ui( P_temp, P_temp, app_prime );
+        uint64_t temp = app_prime - 1;
+        // compute LCM( L, p-1 ) = (L / gcd( L, p-1 ) )*(p-1)
+        mpz_gcd_ui( gcd_result, L_temp, temp );
+        mpz_divexact( L_temp, L_temp, gcd_result );
+        mpz_mul_ui( L_temp, L_temp, temp );
+    }
+
+    mpz_sub_ui( P_temp, P_temp, 1);
+    return_val = return_val && mpz_divisible_p( P_temp, L_temp );
+        
+    mpz_clear( P_temp );
+    mpz_clear( L_temp );
+    mpz_clear( gcd_result );
+    
+    return return_val;
+    
+}
+
 //
 bool Preproduct::is_CN( )
 {
     // L divides (P-1)  <==> P-1 = 0 mod L <==> 1 == P mod L
     // need to reduce P mod L and return a comparison with 1
-    return (bool) mpz_divisible_p( P , L );
+    bool return_val;
+    mpz_t temp;
+    
+    mpz_init_set( temp, P );
+    mpz_sub_ui( temp, temp, 1);
+    return_val = mpz_divisible_p( temp  , L );
+    
+    mpz_clear( temp );
+    
+    return return_val;
 }
 
 
