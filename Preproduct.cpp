@@ -430,7 +430,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     // break the loop(s) when return_val is detected to be false
     for( auto app_prime : primes_to_append )
     {
-        for( int i = 0; i < P_len; i ++ )
+        for( int i = 0; i < P_len; i++ )
         {
             return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
         }

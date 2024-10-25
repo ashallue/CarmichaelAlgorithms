@@ -12,7 +12,7 @@
 // array lengths set at fixed length to accomodate this
 // for B = 10^24 there is 1 CN with 14 prime factors
 // could be set smaller since the last prime(s) to be
-// appended are done so without forming explicitly forming a Preproduct
+// appended are done so without forming explicitly forming a Preproduct object
 #define MAX_PRIME_FACTORS 14
 
 // the intended use of this is with a precomputation that limits
