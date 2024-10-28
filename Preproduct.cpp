@@ -8,6 +8,9 @@
 #include <cstdint>
 #include <stdio.h>
 #include <gmp.h>
+#include <cstddef> 
+
+static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes");
 
 Preproduct::Preproduct()
 {
