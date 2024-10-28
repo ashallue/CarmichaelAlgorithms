@@ -93,8 +93,7 @@ public:
     // if R is fully factored (and has passed the Fermat tests)
     // then P*R is to be checked with Korselt's criterion  NYI
     // meant to be called when it is no longer efficient to do prime-by-prime appending 
-    // this takes the bound on R as an argument which implies R <= (B/P)  
-    // less than 2^64
+    // this takes the bound on R as an argument which implies R <= (B/P) < 2^64
     void CN_search( uint64_t bound_on_R );
     
     // check that L exactly divides P - 1

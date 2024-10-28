@@ -27,11 +27,10 @@ Preproduct::~Preproduct()
 // intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes in arrays of factors
-// precomputation would need to be re-written
+// precomputation.cpp would need to be re-written
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     mpz_set_ui( P, init_preproduct );
-    // L = init_LofP;
     mpz_set_ui( L, init_LofP );
     append_bound = init_append_bound;
     P_len = 0;
@@ -127,6 +126,7 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
                 {
                     for( int L_update = PP.L_exponents[i]; L_update < p.pm1_exponents[j]; L_update++ )
                     {
+                        // need to import PP.L_distinct_primes[i] before multplying ?
                         mpz_mul_ui( L, L, PP.L_distinct_primes[i] );
                         //L *= PP.L_distinct_primes[i];
                     }
@@ -282,10 +282,10 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     // This is the start of n = Pr^* + kPL w/ k = 0
     // so n = Pr^*
     mpz_t n;
-    mpz_init(n);
+    mpz_init( n );
     mpz_mul( n, P, r_star);
 
-    mpz_t( strong_exp );
+    mpz_t strong_exp;
     mpz_init( strong_exp );
 
     // common difference for n
@@ -299,7 +299,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     mpz_init( base );
 
     // storage for the gcd result
-    mpz_t( gcd_result );
+    mpz_t gcd_result;
     mpz_init( gcd_result );
     
     // storage for the result of the exponentiation
@@ -351,6 +351,8 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             // first time through, this is just r_factor will have the value of r_star
             temp = R_composite_factors.front();
             R_composite_factors.pop();
+            
+            // should be mpz_import ?
             mpz_set_ui( r_factor, temp );
               
             // check gcd before prime testing
@@ -478,6 +480,8 @@ int main(void) {
     Preproduct P0;
     P0.initializing( 6682828353, 2289560, 13 );
     
+    std::cout << "LP for this is " << sizeof( unsigned long int ) << std::endl;
+    
     std::cout << "Initializing P : " ;
     gmp_printf ("%Zd = ", P0.P );
     
@@ -497,6 +501,7 @@ int main(void) {
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
     
     P0.CN_search(149637241475922);
+    
     
     return 0;
 }
