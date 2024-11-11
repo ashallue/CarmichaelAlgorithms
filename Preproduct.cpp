@@ -472,6 +472,7 @@ std::vector< primes_stuff > primes_admissible_to_P( Preproduct PP )
     
     // there are 5761455 primes less than 10^8
     // we set aside the appropriate space
+    // do this or let the space be dynamically allocated based on the computed prime_bound?
     return_vector.reserve( PRIME_COUNT );
     
     // a different way to do the below would be to
@@ -487,7 +488,7 @@ std::vector< primes_stuff > primes_admissible_to_P( Preproduct PP )
     prime_bound = std::min( prime_bound, (int64_t) DEFAULT_MAX_PRIME_BOUND );
     
     /*
-     initialize some kind of factor sieve
+     initialize some kind of factor sieve up to prime_bound
      use primes dividing P for admissibility checks
      e.g. for q in the factor sieve make sure 1 != q mod p for each p dividing P
      write each admissible prime into the prime_stuff struct formate
