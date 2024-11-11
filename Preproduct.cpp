@@ -15,7 +15,7 @@ static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  neede
 // hard code sqrt( B )
 // we have choosen B = 10^24
 #define SQRT_BOUND 1'000'000'000'000
-// largest prime < sqrt( B / X ) = 10^8
+// largest prime <= sqrt( B / X ) = 10^8
 // because X = 10^8
 #define DEFAULT_MAX_PRIME_BOUND 100'000'000
 // there are 5761455 primes less than 10^8
@@ -199,10 +199,14 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
         mod_three_status[0] = temp_mod_3;
         appended_primes[0] = p.prime;
     }
+    // So, we have an arry in sorted order and we need to insert a new element
+    // copy the info from PP into the new product until we find where the new info goes
+    // put the new info in
+    // resume copying the info from PP if needed
     else
     {
         int i = 0;
-        while( PP.next_inadmissible[i] < temp_next_inad )
+        while( PP.next_inadmissible[i] < temp_next_inad && i < PP.len_appended_primes )
         {
             next_inadmissible[i] = PP.next_inadmissible[i];
             mod_three_status[i] = PP.mod_three_status[i];
