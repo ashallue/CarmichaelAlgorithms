@@ -466,7 +466,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     return return_val;
 }
 
-std::vector< primes_stuff > primes_admissible_to_P( Preproduct PP )
+std::vector< primes_stuff > Preproduct::primes_admissible_to_P( )
 {
     std::vector< primes_stuff > return_vector;
     
@@ -480,7 +480,7 @@ std::vector< primes_stuff > primes_admissible_to_P( Preproduct PP )
     // only when P > 10^8 would prime_bound have a value less than
     mpz_t sqrt_P;
     mpz_init( sqrt_P );
-    mpz_sqrt( sqrt_P, PP.P );
+    mpz_sqrt( sqrt_P, P );
     
     int64_t prime_bound;
     mpz_export( &prime_bound, 0, 1, sizeof(uint64_t), 0, 0, sqrt_P);

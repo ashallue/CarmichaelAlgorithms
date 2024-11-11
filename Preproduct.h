@@ -111,7 +111,7 @@ public:
     // finds all primes that are admissible to P
     // the intent is that this creates the vector that holds the primes
     // that are used with the appending method
-    std::vector< primes_stuff > primes_admissible_to_P( Preproduct PP );
+    std::vector< primes_stuff > primes_admissible_to_P( );
     
     // check that L exactly divides P - 1
     // in the future modify to take filestream?
