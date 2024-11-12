@@ -2,7 +2,7 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3 -lgmp -lgmpxx
+CXXFLAGS = -O3 -lgmp
 
 # Target executables
 TARGETS = CN_search precomputation Preproduct
