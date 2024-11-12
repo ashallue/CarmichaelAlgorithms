@@ -504,7 +504,7 @@ std::vector< primes_stuff > Preproduct::primes_admissible_to_P( )
 }
 
 // Check that lambda(P) divides (P-1)
-// consider changing this to int return
+// consider changing this to int-type return matching how gmp returns
 // and have the same return standard as gmp
 bool Preproduct::is_CN( )
 {
@@ -520,8 +520,8 @@ bool Preproduct::is_CN( )
 int main(void) {
     
     Preproduct P0;
-    P0.initializing( 599266767, 890750, 991 );
-    // P0.initializing( 6682828353, 2289560, 13 );
+    // P0.initializing( 599266767, 890750, 991 );
+    P0.initializing( 6682828353, 2289560, 13 );
     
     std::cout << "LP for this is " << sizeof( unsigned long int ) << std::endl;
     
@@ -543,8 +543,8 @@ int main(void) {
     }
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
     
-    P0.CN_search(1873371784);
-    // P0.CN_search(149637241475922);
+    // P0.CN_search(1873371784);
+    P0.CN_search(149637241475922);
     
     return 0;
 }
