@@ -38,6 +38,11 @@
 // "merge" computation of lcm( L(P), p-1) would be a bit easier
 #define L_PRIME_FACTORS 8
 
+// consider a more compact storage structure
+// see:  https://github.com/sorenson64/soespace/blob/main/soe.h
+// and the paper:  https://arxiv.org/pdf/2406.09150
+// we'd nee to expand to something like the below for each append call
+// but the storage cost would be reduced by about 16 times
 struct primes_stuff
 {
     uint32_t prime;
