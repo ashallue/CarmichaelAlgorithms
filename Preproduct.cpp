@@ -252,10 +252,15 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
   return ( prime_to_append < next_inadmissible[0] ) ;
 }
 
-// some analysis could be done to minimize mpz_init calls
-// other optimizations in the if( is_fermat_psp ) branch
-// data structure choice? queue right now
-// check modular exponentation prior to computing gcd
+// things to do (in no particular order):
+// 1 - incorporate small primes into the arithmetic progression:
+//     Let p be a small prime not dividiing L and p < k
+//     Then we can consider (p-1) residue classes modulo p*L
+// 2 - we can probably be more careful with temporary variables and have fewer mpz_init calls
+// 3 - in the if( is_fermat_psp ) branch
+//     3a - data structure choice? queue right now
+//     3b - check modular exponentation prior to computing gcd
+// 4 - make sure exit conditions are correct
 // note that these optimizations effect a minority of the computation
 void Preproduct::CN_search( uint64_t bound_on_R )
 {
