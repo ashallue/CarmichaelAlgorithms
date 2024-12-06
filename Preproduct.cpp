@@ -261,7 +261,7 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 //     3a - data structure choice? queue right now
 //     3b - check modular exponentation prior to computing gcd
 // 4 - make sure exit conditions are correct
-// note that these optimizations effect a minority of the computation
+// 5 - remove input bound_on_R and compute w/r/t/ B
 void Preproduct::CN_search( uint64_t bound_on_R )
 {
     // there are two arithmetic progressions associated with n = P*R
@@ -341,6 +341,10 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 
     uint64_t temp;
 
+    // to incorporate small primes not dividing L
+    // loop over those residue here
+    // could set up a space-saving wheel
+    
     while( r_star64 <= bound_on_R )
     {
       R_composite_factors.push( r_star64 );
@@ -398,8 +402,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             }
           }
           // if R_composite is empty, check n is CN *here*
-         
-          // 
+          // output lines below are temporary and meant for debugging
           gmp_printf ("n = %Zd", n);
           std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
           std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
