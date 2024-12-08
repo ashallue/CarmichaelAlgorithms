@@ -1,6 +1,6 @@
-// compiled with  g++ CN_search.cpp -lgmpxx -lgmp -O3
+// compiled with  g++ CN_search.cpp -lgmp -O3
 
-#include <gmpxx.h>
+#include <gmp.h>
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -28,22 +28,22 @@ int main()
 
   auto t1 = high_resolution_clock::now();
 
-  // set search bound, set as 10^23
+  // set search bound, set as 10^24
   mpz_t bound;
   mpz_init_set_ui( bound, 10 );
   mpz_pow_ui( bound, bound, 24 );
 
   // set preproduct
   mpz_t P;
-  mpz_init_set_ui( P, 6682828353 );
+  mpz_init_set_ui( P, 515410417841 );
 
   //mpz_init_set_ui( P, 67491742686737 );
 
   // set L = lambda(P)
   mpz_t L;
-  mpz_init_set_ui( L, 2289560 );
-  uint64_t L64 = 2289560;
-  uint64_t fermat_bases[6] = { 2, 5, 7, 13, 17, 37 };
+  mpz_init_set_ui( L, 115920 );
+  uint64_t L64 = 115920;
+  uint64_t fermat_bases[5] = { 2, 3, 5, 7, 23};
 
   //mpz_init_set_ui( L, 36756720 );
   //uint64_t L64 = 36756720;
@@ -51,7 +51,7 @@ int main()
 
   // need power of 2 dividing LCM( P-1, L )
   // for the stronger fermat exponent
-  int32_t exp_on_2 = 3;
+  int32_t exp_on_2 = 4;
   int32_t pow_of_2 = ( 1 << exp_on_2 );
 
   // compute r^* = p^{-1} mod L
@@ -109,7 +109,7 @@ int main()
 
     do
     {
-      // set up strong base:  truncated divsion by 4 means the exponent holds (n-1)/(2^e)
+      // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
       mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
       mpz_set_ui( base, fermat_bases[i] );
       mpz_powm( result1,  base,  strong_exp, n); // b^( (n-1)/(2^e) )
@@ -133,7 +133,7 @@ int main()
           mpz_import (r_factor, 1, 1, sizeof(uint64_t), 0, 0, &temp );
 
           // check gcd before prime testing
-          // result1 holds the algebraic factor assoicated with b^((n-1)/2) + 1
+          // result1 holds the algebraic factor assoicated with b^((n-1)/(2^e)) + 1
           mpz_add_ui( result1, result1, 1);
           mpz_gcd( gcd_result, result1, r_factor);
 
@@ -153,7 +153,9 @@ int main()
           }
         }
         // if R_composite is empty, check n is CN *here*
-        std::cout << "n = " << n << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
+          std::cout << "n = " ;
+          gmp_printf( "%Zd", n);
+          std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
         std::cout << "and is a base-" << fermat_bases[i] << " Fermat psp." << std::endl;
       }
 
@@ -163,7 +165,7 @@ int main()
       // the number is a Fermat psp and
       // R_composite queue is not empty
     }
-    while( is_fermat_psp && !R_composite_factors.empty() && i < 6 );
+    while( is_fermat_psp && !R_composite_factors.empty() && i < 5 );
 
     // empty queue
     while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }

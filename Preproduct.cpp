@@ -3,14 +3,23 @@
 #include <iostream>
 #include <queue>
 #include <vector>
-#include <bit>
-#include <bitset>
 #include <cstdint>
 #include <stdio.h>
 #include <gmp.h>
-#include <cstddef> 
+#include <cstddef>
 
-static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes");
+static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
+
+// redo these if necessary
+
+// hard code sqrt( B )
+// we have choosen B = 10^24
+#define SQRT_BOUND 1'000'000'000'000
+// largest prime <= sqrt( B / X ) = 10^8
+// because X = 10^8
+#define DEFAULT_MAX_PRIME_BOUND 100'000'000
+// there are 5761455 primes less than 10^8
+#define PRIME_COUNT 5761455
 
 Preproduct::Preproduct()
 {
@@ -190,10 +199,14 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
         mod_three_status[0] = temp_mod_3;
         appended_primes[0] = p.prime;
     }
+    // So, we have an arry in sorted order and we need to insert a new element
+    // copy the info from PP into the new product until we find where the new info goes
+    // put the new info in
+    // resume copying the info from PP if needed
     else
     {
         int i = 0;
-        while( PP.next_inadmissible[i] < temp_next_inad )
+        while( PP.next_inadmissible[i] < temp_next_inad && i < PP.len_appended_primes )
         {
             next_inadmissible[i] = PP.next_inadmissible[i];
             mod_three_status[i] = PP.mod_three_status[i];
@@ -239,11 +252,16 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
   return ( prime_to_append < next_inadmissible[0] ) ;
 }
 
-// some analysis could be done to minimize mpz_init calls
-// other optimizations in the if( is_fermat_psp ) branch
-// data structure choice? queue right now
-// check modular exponentation prior to computing gcd
-// note that these optimizations effect a minority of the computation
+// things to do (in no particular order):
+// 1 - incorporate small primes into the arithmetic progression:
+//     Let p be a small prime not dividiing L and p < k
+//     Then we can consider (p-1) residue classes modulo p*L
+// 2 - we can probably be more careful with temporary variables and have fewer mpz_init calls
+// 3 - in the if( is_fermat_psp ) branch
+//     3a - data structure choice? queue right now
+//     3b - check modular exponentation prior to computing gcd
+// 4 - make sure exit conditions are correct
+// 5 - remove input bound_on_R and compute w/r/t/ B
 void Preproduct::CN_search( uint64_t bound_on_R )
 {
     // there are two arithmetic progressions associated with n = P*R
@@ -323,6 +341,10 @@ void Preproduct::CN_search( uint64_t bound_on_R )
 
     uint64_t temp;
 
+    // to incorporate small primes not dividing L
+    // loop over those residue here
+    // could set up a space-saving wheel
+    
     while( r_star64 <= bound_on_R )
     {
       R_composite_factors.push( r_star64 );
@@ -355,7 +377,6 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             temp = R_composite_factors.front();
             R_composite_factors.pop();
             
-            // should be mpz_import ?
             mpz_set_ui( r_factor, temp );
               
             // check gcd before prime testing
@@ -381,8 +402,7 @@ void Preproduct::CN_search( uint64_t bound_on_R )
             }
           }
           // if R_composite is empty, check n is CN *here*
-         
-          // 
+          // output lines below are temporary and meant for debugging
           gmp_printf ("n = %Zd", n);
           std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
           std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
@@ -456,23 +476,50 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     mpz_clear( gcd_result );
     
     return return_val;
-    
 }
 
-//
+std::vector< primes_stuff > Preproduct::primes_admissible_to_P( )
+{
+    std::vector< primes_stuff > return_vector;
+    
+    // there are 5761455 primes less than 10^8
+    // we set aside the appropriate space
+    // do this or let the space be dynamically allocated based on the computed prime_bound?
+    return_vector.reserve( PRIME_COUNT );
+    
+    // a different way to do the below would be to
+    // test if P > 10^8 first
+    // only when P > 10^8 would prime_bound have a value less than
+    mpz_t sqrt_P;
+    mpz_init( sqrt_P );
+    mpz_sqrt( sqrt_P, P );
+    
+    int64_t prime_bound;
+    mpz_export( &prime_bound, 0, 1, sizeof(uint64_t), 0, 0, sqrt_P);
+    prime_bound = SQRT_BOUND / prime_bound;
+    prime_bound = std::min( prime_bound, (int64_t) DEFAULT_MAX_PRIME_BOUND );
+    
+    /*
+     initialize some kind of factor sieve up to prime_bound
+     use primes dividing P for admissibility checks
+     e.g. for q in the factor sieve make sure 1 != q mod p for each p dividing P
+     write each admissible prime into the prime_stuff struct formate
+     push_back said prime_stuff
+     */
+    
+    mpz_clear( sqrt_P );
+    return return_vector;
+}
+
+// Check that lambda(P) divides (P-1)
+// consider changing this to int-type return matching how gmp returns
+// and have the same return standard as gmp
 bool Preproduct::is_CN( )
 {
     bool return_val;
-   
-    // subtract 1 from P
     mpz_sub_ui( P, P, 1);
-    
-    // check if L exactly divides P-1
-    return_val = mpz_divisible_p( P  , L );
-    
-    // return P to its correct value
+    return_val = mpz_divisible_p( P, L );
     mpz_add_ui( P, P, 1);
-    
     return return_val;
 }
 
@@ -481,6 +528,7 @@ bool Preproduct::is_CN( )
 int main(void) {
     
     Preproduct P0;
+    // P0.initializing( 599266767, 890750, 991 );
     P0.initializing( 6682828353, 2289560, 13 );
     
     std::cout << "LP for this is " << sizeof( unsigned long int ) << std::endl;
@@ -503,8 +551,8 @@ int main(void) {
     }
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
     
+    // P0.CN_search(1873371784);
     P0.CN_search(149637241475922);
-    
     
     return 0;
 }

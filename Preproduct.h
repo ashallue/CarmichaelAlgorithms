@@ -7,6 +7,13 @@
 #include <stdio.h>
 #include <gmp.h>
 
+// we could consider a re-write for L and prime_stuff
+// we could only store the exponent for 2
+// as it stands pm1_distinct_primes[ 0 ] alwaqys hold 2
+// and L_distinct_primes[ 0 ] always holds 2
+// we could generalize this to the other small primes
+// but the guaranteed divisibility is only for 2
+
 // http://www.s369624816.websitehome.co.uk/rgep/cartable.html
 // the least CN with a fixed number of prime factors is known
 // array lengths set at fixed length to accomodate this
@@ -23,10 +30,19 @@
 // contains a prime p and the factorization information for p-1 = Lambda(p)
 // prime_stuff is for the appended prime that come from
 // sieving up to sqrt( B/P )
-// for our computation the least such P is 10^8 and B = 10^24
-// so sqrt(B/P) < 10^8   note that 2*3*5*7*11*13*17*19*23 > 10^8
-#define L_PRIME_FACTORS 10
+// a quick check of all cases for p < 10^8
+// resulted in at most 8 distinct prime factors for p-1
+// an alternative data-structure for prime_suff
+// might be only store the exponent for small primes:  2 3 5 and 7
+// and store all prime factors (duplicates included) for all other primes in a single array
+// "merge" computation of lcm( L(P), p-1) would be a bit easier
+#define L_PRIME_FACTORS 8
 
+// consider a more compact storage structure
+// see:  https://github.com/sorenson64/soespace/blob/main/soe.h
+// and the paper:  https://arxiv.org/pdf/2406.09150
+// we'd nee to expand to something like the below for each append call
+// but the storage cost would be reduced by about 16 times
 struct primes_stuff
 {
     uint32_t prime;
@@ -94,7 +110,13 @@ public:
     // then P*R is to be checked with Korselt's criterion  NYI
     // meant to be called when it is no longer efficient to do prime-by-prime appending 
     // this takes the bound on R as an argument which implies R <= (B/P) < 2^64
+    // and that L < 2^64
     void CN_search( uint64_t bound_on_R );
+
+    // finds all primes that are admissible to P
+    // the intent is that this creates the vector that holds the primes
+    // that are used with the appending method
+    std::vector< primes_stuff > primes_admissible_to_P( );
     
     // check that L exactly divides P - 1
     // in the future modify to take filestream?
