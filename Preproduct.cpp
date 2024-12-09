@@ -253,9 +253,12 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 }
 
 // things to do (in no particular order):
-// 1 - incorporate small primes into the arithmetic progression:
-//     Let p be a small prime not dividiing L and p < k
-//     Then we can consider (p-1) residue classes modulo p*L
+// Incporate append_bound to reduce the number of modular exponentiations:
+// 1a - incorporate some of the primes less than append_bound into the arithmetic progression:
+//      Let p be a small prime not dividiing L and p < append_bound
+//      Then we can consider (p-1) residue classes modulo p*L
+// 1b - or incorporate a bitvector and sieve by all primes less than append_bound
+//    - this increases storage and we would have to be mindful of cache
 // 2 - we can probably be more careful with temporary variables and have fewer mpz_init calls
 // 3 - in the if( is_fermat_psp ) branch
 //     3a - data structure choice? queue right now
