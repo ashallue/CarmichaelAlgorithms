@@ -259,6 +259,9 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 //      Then we can consider (p-1) residue classes modulo p*L
 // 1b - or incorporate a bitvector and sieve by all primes less than append_bound
 //    - this increases storage and we would have to be mindful of cache
+// 1c - do both "a" and "b".
+//    - The sieving interval can be of size 10^8 - which would need to be segmented for cache reasons
+//    - a "segment" can be a subset of an arithemtic progression defined by part 1a
 // 2 - we can probably be more careful with temporary variables and have fewer mpz_init calls
 // 3 - in the if( is_fermat_psp ) branch
 //     3a - data structure choice? queue right now
