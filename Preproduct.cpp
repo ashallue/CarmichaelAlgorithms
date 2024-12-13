@@ -532,46 +532,58 @@ bool Preproduct::is_CN( )
 /* Factor a Fermat pseudoprime n.  Fermat check not performed, just assumed.
    Prime, composite factors placed into appropriate vectors.
 */
-void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors)
+void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result, mpz_t& fermat_result)
 {
+    // we are factoring n, so push n onto the composite queue, and clear the prime factors list
+    comp_factors.push( n );
+    prime_factors.clear();
+
+    // temp variable to hold the factor pulled off the queue.  Then will be converted to mps_t n_factor.
+    uint64_t temp;
+    mpz_t n_factor;
+    mpz_init( n_factor );
+
+    // storage for the gcd result
+    mpz_t gcd_result;
+    mpz_init( gcd_result );
+    
     int start_size = comp_factors.size();
     // use a for loop to go through all factors that are currently in the queue
     for( int j = 0; j < start_size; j++ )
     {
         // get element out of queue and put into mpz_t
-        // first time through, this is just r_factor will have the value of r_star
-        temp = R_composite_factors.front();
-        R_composite_factors.pop();
+        // first time through, this is just n
+        temp = comp_factors.front();
+        comp_factors.pop();
         
-        mpz_set_ui( r_factor, temp );
+        mpz_set_ui( n_factor, temp );
           
         // check gcd before prime testing
-        // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
-        mpz_add_ui( result1, result1, 1);
-        mpz_gcd( gcd_result, result1, r_factor);
+        // strong_result holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
+        mpz_add_ui( strong_result, strong_result, 1);
+        mpz_gcd( gcd_result, strong_result, n_factor);
         
-        // check that gcd_result has a nontrivial divisor of r_factor
+        // check that gcd_result has a nontrivial divisor of n_factor
         // could probably be a check on result1 = +/- 1 mod n
         // before computing the gcd
-        if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
+        if( mpz_cmp(gcd_result, n_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
         {
           // will need to add a check about a lower bound on these divisors
           mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-          ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-          mpz_divexact(gcd_result, r_factor, gcd_result );
+          ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? comp_factors.push( temp ) : prime_factors.push_back( temp );
+          mpz_divexact(gcd_result, n_factor, gcd_result );
           mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-          ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
+          ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? comp_factors.push( temp ) : prime_factors.push_back( temp );
         }
-        else // r_factor was not factored, so it is prime or composite
+        else // n_factor was not factored, so it is prime or composite
         {
-          ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
+          ( mpz_probab_prime_p( n_factor, 0 ) == 0 ) ? comp_factors.push( temp ) : prime_factors.push_back( temp );
         }
     }
     // if R_composite is empty, check n is CN *here*
     // output lines below are temporary and meant for debugging
-    gmp_printf ("n = %Zd", n);
-    std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
-    std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
+    gmp_printf ("factoring n = %Zd", n);
+    std::cout << " has " << comp_factors.size() << " composite factors and " << prime_factors.size() << " prime factors." << std::endl;
 }
 
 

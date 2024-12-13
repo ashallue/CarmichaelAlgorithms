@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <stdio.h>
 #include <gmp.h>
+#include <queue>
+#include <vector>
 
 // we could consider a re-write for L and prime_stuff
 // we could only store the exponent for 2
@@ -126,7 +128,7 @@ public:
     /* Factor a Fermat pseudoprime n.  Fermat check not performed, just assumed.
        Prime, composite factors placed into appropriate vectors.
     */
-    void fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors);
+    void fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result, mpz_t& fermat_result);
 };
 
 #endif
