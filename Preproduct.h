@@ -128,7 +128,12 @@ public:
     /* Factor a Fermat pseudoprime n.  Fermat check not performed, just assumed.
        Prime, composite factors placed into appropriate vectors.
     */
-    void fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result, mpz_t& fermat_result);
+    void fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result);
+
+    /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
+       Additionally, sets strong_result variable to b^((n-1)/2^e) + 1
+    */
+    bool fermat_test(uint64_t n, mpz_t& b, mpz_t& strong_result);
 };
 
 #endif

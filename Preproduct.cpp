@@ -532,7 +532,7 @@ bool Preproduct::is_CN( )
 /* Factor a Fermat pseudoprime n.  Fermat check not performed, just assumed.
    Prime, composite factors placed into appropriate vectors.
 */
-void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result, mpz_t& fermat_result)
+void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors, mpz_t& strong_result)
 {
     // we are factoring n, so push n onto the composite queue, and clear the prime factors list
     comp_factors.push( n );
@@ -584,6 +584,36 @@ void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, s
     // output lines below are temporary and meant for debugging
     gmp_printf ("factoring n = %Zd", n);
     std::cout << " has " << comp_factors.size() << " composite factors and " << prime_factors.size() << " prime factors." << std::endl;
+
+    // need to clear mpz vars
+}
+
+/* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
+   Additionally, sets strong_result variable to b^((n-1)/2^e) + 1
+*/
+bool Preproduct::fermat_test(uint64_t n, mpz_t& b, mpz_t& strong_result)
+{
+    // stores the exponent we will apply to the base
+    mpz_t strong_exp;
+    mpz_init( strong_exp );
+
+    // stores the result b^(n-1) mod n, i.e. the Fermat exponent
+    mpz_t fermat_result;
+    mpz_init( fermat_result );
+    
+    // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
+    mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
+    // we use prime divisors of L as the Fermat bases
+    mpz_powm( strong_result,  b,  strong_exp, n); // b^( (n-1)/(2^e) ) mod n
+    mpz_powm_ui( fermat_result,  strong_exp, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
+
+    is_fermat_psp = ( mpz_cmp_si( fermat_result, 1 ) == 0 );   
+
+    return is_fermat_psp;
+    
+    // deallocating mpz vars created in this function
+    mpz_clear( strong_exp );
+    mpz_clear( fermat_result );
 }
 
 
@@ -614,7 +644,7 @@ int main(void) {
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
     
     // P0.CN_search(1873371784);
-    P0.CN_search(149637241475922);
+    //P0.CN_search(149637241475922);
     
     return 0;
 }
