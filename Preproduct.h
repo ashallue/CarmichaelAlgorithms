@@ -123,6 +123,10 @@ public:
     // to return true, means we need to output which is the actual goal
     bool is_CN( );
 
+    /* Factor a Fermat pseudoprime n.  Fermat check not performed, just assumed.
+       Prime, composite factors placed into appropriate vectors.
+    */
+    void fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, std::vector<uint64_t>& prime_factors);
 };
 
 #endif
