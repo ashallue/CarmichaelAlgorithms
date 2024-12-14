@@ -590,6 +590,7 @@ void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, s
 
 /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
    Additionally, sets strong_result variable to b^((n-1)/2^e) + 1
+   Notes this function returns true for prime n.
 */
 bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
 {
@@ -600,6 +601,7 @@ bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
     // counts the number of 0's that terminate in nminus, i.e. e such that 2^e || n-1
     int32_t exp_on_2 = (uint16_t) mpz_scan1( nminus , 0);
     int32_t pow_of_2 = ( 1 << exp_on_2 );
+    // QUESTION: should pow_of_2 be larger than 32 bits?
     
     // stores the exponent we will apply to the base
     mpz_t strong_exp;
@@ -613,11 +615,15 @@ bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
     mpz_tdiv_q_2exp( strong_exp, nminus, exp_on_2 );
     // we use prime divisors of L as the Fermat bases
     mpz_powm( strong_result,  b,  strong_exp, n); // b^( (n-1)/(2^e) ) mod n
-    mpz_powm_ui( fermat_result,  strong_exp, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
+    mpz_powm_ui( fermat_result,  strong_result, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
+
+    //std::cout << "strong_exp = " << mpz_get_str(NULL, 10, strong_exp) << " strong_result = " << mpz_get_str(NULL, 10, strong_result);
+    //std::cout << " fermat_result = " << mpz_get_str(NULL, 10, fermat_result) << "\n";
 
     bool is_psp = mpz_cmp_si( fermat_result, 1 ) == 0;
 
     // deallocating mpz vars created in this function
+    mpz_clear( nminus );
     mpz_clear( strong_exp );
     mpz_clear( fermat_result );
     
@@ -650,6 +656,24 @@ int main(void) {
         std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;       
     }
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
+
+    std::cout << "Testing is_fermat\n";
+    mpz_t n;
+    mpz_init(n);
+    mpz_t base;
+    mpz_init(base);
+    mpz_set_ui(base, 2);
+    mpz_t strong_result;
+    mpz_init(strong_result);
+    
+    for(int i = 100; i < 10000; i++){
+        mpz_set_ui(n, i);
+        bool is_psp = P0.fermat_test(n, base, strong_result);
+        if(is_psp && mpz_probab_prime_p( n, 0 ) == 0 ){
+            std::cout << i << " is a pseudoprime\n";
+        }
+    }
+    
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
