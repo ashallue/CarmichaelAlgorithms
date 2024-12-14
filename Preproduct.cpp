@@ -591,8 +591,16 @@ void Preproduct::fermat_factor(uint64_t n, std::queue<uint64_t>& comp_factors, s
 /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
    Additionally, sets strong_result variable to b^((n-1)/2^e) + 1
 */
-bool Preproduct::fermat_test(uint64_t n, mpz_t& b, mpz_t& strong_result)
+bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
 {
+    // create a variable for n-1, then compute the largest power of 2 that divides n-1
+    mpz_t nminus;
+    mpz_init( nminus );
+    mpz_sub_ui( nminus, n, 1);
+    // counts the number of 0's that terminate in nminus, i.e. e such that 2^e || n-1
+    int32_t exp_on_2 = (uint16_t) mpz_scan1( nminus , 0);
+    int32_t pow_of_2 = ( 1 << exp_on_2 );
+    
     // stores the exponent we will apply to the base
     mpz_t strong_exp;
     mpz_init( strong_exp );
@@ -602,18 +610,18 @@ bool Preproduct::fermat_test(uint64_t n, mpz_t& b, mpz_t& strong_result)
     mpz_init( fermat_result );
     
     // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
-    mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
+    mpz_tdiv_q_2exp( strong_exp, nminus, exp_on_2 );
     // we use prime divisors of L as the Fermat bases
     mpz_powm( strong_result,  b,  strong_exp, n); // b^( (n-1)/(2^e) ) mod n
     mpz_powm_ui( fermat_result,  strong_exp, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
 
-    is_fermat_psp = ( mpz_cmp_si( fermat_result, 1 ) == 0 );   
+    bool is_psp = mpz_cmp_si( fermat_result, 1 ) == 0;
 
-    return is_fermat_psp;
-    
     // deallocating mpz vars created in this function
     mpz_clear( strong_exp );
     mpz_clear( fermat_result );
+    
+    return is_psp;   
 }
 
 
