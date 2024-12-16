@@ -132,8 +132,9 @@ public:
 
     /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
        Additionally, sets strong_result variable to b^((n-1)/2^e) + 1
+       Note this function returns true for prime n.
     */
-    bool fermat_test(uint64_t n, mpz_t& b, mpz_t& strong_result);
+    bool fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result);
 };
 
 #endif
