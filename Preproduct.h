@@ -67,8 +67,8 @@ public:
     // should change L to mpz_t
     // uint64_t L;
     mpz_t L;
-    uint64_t L_distinct_primes[ MAX_PRIME_FACTORS ];
-    uint16_t L_exponents[ MAX_PRIME_FACTORS ];   
+    uint64_t L_distinct_primes[ L_PRIME_FACTORS ];
+    uint16_t L_exponents[ L_PRIME_FACTORS ];   
     uint16_t L_len;
 
     // two forms of initialization
