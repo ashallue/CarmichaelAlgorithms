@@ -599,9 +599,12 @@ bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
     mpz_init( nminus );
     mpz_sub_ui( nminus, n, 1);
     // counts the number of 0's that terminate in nminus, i.e. e such that 2^e || n-1
-    int32_t exp_on_2 = (uint16_t) mpz_scan1( nminus , 0);
-    int32_t pow_of_2 = ( 1 << exp_on_2 );
+    uint32_t exp_on_2 = (uint16_t) mpz_scan1( nminus , 0);
+    uint32_t pow_of_2 = ( 1 << exp_on_2 );
     // QUESTION: should pow_of_2 be larger than 32 bits?
+    // ANSWER:  no.  Indeed, a char would work.  everything in this computation can fit in an uint128_t
+    // which means that exponent is bounded by 128 which is a 7 bit number.
+    
     
     // stores the exponent we will apply to the base
     mpz_t strong_exp;
