@@ -623,7 +623,7 @@ bool Preproduct::fermat_test(mpz_t& n, mpz_t& b, mpz_t& strong_result)
     //std::cout << "strong_exp = " << mpz_get_str(NULL, 10, strong_exp) << " strong_result = " << mpz_get_str(NULL, 10, strong_result);
     //std::cout << " fermat_result = " << mpz_get_str(NULL, 10, fermat_result) << "\n";
 
-    bool is_psp = mpz_cmp_si( fermat_result, 1 ) == 0;
+    bool is_psp = mpz_cmp_ui( fermat_result, 1 ) == 0;
 
     // deallocating mpz vars created in this function
     mpz_clear( nminus );
