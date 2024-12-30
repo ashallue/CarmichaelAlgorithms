@@ -85,6 +85,10 @@ int main()
     
     mpz_cdiv_q( cmp_bound, bound, PL);
     
+    std::vector< uint16_t > primes_lifting_L;
+    
+    uint64_t L_lift= 1;
+    
     while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
     {
         if( small_sieve_primes[ i_p ] == L_distinct_primes[ i_L ] )
@@ -97,6 +101,8 @@ int main()
         }
         else
         {
+            L_lift *= small_sieve_primes[ i_p ];
+            primes_lifting_L.push_back( small_sieve_primes[ i_p ] );
             std::cout << small_sieve_primes[ i_p ] << std::endl;
             mpz_mul_ui( PL, PL, small_sieve_primes[ i_p ] );
             mpz_cdiv_q( cmp_bound, bound, PL);
@@ -105,14 +111,16 @@ int main()
     }
     mpz_clear( cmp_bound );
     
- 
     
-    for( uint64_t m = 0; m < 11*13*17; m ++)
+    
+    for( uint64_t m = 0; m < L_lift; m ++)
     {
-        if(    mpz_divisible_ui_p( r_star, small_sieve_primes[5] ) == 0
-            && mpz_divisible_ui_p( r_star, small_sieve_primes[6] ) == 0
-            && mpz_divisible_ui_p( r_star, small_sieve_primes[7] ) == 0
-           )
+        bool enter_loop = true;
+        for( auto p : primes_lifting_L )
+        {
+            enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
+        }
+        if( enter_loop )
         {
             mpz_mul( n, P, r_star);
             
