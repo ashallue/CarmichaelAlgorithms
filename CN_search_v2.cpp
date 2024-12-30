@@ -42,7 +42,9 @@ int main()
     // set L = lambda(P)
     mpz_t L;
     mpz_init_set_ui( L, 115920 );
-    uint64_t L_distinct_primes[5] = { 2, 3, 5, 7, 23 };
+    const uint64_t L_len = 5;
+    uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
+
     
     // compute r^* = p^{-1} mod L
     // this is the start of  R = (r^* + kL) w/ k = 0
@@ -71,26 +73,45 @@ int main()
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    // Here:  construct a new PL so that B/PL < 10^5
-    // We hard-code it for this example:
-
-    // { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
-    // pull from the small primes in order:
-    uint32_t small_sieve_primes[4] = { 11, 13, 17 };
+    int32_t small_sieve_primes[25] =  { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
     
-    // lifting by 11, 13, 17
-    mpz_mul_ui( PL, PL, small_sieve_primes[0] );
-    mpz_mul_ui( PL, PL, small_sieve_primes[1] );
-    mpz_mul_ui( PL, PL, small_sieve_primes[2] );
+    const uint32_t cache_bound = 100'000; //
     
-    // Now B/PL < 10^5
-    // Now we can sieve bit arrays of maximal length 10^5 bits for primes not dividing PL/P
+    uint16_t i_p = 0;
+    uint16_t i_L = 0;
+    
+    mpz_t cmp_bound;
+    mpz_init( cmp_bound );
+    
+    mpz_cdiv_q( cmp_bound, bound, PL);
+    
+    while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
+    {
+        if( small_sieve_primes[ i_p ] == L_distinct_primes[ i_L ] )
+        {
+            i_p++;
+            if( i_L != L_len )
+            {
+                i_L++;
+            }
+        }
+        else
+        {
+            std::cout << small_sieve_primes[ i_p ] << std::endl;
+            mpz_mul_ui( PL, PL, small_sieve_primes[ i_p ] );
+            mpz_cdiv_q( cmp_bound, bound, PL);
+            i_p++;
+        }
+    }
+    mpz_clear( cmp_bound );
+    
+ 
     
     for( uint64_t m = 0; m < 11*13*17; m ++)
     {
-        if( mpz_divisible_ui_p( r_star, small_sieve_primes[0] ) == 0
-            && mpz_divisible_ui_p( r_star, small_sieve_primes[1] ) == 0
-            && mpz_divisible_ui_p( r_star, small_sieve_primes[2] ) == 0
+        if(    mpz_divisible_ui_p( r_star, small_sieve_primes[5] ) == 0
+            && mpz_divisible_ui_p( r_star, small_sieve_primes[6] ) == 0
+            && mpz_divisible_ui_p( r_star, small_sieve_primes[7] ) == 0
            )
         {
             mpz_mul( n, P, r_star);
@@ -98,10 +119,10 @@ int main()
             while( mpz_cmp( n , bound ) < 0 )
             {
                 mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
-                if( mpz_cmp( base_2_fermat, base2 ) == 0 )
+                if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
                 {
                     mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
-                    if( mpz_cmp( base_3_fermat, base3 ) == 0 )
+                    if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
                     {
                         // n is now base 2 and a base 3 Fermat psp
                         // invoke CN factorization algorithm here
