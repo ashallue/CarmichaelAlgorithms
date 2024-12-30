@@ -115,17 +115,28 @@ int main()
     
     for( uint64_t m = 0; m < L_lift; m ++)
     {
+        // for each r_star + m*L, we check that this number is not divisible by the small primes used to lift L
         bool enter_loop = true;
         for( auto p : primes_lifting_L )
         {
             enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
         }
+        
+        // if r_star + m*L is not divisible by a lifted prime,
+        // there are at most cache_bound modular exponentiations
+        // to find potential CN
         if( enter_loop )
         {
+            //set up the bit vector of sieving by the rest of the primes < append_bound here
+            
+            // this sets up n = P*(r_star + m*L)
             mpz_mul( n, P, r_star);
             
+            
+            // n is now created in an arithmetic progression of P*L*(lifted primes)
             while( mpz_cmp( n , bound ) < 0 )
             {
+                // check bit vector before doing the modular exponentiation
                 mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
                 if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
                 {
