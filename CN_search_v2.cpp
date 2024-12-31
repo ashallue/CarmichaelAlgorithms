@@ -6,20 +6,20 @@
 #include <algorithm>
 #include <queue>
 #include <vector>
+#include <boost/dynamic_bitset.hpp>
 
 int main()
 {
-    // the below has the following quantities hard-coded:
-    // The upper bound of the computation:      lines 33,34
-    // The quantity P:                          line 38
-    // The quantity L = lambda(P)               lines 44,45
-    // The array holding the primes dividing L  lines 46
-    // e = v_2( LCM( P-1, L0 ) )                line 54
+    // there are many hard-coded things in the below that do not make this easy to change.
+    // in particular the "small primes" vector is missing primes that divide L
+    // here is an attempt at tracking all the places something is hard-coded
+    // The bound - see lines 34-36
+    // P - see line 40
+    // CarmichaelLambda(P) = L - See line 44 - it is not check that this quantity is, indeed, L(P)
+    // the primes dividing L - See line 45 and 46
+    // the small primes that aren't in L - see line 78 and 135 were a hard-coded "20" also appears
+    // the cache_bound - a rough guess to make sure the dynamic bitset fits in L1 cache
     
-    // version 1: 401 s, mpz_class version
-    // version 2: 376 s, machine words where possible, import to mpz_t for exponentiation
-    // version 3: 338 s, all arithmetic in mpz_t
-    // so we go with all arithmetic in mpz_t
     
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -73,12 +73,13 @@ int main()
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    int32_t small_sieve_primes[25] =  { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
+    // we will need to remove from this vector/array the primes dividing L
+    // this is hard-coded for this example right now
+    int32_t small_sieve_primes[20] =  { 11, 13, 17, 19, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
     
     const uint32_t cache_bound = 100'000; //
     
-    uint16_t i_p = 0;
-    uint16_t i_L = 0;
+
     
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
@@ -89,30 +90,25 @@ int main()
     
     uint64_t L_lift= 1;
     
+    uint16_t i_p = 0;
+    
     while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
     {
-        if( small_sieve_primes[ i_p ] == L_distinct_primes[ i_L ] )
-        {
-            i_p++;
-            if( i_L != L_len )
-            {
-                i_L++;
-            }
-        }
-        else
-        {
-            L_lift *= small_sieve_primes[ i_p ];
-            primes_lifting_L.push_back( small_sieve_primes[ i_p ] );
-            std::cout << small_sieve_primes[ i_p ] << std::endl;
-            mpz_mul_ui( PL, PL, small_sieve_primes[ i_p ] );
-            mpz_cdiv_q( cmp_bound, bound, PL);
-            i_p++;
-        }
+        L_lift *= small_sieve_primes[ i_p ];
+        primes_lifting_L.push_back( small_sieve_primes[ i_p ] );
+        std::cout << small_sieve_primes[ i_p ] << std::endl;
+        mpz_mul_ui( PL, PL, small_sieve_primes[ i_p ] );
+        mpz_cdiv_q( cmp_bound, bound, PL);
+        i_p++;
     }
-    mpz_clear( cmp_bound );
+
+    // cmp_bound needs to be put in a uint32_t
+    uint32_t cmp_bound32 = mpz_get_ui( cmp_bound );
+    boost::dynamic_bitset<> spoke_sieve( cmp_bound32 );
     
+    std::cout << "The number of residues per spoke is " << cmp_bound32 << std::endl;
     
-    
+    // This loop is the outer wheel
     for( uint64_t m = 0; m < L_lift; m ++)
     {
         // for each r_star + m*L, we check that this number is not divisible by the small primes used to lift L
@@ -122,41 +118,74 @@ int main()
             enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
         }
         
-        // if r_star + m*L is not divisible by a lifted prime,
-        // there are at most cache_bound modular exponentiations
-        // to find potential CN
+        // Check if we are in a valid spoke of a wheel
+        // If so, sieve on that spoke
         if( enter_loop )
         {
-            //set up the bit vector of sieving by the rest of the primes < append_bound here
+            // set up the bit vector of sieving by the rest of the primes < append_bound here
+            // the arithemtic progression below is (r_star + k* L_lift*L), where 0 <= k < cmp_bound
+            // find k so that, r_star + k*(L_lift*L) = 0 mod p
+            // so, we sieve out k = -r_star*(L_lift*L)^{-1} mod p
+            spoke_sieve.reset();
+            //  "20" has been hard-coded to this example.  Need to generalize be length of the primes array/vector
+            mpz_t small_prime;
+            mpz_init( small_prime );
+            uint32_t k;
+            uint16_t i_pp = i_p;
+            while( i_pp < 20 )
+            {
+                // using "n" as a temp variable - it's set for its actual value immediately after this while loop ends
+                mpz_set_ui( small_prime, small_sieve_primes[ i_pp ] );
+                mpz_invert( n, PL, small_prime );  // n has PL^{-1} mod p
+                mpz_neg( n, n);  // n has -(PL)^{-1} mod p
+                mpz_mul( n, n, r_star ); // muliply by r_star
+                mpz_mod( n, n, small_prime );  // reduce modulo p
+                k = mpz_get_ui( n );
+                
+                // we just found the starting point for k, now sieve:
+                while( k < cmp_bound32 )
+                {
+                    spoke_sieve[k] = 1;
+                    k += small_sieve_primes[ i_pp ];
+                }
+                i_pp++;
+            }
+            mpz_clear( small_prime );
+
             
             // this sets up n = P*(r_star + m*L)
             mpz_mul( n, P, r_star);
-            
-            
             // n is now created in an arithmetic progression of P*L*(lifted primes)
+            
+            k = 0;
             while( mpz_cmp( n , bound ) < 0 )
             {
-                // check bit vector before doing the modular exponentiation
-                mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
-                if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
+                if( spoke_sieve[k] == 0 )
                 {
-                    mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
-                    if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
+                    mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
+                    if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
                     {
-                        // n is now base 2 and a base 3 Fermat psp
-                        // invoke CN factorization algorithm here
-                        std::cout << "n = " ;
-                        gmp_printf( "%Zd", n);
-                        std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                        mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
+                        if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
+                        {
+                            // n is now base 2 and a base 3 Fermat psp
+                            // invoke CN factorization algorithm here
+
+                            std::cout << "n = " ;
+                            gmp_printf( "%Zd", n);
+                            std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                        }
                     }
                 }
+                k++;
                 mpz_add( n, n, PL);
             }
         }
         
         mpz_add( r_star, r_star, L);  //next element in arithmetic progression
     }
-        
+       
+    mpz_clear( cmp_bound );
     mpz_clear( P );
     mpz_clear( L );
     mpz_clear( r_star );
