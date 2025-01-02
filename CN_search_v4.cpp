@@ -1,8 +1,5 @@
 // compiled with  g++ CN_search.cpp -lgmp -O3
 
-// yes wheel
-// no sieving
-
 #include <gmp.h>
 #include <iostream>
 #include <chrono>
@@ -76,43 +73,31 @@ int main()
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    // position i has the truth value of the statement
-    // "(2i + 3) is prime"
-    // bitsets are indexed by lsb.
-    // So position 0 is the rightmost bit and corresponds to the number 3.
-    std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    // we will need to remove from this vector/array the primes dividing L
+    // this is hard-coded for this example right now
+    int32_t small_sieve_primes[20] =  { 11, 13, 17, 19, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97};
     
-    // turn off the bits corresponding to primes dividing L
-    // this will need to be modified so that we don't try to turn off bits out of range
-    // that is, we need to be carefuly if L has a prime dividing it that exceeds 513
-    for( uint16_t i = 1; i < L_len; i++ )
-    {
-        small_primes [ ( L_distinct_primes[i] - 3) /2 ] = 0;
-    }
+    const uint32_t cache_bound = 100'000; //
+    
 
-    // controls the size of the wheel
-    const uint32_t cache_bound = 10'000'000;
-   
     
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
+    
     mpz_cdiv_q( cmp_bound, bound, PL);
     
     std::vector< uint16_t > primes_lifting_L;
     
     uint64_t L_lift= 1;
+    
     uint16_t i_p = 0;
     
     while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
     {
-        if( small_primes[i_p] )
-        {
-            uint16_t p = 2*i_p + 3;
-            L_lift *= p;
-            primes_lifting_L.push_back( p );
-            mpz_mul_ui( PL, PL, p );
-            mpz_cdiv_q( cmp_bound, bound, PL);
-        }
+        L_lift *= small_sieve_primes[ i_p ];
+        primes_lifting_L.push_back( small_sieve_primes[ i_p ] );
+        mpz_mul_ui( PL, PL, small_sieve_primes[ i_p ] );
+        mpz_cdiv_q( cmp_bound, bound, PL);
         i_p++;
     }
 
@@ -131,30 +116,87 @@ int main()
     // This loop is the outer wheel
     for( uint64_t m = 0; m < L_lift; m ++)
     {
+        // for each r_star + m*L, we check that this number is not divisible by the small primes used to lift L
         bool enter_loop = true;
-        // checks to make sure that r_star + m*L is not divisible by lifted_primes
         for( auto p : primes_lifting_L )
         {
             enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
         }
         
+        // Check if we are in a valid spoke of a wheel
+        // If so, sieve on that spoke
         if( enter_loop )
         {
+
+            // set up the bit vector of sieving by the rest of the primes < append_bound here
+            // the arithemtic progression below is (r_star + k* L_lift*L), where 0 <= k < cmp_bound
+            // find k so that, r_star + k*(L_lift*L) = 0 mod p
+            // so, we sieve out k = -r_star*(L_lift*L)^{-1} mod p
+            spoke_sieve.reset();
+            //  "20" has been hard-coded to this example.  Need to generalize be length of the primes array/vector
+            mpz_t small_prime;
+            mpz_init( small_prime );
+            uint32_t k;
+            uint16_t i_pp = i_p;
+            while( i_pp < 20 )
+            {
+                // using "n" as a temp variable - it's set for its actual value immediately after this while loop ends
+                mpz_set_ui( small_prime, small_sieve_primes[ i_pp ] );
+                mpz_invert( n, PL, small_prime );  // n has PL^{-1} mod p
+                mpz_neg( n, n);  // n has -(PL)^{-1} mod p
+                mpz_mul( n, n, r_star ); // muliply by r_star
+                mpz_mod( n, n, small_prime );  // reduce modulo p
+                k = mpz_get_ui( n );
+                
+                // we just found the starting point for k, now sieve:
+                while( k < cmp_bound32 )
+                {
+                    spoke_sieve[k] = 1;
+                    k += small_sieve_primes[ i_pp ];
+                }
+                i_pp++;
+            }
+            mpz_clear( small_prime );
+
+            
+            // this sets up n = P*(r_star + m*L)
             mpz_mul( n, P, r_star);
+            // n is now created in an arithmetic progression of P*L*(lifted primes)
+            
+           
+            k = 0;
             while( mpz_cmp( n , bound ) < 0 )
             {
-                mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
-                if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
+                if( spoke_sieve[k] == 0 )
                 {
-                    mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
-                    if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
+                    mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
+                    if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
                     {
-                        // CN check here.
-                        std::cout << "n = " ;
-                        gmp_printf( "%Zd", n);
-                        std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                        mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
+                        if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
+                        {
+                            // n is now base 2 and a base 3 Fermat psp
+                            // invoke CN factorization algorithm here
+
+                            
+                            std::cout << "The value for m is " << m << std::endl;
+                            std::cout << "The value for k is " << k << std::endl;
+                            std::cout << "The value of PL is " ;
+                            gmp_printf( "%Zd", PL);
+                            std::cout << std::endl;
+                            std::cout << "The value of r_star is " ;
+                            gmp_printf( "%Zd", r_star);
+                            std::cout << std::endl;
+
+                            std::cout << "n = " ;
+                            gmp_printf( "%Zd", n);
+                            std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                            
+                            
+                        }
                     }
                 }
+                k++;
                 mpz_add( n, n, PL);
             }
         }
