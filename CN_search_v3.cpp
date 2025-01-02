@@ -13,25 +13,11 @@
 
 int main()
 {
-    // there are many hard-coded things in the below that do not make this easy to change.
-    // in particular the "small primes" vector is missing primes that divide L
-    // here is an attempt at tracking all the places something is hard-coded
-    // The bound - see lines 34-36
-    // P - see line 40
-    // CarmichaelLambda(P) = L - See line 44 - it is not check that this quantity is, indeed, L(P)
-    // the primes dividing L - See line 45 and 46
-    // the small primes that aren't in L - see line 78 and 135 were a hard-coded "20" also appears
-    // the cache_bound - a rough guess to make sure the dynamic bitset fits in L1 cache
-    
-    
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
     using std::chrono::milliseconds;
-    
     auto t1 = high_resolution_clock::now();
-    
-    
 
     // set search bound, set as 10^24
     mpz_t bound;
@@ -48,27 +34,21 @@ int main()
     const uint64_t L_len = 5;
     uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
 
-    
     // compute r^* = p^{-1} mod L
     // this is the start of  R = (r^* + kL) w/ k = 0
     mpz_t r_star;
     mpz_init(r_star);
     mpz_invert(r_star, P, L);
 
-    // will need more bases later
-    // use bases from the prime divisors of L
     mpz_t base2;
-    mpz_init_set_ui( base2, 2 );
     mpz_t base3;
+    mpz_init_set_ui( base2, 2 );
     mpz_init_set_ui( base3, 3 );
     
-    mpz_t base_2_fermat;
-    mpz_init( base_2_fermat );
-    mpz_t base_3_fermat;
-    mpz_init( base_3_fermat );
+    mpz_t fermat_result;
+    mpz_init( fermat_result );
 
-    
-    // This is the start of n = Pr^* + kPL w/ k = 0
+    // n will be used a temp variable for a bit
     mpz_t n;
     mpz_init(n);
 
@@ -76,10 +56,7 @@ int main()
     mpz_init( PL );
     mpz_mul( PL, P, L );
     
-    // position i has the truth value of the statement
-    // "(2i + 3) is prime"
-    // bitsets are indexed by lsb.
-    // So position 0 is the rightmost bit and corresponds to the number 3.
+    // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     
     // turn off the bits corresponding to primes dividing L
@@ -91,7 +68,6 @@ int main()
     }
 
     // create bit-vector for sieving here:
-    // determine size and declare
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
     mpz_cdiv_q( cmp_bound, bound, PL);
@@ -99,16 +75,18 @@ int main()
     boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
     spoke_sieve.reset();
     
+    // now sieve
+    // the "10" needs to be related to append_bound found in preproduct.h
     mpz_t small_prime;
     mpz_init( small_prime );
-    uint16_t i = 0;
-    while( i < 50 )  // should only include the prime (2*4 + 3) = 11
+    uint16_t prime_index = 0;
+    while( prime_index < 10 )
     {
         // r_star + k*L = 0 mod p
         // implies k = -r*L^{-1} mod p
-       if( small_primes[i] )
+       if( small_primes[ prime_index ] )
         {
-            int p = 2*i + 3;
+            int p = 2*prime_index + 3;
             std::cout << "we sieved by " << p << std::endl;
             mpz_set_ui( small_prime, p );
             mpz_invert( n, L, small_prime );  // n has L^{-1} mod p
@@ -124,23 +102,24 @@ int main()
                 k += p;
             }
         }
-        i++;
+        prime_index++;
     }
     mpz_clear( small_prime );
           
     // sieve is set up
     // do normal loop but only enter on unmarked items
+    // compare to v1
     mpz_mul( n, P, r_star);
     uint32_t k = 0;
     while( mpz_cmp( n , bound ) < 0 )
     {
         if( spoke_sieve[k] == 0 )
         {
-            mpz_powm( base_2_fermat,  base2,  n, n); // 2^n mod n
-            if( mpz_cmp( base_2_fermat, base2 ) == 0 )  // check if 2 = 2^n mod n
+            mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
+            if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
             {
-                mpz_powm( base_3_fermat,  base3,  n, n); // 3^n mod n
-                if( mpz_cmp( base_3_fermat, base3 ) == 0 )  // check if 3 = 3^n mod n
+                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
                     std::cout << "n = " ;
                     gmp_printf( "%Zd", n);
@@ -161,14 +140,10 @@ int main()
     mpz_clear( PL );
     mpz_clear( base2 );
     mpz_clear( base3 );
-    mpz_clear( base_2_fermat );
-    mpz_clear( base_3_fermat );
+    mpz_clear( fermat_result );
     mpz_clear( bound );
 
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
     std::cout << ms_double.count() << "ms\n";
-
-
-
 }
