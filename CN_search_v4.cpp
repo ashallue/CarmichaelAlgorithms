@@ -73,14 +73,16 @@ int main()
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     // fix append_bound to be consistent with the bitset
-    append_bound = (append_bound - 3)/2;
+    append_bound = std::min( (append_bound - 3)/2, (uint32_t) 512);
     
     // turn off the bits corresponding to primes dividing L
     // this will need to be modified so that we don't try to turn off bits out of range
     // that is, we need to be carefuly if L has a prime dividing it that exceeds 513
-    for( uint16_t i = 1; i < L_len; i++ )
+    uint16_t i = 1;
+    while( i < L_len &&  L_distinct_primes[i] < 512 )
     {
         small_primes [ ( L_distinct_primes[i] - 3) /2 ] = 0;
+        i++;
     }
 
     // we need to append primes to L so that B/(PL*appended_primes) < cache_bound
