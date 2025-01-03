@@ -4,6 +4,7 @@
 // yes sieving
 
 #include <gmp.h>
+#include <bitset>
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -86,6 +87,8 @@ int main()
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
     mpz_cdiv_q( cmp_bound, bound, PL);
+    mpz_t R;
+    mpz_init( R );
     
     // store the primes that we append
     std::vector< uint16_t > primes_lifting_L;
@@ -174,9 +177,8 @@ int main()
                         mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
-                            std::cout << "n = " ;
-                            gmp_printf( "%Zd", n);
-                            std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                            mpz_divexact( R, n, P);
+                            gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
                 }
@@ -187,6 +189,7 @@ int main()
         mpz_add( r_star, r_star, L);
     }
        
+    mpz_clear( R );
     mpz_clear( small_prime );
     mpz_clear( cmp_bound );
     mpz_clear( P );
