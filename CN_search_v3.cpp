@@ -34,6 +34,9 @@ int main()
     const uint64_t L_len = 5;
     uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
 
+    // all primes less than append_bound are used in sieving
+    uint32_t append_bound = 200;
+    
     // compute r^* = p^{-1} mod L
     // this is the start of  R = (r^* + kL) w/ k = 0
     mpz_t r_star;
@@ -58,7 +61,9 @@ int main()
     
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
-    
+    // fix append_bound to be consistent with the bitset
+    append_bound = (append_bound - 3)/2;
+        
     // turn off the bits corresponding to primes dividing L
     // this will need to be modified so that we don't try to turn off bits out of range
     // that is, we need to be carefuly if L has a prime dividing it that exceeds 513
@@ -80,14 +85,15 @@ int main()
     mpz_t small_prime;
     mpz_init( small_prime );
     uint16_t prime_index = 0;
-    while( prime_index < 10 )
+    std::cout << "we sieved by " ;
+    while( prime_index < append_bound )
     {
         // r_star + k*L = 0 mod p
         // implies k = -r*L^{-1} mod p
        if( small_primes[ prime_index ] )
         {
             int p = 2*prime_index + 3;
-            std::cout << "we sieved by " << p << std::endl;
+            std::cout << p << " " ;
             mpz_set_ui( small_prime, p );
             mpz_invert( n, L, small_prime );  // n has L^{-1} mod p
             mpz_neg( n, n);  // n has -(L)^{-1} mod p
@@ -104,6 +110,7 @@ int main()
         }
         prime_index++;
     }
+    std::cout << std::endl;
     mpz_clear( small_prime );
           
     // sieve is set up

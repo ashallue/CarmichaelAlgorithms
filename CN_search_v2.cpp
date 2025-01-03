@@ -77,11 +77,10 @@ int main()
     mpz_init( cmp_bound );
     mpz_cdiv_q( cmp_bound, bound, PL);
     
-    // we need to store the primes that we append
+    // store the primes that we append
     std::vector< uint16_t > primes_lifting_L;
     
-    // L_lift will store the product of primes
-    // and also tells the mximum number of spokes on the wheel
+    // L_lift will store the product of primes and gives the count of spokes on the wheel
     uint64_t L_lift= 1;
     uint16_t prime_index = 0;
     
@@ -118,7 +117,7 @@ int main()
             enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
         }
         
-        // this represent a spoke not divisibly by a wheel prime
+        // This is a spoke.  These numbers are of the form (r_star + m*L) + k*(lifted_primes)*L
         if( enter_loop )
         {
             // this is where n is initialized to check candidates on a spoke of a wheel
