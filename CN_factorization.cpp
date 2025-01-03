@@ -21,7 +21,7 @@ int main()
     mpz_t P;
     mpz_init_set_ui( P, 515410417841 );
 
-    uint64_t R = 1303915724561;
+    uint64_t R = 197701945121;
     mpz_t gmpR;
     mpz_init_set_ui( gmpR, R);
     
@@ -207,7 +207,7 @@ int main()
         std::cout << " Fermat test detected compositeness (which cannot happen for CNs)." << std::endl;
     }
     
-    if( R_composite_factors.empty( ) );
+    if( R_composite_factors.empty( ) )
     {
         std::cout << "you now have a complete factorization - check with Korselt" << std::endl;
     }
