@@ -3,3 +3,8 @@ Andrew Shallue and Jonathan Webster, Jan 2025
 
 Version 1 tried to minimize steps of exponentiation by computing and storing minimal exponenets for base 2 and base 3 in to order to be used for the strong primality test.  Two arithmetic progressions were updated: one for r and one for P * r.  The downside is that a lot of work is done on the outermost loop, and some of that work isn't needed if say the Fermat test is failed.
 Version 2 takes the view that it is better to separate the sieving from the factoring.  If we can discard non-Carmichaels with a minimum amount of work, it is a win even if there is repeated work for those that need to have r factored.  As a bonus, it makes the code clearer; version 1 of CN_search is rather complicated and integrated.  Do note that we only want to factor the r, because P comes in factored form.
+
+Lots of versions of CN search
+Original CN search: do precomputation to speed up factoring
+Other versions: give up on integration, instead separate Fermat testing from Fermat factoring
+v1 - 

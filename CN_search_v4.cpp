@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <queue>
 #include <vector>
+#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 
 int main()
@@ -134,7 +135,9 @@ int main()
         if( enter_loop )
         {
             //sieve a spoke
-            spoke_sieve.reset();
+            //spoke_sieve.reset();
+            spoke_sieve.clear();
+            
             uint16_t sieve_prime_index = prime_index;
             while( sieve_prime_index < append_bound )
             {
