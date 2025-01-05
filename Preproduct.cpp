@@ -549,8 +549,10 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
     // loop until no more composite factors, or until a fermat test fails
     do
     {
+        //testing
+        //gmp_printf ("base = %Zd \n", base);
+        
         // Fermat test, with b^( (n-1) / 2^e ) stored in strong_result
-        mpz_clear( strong_result );
         is_fermat_psp = fermat_test( n, base, strong_result );
         
         // this conditional is not expected to be entered
@@ -573,14 +575,17 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
             // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
             mpz_add_ui( strong_result, strong_result, 1);
             mpz_gcd( gcd_result, strong_result, r_factor);
-        
+
+            //gmp_printf ("GCD %Zd results from %Zd and %Zd \n", gcd_result, strong_result, r_factor);
+              
             // check that gcd_result has a nontrivial divisor of n
             // could probably be a check on result1 = +/- 1 mod n
             // before computing the gcd
             if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
             {
+        
               // will need to add a check about a lower bound on these divisors
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
+              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);      
               ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
               mpz_divexact(gcd_result, r_factor, gcd_result );
               mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
@@ -591,10 +596,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
               ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
             }
           }
-          // if R_composite is empty, check n is CN *here*
-          // output lines below are temporary and meant for debugging
-          gmp_printf ("n = %Zd", n);
-          
+          // check if Carmichael, or put that somewhere else?
         }
         
         // get next Fermat base
@@ -611,10 +613,14 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
     while( is_fermat_psp && !composite_factors.empty() && i < smallprimeslen );
 
     // need to deallocate the mpz_t vars
-
+    mpz_clear( base );
+    mpz_clear( gcd_result );
+    mpz_clear( strong_result );
+    mpz_clear( r_factor );
+    
     // print an error message if the list of bases wasn't enough for some reason
     if( i == smallprimeslen ){
-        gmp_printf ("n = %Zd was not fully factored", n);
+        std::cout << "n = " << n << " was not fully factored\n";
     }
     
     // if while loop ended because not a fermat psp, result false
@@ -707,8 +713,11 @@ int main(void) {
     std::vector<uint64_t> prime_factors;
     bool factored = P0.fermat_factor(n, prime_factors);
 
-    
-    
+    std::cout << n << " factors as: ";
+    for(int i = 0; i < prime_factors.size(); i++){
+        std::cout << prime_factors.at(i) << " ";
+    }
+    std::cout << "\n";
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
