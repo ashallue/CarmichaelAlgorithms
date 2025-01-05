@@ -136,7 +136,7 @@ public:
     // meant to be called when it is no longer efficient to do prime-by-prime appending 
     // this takes the bound on R as an argument which implies R <= (B/P) < 2^64
     // and that L < 2^64
-    void CN_search( uint64_t bound_on_R );
+    void CN_search( );
 
     // finds all primes that are admissible to P
     // the intent is that this creates the vector that holds the primes

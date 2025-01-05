@@ -4,6 +4,7 @@
 // yes sieving
 
 #include <gmp.h>
+#include <bitset>
 #include <iostream>
 #include <chrono>
 #include <algorithm>
@@ -73,20 +74,24 @@ int main()
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     // fix append_bound to be consistent with the bitset
-    append_bound = (append_bound - 3)/2;
+    append_bound = std::min( (append_bound - 3)/2, (uint32_t) 512);
     
     // turn off the bits corresponding to primes dividing L
     // this will need to be modified so that we don't try to turn off bits out of range
     // that is, we need to be carefuly if L has a prime dividing it that exceeds 513
-    for( uint16_t i = 1; i < L_len; i++ )
+    uint16_t i = 1;
+    while( i < L_len &&  L_distinct_primes[i] < 512 )
     {
         small_primes [ ( L_distinct_primes[i] - 3) /2 ] = 0;
+        i++;
     }
 
     // we need to append primes to L so that B/(PL*appended_primes) < cache_bound
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
     mpz_cdiv_q( cmp_bound, bound, PL);
+    mpz_t R;
+    mpz_init( R );
     
     // store the primes that we append
     std::vector< uint16_t > primes_lifting_L;
@@ -177,9 +182,8 @@ int main()
                         mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
-                            std::cout << "n = " ;
-                            gmp_printf( "%Zd", n);
-                            std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                            mpz_divexact( R, n, P);
+                            gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
                 }
@@ -190,6 +194,7 @@ int main()
         mpz_add( r_star, r_star, L);
     }
        
+    mpz_clear( R );
     mpz_clear( small_prime );
     mpz_clear( cmp_bound );
     mpz_clear( P );

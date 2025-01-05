@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <gmp.h>
 #include <cstddef>
+#include <boost/dynamic_bitset.hpp>
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
@@ -252,75 +253,35 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
   return ( prime_to_append < next_inadmissible[0] ) ;
 }
 
-// things to do (in no particular order):
-// Incporate append_bound to reduce the number of modular exponentiations:
-// 1a - incorporate some of the primes less than append_bound into the arithmetic progression:
-//      Let p be a small prime not dividiing L and p < append_bound
-//      Then we can consider (p-1) residue classes modulo p*L
-// 1b - or incorporate a bitvector and sieve by all primes less than append_bound
-//    - this increases storage and we would have to be mindful of cache
-// 1c - do both "a" and "b".
-//    - The sieving interval can be of size 10^8 - which would need to be segmented for cache reasons
-//    - a "segment" can be a subset of an arithemtic progression defined by part 1a
-// 2 - we can probably be more careful with temporary variables and have fewer mpz_init calls
-// 3 - in the if( is_fermat_psp ) branch
-//     3a - data structure choice? queue right now
-//     3b - check modular exponentation prior to computing gcd
-// 4 - make sure exit conditions are correct
-// 5 - remove input bound_on_R and compute w/r/t/ B
-void Preproduct::CN_search( uint64_t bound_on_R )
-{
-    // there are two arithmetic progressions associated with n = P*R
-    // letting r^* = P^{-1} mod L where 0 < r^* < L
-    // 1) R = r^* + kL - common difference of L
-    // 2) n = PR = Pr^* + kPL - common difference of PL
 
+void Preproduct::CN_search(  )
+{
+    const uint32_t cache_bound = 150'000;
     
+    mpz_t bound;
+    mpz_init_set_ui( bound, 10 );
+    mpz_pow_ui( bound, bound, 24 );
+     
     mpz_t r_star;
     mpz_init( r_star );
-    // using r_star as a temporary variable for set-up
-    
-    mpz_set( r_star, P );
-    // it now holds the same value as P
-    mpz_sub_ui( r_star, r_star, 1);
-    // it now holds P-1
-    
-    // need power of 2 dividing LCM( P-1, L )
-    // for the stronger fermat exponent
-    // we could dynamically choose for each n
-    // but we choose the largest power of 2 that works for all n
-    // does this matter?  if so, this needs to be moved to the primary while loop
-    int32_t exp_on_2 = std::min( L_exponents[ 0 ], (uint16_t) mpz_scan1( r_star, 0) );
-    int32_t pow_of_2 = ( 1 << exp_on_2 );
-
-    // compute r^* = p^{-1} mod L
-    // this is the start of  R = (r^* + kL) w/ k = 0
-    // r_star is no longer being used as a temporary variable
-    // it now it holds the correct value
     mpz_invert(r_star, P, L);
-
-    // having computed r_star, we now use uint64_t for this quantity
-    uint64_t r_star64;
-    mpz_export( &r_star64, 0, 1, sizeof(uint64_t), 0, 0, r_star);
-
-    uint64_t L64;
-    mpz_export( &L64, 0, 1, sizeof(uint64_t), 0, 0, L);
     
-    // This is the start of n = Pr^* + kPL w/ k = 0
-    // so n = Pr^*
+    mpz_t base2;
+    mpz_t base3;
+    mpz_init_set_ui( base2, 2 );
+    mpz_init_set_ui( base3, 3 );
+    
+    mpz_t fermat_result;
+    mpz_init( fermat_result );
+    
     mpz_t n;
-    mpz_init( n );
-    mpz_mul( n, P, r_star);
+    mpz_init(n);
 
-    mpz_t strong_exp;
-    mpz_init( strong_exp );
-
-    // common difference for n
+    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
     mpz_t PL;
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    
     // will need more bases later
     // use bases from the prime divisors of L
     mpz_t base;
@@ -330,120 +291,143 @@ void Preproduct::CN_search( uint64_t bound_on_R )
     mpz_t gcd_result;
     mpz_init( gcd_result );
     
-    // storage for the result of the exponentiation
-    // result1 will hold the stronger test
-    // result2 will hold the Fermat test
-    mpz_t result1;
-    mpz_init( result1 );
-    mpz_t result2;
-    mpz_init( result2 );
-
-    mpz_t r_factor;
-    mpz_init( r_factor );
-
-    bool is_fermat_psp;
-
-    std::queue<uint64_t> R_composite_factors;
-    std::vector<uint64_t> R_prime_factors;
-
-    uint64_t temp;
-
-    // to incorporate small primes not dividing L
-    // loop over those residue here
-    // could set up a space-saving wheel
+    mpz_t mpz_prime;
+    mpz_init( mpz_prime );
     
-    while( r_star64 <= bound_on_R )
+    mpz_t small_prime;
+    mpz_init( small_prime );
+    
+    mpz_t lifted_L;
+    mpz_init_set( lifted_L, L );
+    
+    // position i has the truth value of the statement "(2i + 3) is prime"
+    std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    // fix append_bound to be consistent with the bitset
+    uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 512);
+    
+    // remove primes dividing L from the bitset
+    uint16_t i = 1;
+    while( i < L_len &&  L_distinct_primes[i] < 512 )
     {
-      R_composite_factors.push( r_star64 );
-      R_prime_factors.clear();
-
-      int i = 0; //counter for fermat_bases
-
-      do
-      {
-        // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
-        mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
-        // we use prime divisors of L as the Fermat bases
-        mpz_set_ui( base, L_distinct_primes[ i ] );
-        mpz_powm( result1,  base,  strong_exp, n); // b^( (n-1)/(2^e) )
-        mpz_powm_ui( result2,  result1, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
-
-        is_fermat_psp = ( mpz_cmp_si( result2, 1 ) == 0 );
-
-        // this conditional is not expected to be entered
-        // so the do-while loop is not expected to be invoked
-        // most numbers are not Fermat pseudoprimes
-        if( is_fermat_psp )
-        {
-          int start_size = R_composite_factors.size();
-          // use a for loop to go through all factors that are currently in the queue
-          for( int j = 0; j < start_size; j++ )
-          {
-            // get element out of queue and put into mpz_t
-            // first time through, this is just r_factor will have the value of r_star
-            temp = R_composite_factors.front();
-            R_composite_factors.pop();
-            
-            mpz_set_ui( r_factor, temp );
-              
-            // check gcd before prime testing
-            // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
-            mpz_add_ui( result1, result1, 1);
-            mpz_gcd( gcd_result, result1, r_factor);
-
-            // check that gcd_result has a nontrivial divisor of r_factor
-            // could probably be a check on result1 = +/- 1 mod n
-            // before computing the gcd
-            if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
-            {
-              // will need to add a check about a lower bound on these divisors
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-              mpz_divexact(gcd_result, r_factor, gcd_result );
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-            }
-            else // r_factor was not factored, so it is prime or composite
-            {
-              ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-            }
-          }
-          // if R_composite is empty, check n is CN *here*
-          // output lines below are temporary and meant for debugging
-          gmp_printf ("n = %Zd", n);
-          std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
-          std::cout << "and is a base-" << L_distinct_primes[i] << " Fermat psp." << std::endl;
-        }
-
-        // get next Fermat base
+        small_primes [ ( L_distinct_primes[i] - 3) /2 ] = 0;
         i++;
-        // do it again if
-        // the number is a Fermat psp and
-        // R_composite queue is not empty
-        // if i == L_len, we should probably output or factor directly 
-            // could be some strange multi-base Fermat pseudoprime - very rare?
-        // room for improvement here
-      }
-      while( is_fermat_psp && !R_composite_factors.empty() && i < L_len );
-
-      // empty queue
-      while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }
-
-      // move to next candidate in arithmetic progression for n and R
-      mpz_add( n, n, PL);
-      r_star64 += L64;
+    }
+    
+    mpz_t cmp_bound;
+    mpz_init( cmp_bound );
+    mpz_cdiv_q( cmp_bound, bound, PL);
+    mpz_t R;
+    mpz_init( R );
+    
+    // store the primes that we append
+    std::vector< uint16_t > primes_lifting_L;
+    
+    // L_lift will store the product of primes and gives the count of spokes on the wheel
+    uint64_t L_lift= 1;
+    uint16_t prime_index = 0;
+    
+    while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
+    {
+        if( small_primes[ prime_index ] )
+        {
+            uint16_t p = 2*prime_index + 3;
+            L_lift *= p;
+            primes_lifting_L.push_back( p );
+            mpz_mul_ui( PL, PL, p );
+            mpz_mul_ui( lifted_L, lifted_L, p );
+            mpz_cdiv_q( cmp_bound, bound, PL);
+        }
+        prime_index++;
     }
 
+    uint32_t cmp_bound32 = mpz_get_ui( cmp_bound );
+    boost::dynamic_bitset<> spoke_sieve( cmp_bound32 );
+    
+    for( auto p : primes_lifting_L )
+    {
+        std::cout << p << " " ;
+    }
+    
+    // This is the wheel and a creates r_star + m*L
+    // The wheel is r_star + m*L
+    for( uint64_t m = 0; m < L_lift; m ++)
+    {
+        bool enter_loop = true;
+        // checks to make sure that r_star + m*L is not divisible by lifted_primes
+        for( auto p : primes_lifting_L )
+        {
+            enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
+        }
+        
+        // This is a spoke.  It sieves on k-values numbers of the form (r_star + m*L) + k*L_lift*L
+        if( enter_loop )
+        {
+            //sieve a spoke
+            spoke_sieve.reset();
+            uint16_t sieve_prime_index = prime_index;
+            while( sieve_prime_index < sieve_index_bound )
+            {
+                // r_star + k*(L_lift*L) = 0 mod p
+                // implies k = -r*( L_lift*L)^{-1} mod p
+               if( small_primes[ sieve_prime_index ] )
+                {
+                    uint32_t p = 2*sieve_prime_index + 3;
+                    mpz_set_ui( small_prime, p );
+                    // n is being used as a temporary variable in the following 5 lines
+                    mpz_invert( n, lifted_L, small_prime );     // n has (L_lift*L)^{-1} mod p
+                    mpz_neg( n, n);                             // n has -(L)^{-1} mod p
+                    mpz_mul( n, n, r_star );                    // muliply by r_star
+                    mpz_mod( n, n, small_prime );               // reduce modulo p
+                    uint64_t k = mpz_get_ui( n );
+
+                    while( k < cmp_bound32 )
+                    {
+                        spoke_sieve[k] = 1;
+                        k += p;
+                    }
+                }
+                sieve_prime_index++;
+            }
+            
+            // spoke has been sieved, so only do modular exponentiations on valid places
+            // n is initialized correctly here
+            mpz_mul( n, P, r_star);
+            uint32_t k = 0;
+            while( mpz_cmp( n , bound ) < 0 )
+            {
+                if( spoke_sieve[k] == 0 )
+                {
+                    mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
+                    if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
+                    {
+                        mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                        if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
+                        {
+                            mpz_divexact( R, n, P);
+                            // Call Fermat factorization here.
+                            gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                        }
+                    }
+                }
+                k++;
+                mpz_add( n, n, PL);
+            }
+        }
+        mpz_add( r_star, r_star, L);
+    }
+       
+    mpz_clear( R );
+    mpz_clear( small_prime );
+    mpz_clear( cmp_bound );
     mpz_clear( r_star );
     mpz_clear( n );
-    mpz_clear( strong_exp );
     mpz_clear( PL );
-    mpz_clear( base );
-    mpz_clear( gcd_result );
-    mpz_clear( r_factor );
-    mpz_clear( result1 );
-    mpz_clear( result2 );
-    
+    mpz_clear( base2 );
+    mpz_clear( base3 );
+    mpz_clear( fermat_result );
+    mpz_clear( bound );
+    mpz_clear( lifted_L );
+        
 }
 
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
@@ -642,6 +626,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
 /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
    Additionally, sets strong_result variable to b^((n-1)/2^e)
    Notes this function returns true for prime n.
+ 
 */
 bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 {
