@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <queue>
 #include <vector>
-#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 
 int main()
@@ -37,7 +36,7 @@ int main()
     uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
     
     // all primes less than append_bound are used in sieving
-    uint32_t append_bound = 200;
+    uint32_t append_bound = 100;
     
     // controls the size of the wheel
     const uint32_t cache_bound = 150'000;
@@ -139,10 +138,7 @@ int main()
         // This is a spoke.  It sieves on k-values numbers of the form (r_star + m*L) + k*L_lift*L
         if( enter_loop )
         {
-            //sieve a spoke
-            //spoke_sieve.reset();
-            spoke_sieve.clear();
-            
+            spoke_sieve.reset();            
             uint16_t sieve_prime_index = prime_index;
             while( sieve_prime_index < append_bound )
             {
