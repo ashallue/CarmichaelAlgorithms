@@ -719,6 +719,12 @@ int main(void) {
     }
     std::cout << "\n";
     
+    Preproduct P1;
+
+    P1.initializing( 515410417841, 115920, 100 );
+    
+    P1.CN_search();
+    
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
     
