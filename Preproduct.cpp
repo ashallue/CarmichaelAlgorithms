@@ -690,23 +690,23 @@ void Preproduct::completing_with_exactly_one_prime()
     // set up scaled problem:
     mpz_t r_star;
     mpz_init( r_star );
-    mpz_invert( r_star, P, L);
+    mpz_invert( r_star, P, L );
     
     mpz_t script_R;
     mpz_init_set( script_R, r_star );
-    mpz_sub_ui( script_R, 1 );
+    mpz_sub_ui( script_R, script_R, 1 );
     
     //scaled problem in terms of the gcd of r_star - 1 and L
     mpz_t g;
     mpz_init( g );
     mpz_gcd( g, script_R, L );
     
-    mpz_divexact( script_R, g );
+    mpz_divexact( script_R, script_R, g );
         
     // (P-1)/g
     mpz_t script_P;
     mpz_init_set( script_P, P);
-    mpz_sub_ui( script_P, 1);
+    mpz_sub_ui( script_P, script_P, 1);
     mpz_divexact( script_P, script_P, g);
     
     // L/g
