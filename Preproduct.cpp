@@ -741,12 +741,10 @@ void Preproduct::completing_with_exactly_one_prime()
      while( P* [ (P-1)/(R_2 + k*script_L) + 1 ]  < 10^24   &&  R_2 + k*script_L < sqrt( script P ) )
      {
         test if R_2 + k*script_L exactly divides (P-1)
-            if so, do the division, add one to the quotient, primality tests the result, if prime, use Korselt
+            if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
         update the arithmetic progression.
             script_R += script_L
-    
-        if the bounds are done as above, no need to explicitly keep track of k
-        the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
+            k++
      }
      */
     
