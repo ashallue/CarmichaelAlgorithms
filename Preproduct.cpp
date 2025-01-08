@@ -691,13 +691,18 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert( r_star, P, L);
-    mpz_sub_ui( r_star, r_star, 1);
+    
+    mpz_t script_R;
+    mpz_init_set( script_R, r_star );
+    mpz_sub_ui( script_R, 1 );
     
     //scaled problem in terms of the gcd of r_star - 1 and L
     mpz_t g;
     mpz_init( g );
-    mpz_gcd( g, r_star, L );
+    mpz_gcd( g, script_R, L );
     
+    mpz_divexact( script_R, g );
+        
     // (P-1)/g
     mpz_t script_P;
     mpz_init_set( script_P, P);
@@ -709,10 +714,44 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_init_set( script_L, L);
     mpz_divexact( script_L, script_L, g);
     
-    // R1 = (r_star-1)/g
-    mpz_divexact( r_star, r_star, g);
+    /*
+     this script_R is R_1 in the paper
+     while( P* [ g*(script_R + k*script_L) ]  < 10^24   &&  script_r + k*script_L < sqrt( script P ) )
+     {
+        test if g*(script_R + k*script_L) = r_star + k*L is prime
+        if it is, test if n = P * (r_star + k*L ) is a CN
+        update.  In terms of script_R or r_star:
+            script_R += script_L
+            r_star += L
+        if the bounds are done as above, no need to explicitly keep track of k
+        the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
+     }
+     */
+     
+    // set up new script_R for R_2 in section 5.3
+    mpz_invert( script_R, script_R, script_L);
+    mpz_mul( script_R, script_P, script_R );
+    mpz_mod( script_R, script_R, script_L );
+    
+     
+    /*
+     k is now defined in a range:
+     The first inequality implies a lower bound on k
+     The second inequality implies an upper bound on k
+     while( P* [ (P-1)/(R_2 + k*script_L) + 1 ]  < 10^24   &&  R_2 + k*script_L < sqrt( script P ) )
+     {
+        test if R_2 + k*script_L exactly divides (P-1)
+            if so, do the division, add one to the quotient, primality tests the result, if prime, use Korselt
+        update the arithmetic progression.
+            script_R += script_L
+    
+        if the bounds are done as above, no need to explicitly keep track of k
+        the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
+     }
+     */
     
     
+    mpz_clear( script_R );
     mpz_clear( script_L );
     mpz_clear( script_P );
     mpz_clear( g );
