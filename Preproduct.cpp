@@ -687,6 +687,36 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 // see section 5.3 of ANTS 2024 work
 void Preproduct::completing_with_exactly_one_prime()
 {
+    // set up scaled problem:
+    mpz_t r_star;
+    mpz_init( r_star );
+    mpz_invert( r_star, P, L);
+    mpz_sub_ui( r_star, r_star, 1);
+    
+    //scaled problem in terms of the gcd of r_star - 1 and L
+    mpz_t g;
+    mpz_init( g );
+    mpz_gcd( g, r_star, L );
+    
+    // (P-1)/g
+    mpz_t script_P;
+    mpz_init_set( script_P, P);
+    mpz_sub_ui( script_P, 1);
+    mpz_divexact( script_P, script_P, g);
+    
+    // L/g
+    mpz_t script_L;
+    mpz_init_set( script_L, L);
+    mpz_divexact( script_L, script_L, g);
+    
+    // R1 = (r_star-1)/g
+    mpz_divexact( r_star, r_star, g);
+    
+    
+    mpz_clear( script_L );
+    mpz_clear( script_P );
+    mpz_clear( g );
+    mpz_clear( r_star );
     
 }
 
