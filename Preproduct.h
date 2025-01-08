@@ -141,8 +141,8 @@ public:
     
     // For some preproducts, we will still only need to find exactly one prime
     // First attempt is the modification of trial division due to the residue class information
-    // To do (?): Lenstra's divisor in residue class 
-    void Preproduct::completing_with_exactly_one_prime( );
+    // To do (?): Lenstra's divisor in residue class
+    void completing_with_exactly_one_prime( );
     
     // finds all primes that are admissible to P
     // the intent is that this creates the vector that holds the primes
