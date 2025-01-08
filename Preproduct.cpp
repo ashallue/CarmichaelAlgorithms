@@ -682,6 +682,14 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 }
 
 
+// compare with:
+// https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
+// see section 5.3 of ANTS 2024 work
+void Preproduct::completing_with_exactly_one_prime()
+{
+    
+}
+
 int main(void) {
     
     Preproduct P0;
