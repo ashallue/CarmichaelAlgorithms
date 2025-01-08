@@ -701,22 +701,24 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_init( g );
     mpz_gcd( g, script_R, L );
     
+    // the next line now has script_R holding R1 as described in Section 5.3.1 of ANTS 2024 paper
     mpz_divexact( script_R, script_R, g );
         
-    // (P-1)/g
+    // script_P = (P-1)/g
     mpz_t script_P;
     mpz_init_set( script_P, P);
     mpz_sub_ui( script_P, script_P, 1);
     mpz_divexact( script_P, script_P, g);
     
-    // L/g
+    // script_L = L/g
     mpz_t script_L;
     mpz_init_set( script_L, L);
     mpz_divexact( script_L, script_L, g);
     
     /*
-     this script_R is R_1 in the paper
-     while( P* [ g*(script_R + k*script_L) ]  < 10^24   &&  script_r + k*script_L < sqrt( script P ) )
+     while( P* [ g*(script_R + k*script_L) ]  < 10^24   &&  script_R + k*script_L < sqrt( script_P ) )
+     P *( r _star + k * L ) <= 10^24 impiles k <  10^24/(PL)
+     k*script_L < script_R + k*scriptL < sqrt( script_P ) impiles k <= floor( floor( sqrt( script_P ) ) / script_L )
      {
         test if g*(script_R + k*script_L) = r_star + k*L is prime
         if it is, test if n = P * (r_star + k*L ) is a CN
@@ -728,7 +730,7 @@ void Preproduct::completing_with_exactly_one_prime()
      }
      */
      
-    // set up new script_R for R_2 in section 5.3
+    // set script_R to be R_2 in section 5.3.2
     mpz_invert( script_R, script_R, script_L);
     mpz_mul( script_R, script_P, script_R );
     mpz_mod( script_R, script_R, script_L );
