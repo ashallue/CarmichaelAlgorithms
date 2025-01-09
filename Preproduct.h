@@ -58,7 +58,10 @@ class Preproduct{
 	
 public:
 
+    mpz_t BOUND;  // constructor always sets to 10^24
+    
     mpz_t P;
+    // consider changing these to vectors...
     uint64_t P_primes[ MAX_PRIME_FACTORS ];
     uint16_t P_len;
     uint64_t append_bound;  // primes appended to P need to exceed this bound
@@ -67,6 +70,7 @@ public:
     // should change L to mpz_t
     // uint64_t L;
     mpz_t L;
+    // consider changing to vectors...
     uint64_t L_distinct_primes[ L_PRIME_FACTORS ];
     uint16_t L_exponents[ L_PRIME_FACTORS ];   
     uint16_t L_len;

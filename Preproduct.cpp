@@ -26,12 +26,15 @@ Preproduct::Preproduct()
 {
     mpz_init( P ) ;
     mpz_init( L ) ;
+    mpz_init_set_ui( BOUND, 10 );
+    mpz_pow_ui( BOUND, BOUND, 24 );
 }
 
 Preproduct::~Preproduct()
 {
     mpz_clear( P );
     mpz_clear( L );
+    mpz_clear( BOUND );
 }
 
 // assumes valid inputs: 
@@ -257,11 +260,7 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 void Preproduct::CN_search(  )
 {
     const uint32_t cache_bound = 150'000;
-    
-    mpz_t bound;
-    mpz_init_set_ui( bound, 10 );
-    mpz_pow_ui( bound, bound, 24 );
-     
+        
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert(r_star, P, L);
@@ -315,7 +314,7 @@ void Preproduct::CN_search(  )
     
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
-    mpz_cdiv_q( cmp_bound, bound, PL);
+    mpz_cdiv_q( cmp_bound, BOUND, PL);
     mpz_t R;
     mpz_init( R );
     
@@ -335,7 +334,7 @@ void Preproduct::CN_search(  )
             primes_lifting_L.push_back( p );
             mpz_mul_ui( PL, PL, p );
             mpz_mul_ui( lifted_L, lifted_L, p );
-            mpz_cdiv_q( cmp_bound, bound, PL);
+            mpz_cdiv_q( cmp_bound, BOUND, PL);
         }
         prime_index++;
     }
@@ -393,7 +392,7 @@ void Preproduct::CN_search(  )
             // n is initialized correctly here
             mpz_mul( n, P, r_star);
             uint32_t k = 0;
-            while( mpz_cmp( n , bound ) < 0 )
+            while( mpz_cmp( n , BOUND ) < 0 )
             {
                 if( spoke_sieve[k] == 0 )
                 {
@@ -425,7 +424,6 @@ void Preproduct::CN_search(  )
     mpz_clear( base2 );
     mpz_clear( base3 );
     mpz_clear( fermat_result );
-    mpz_clear( bound );
     mpz_clear( lifted_L );
         
 }
