@@ -691,13 +691,14 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 void Preproduct::completing_with_exactly_one_prime()
 {
     // set up scaled problem:
-    mpz_t r_star;
-    mpz_init( r_star );
-    mpz_invert( r_star, P, L );
+    mpz_t R;
+    mpz_init( R );
+    mpz_invert( R, P, L );  // holds r_star right now
+    
     
     mpz_t script_R;
-    mpz_init_set( script_R, r_star );
-    mpz_sub_ui( script_R, script_R, 1 );
+    mpz_init_set( script_R, R );
+    mpz_sub_ui( script_R, script_R, 1 ); //we have scaled r_star and no longer need r_star
     
     //scaled problem in terms of the gcd of r_star - 1 and L
     mpz_t g;
@@ -718,10 +719,18 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_init_set( script_L, L);
     mpz_divexact( script_L, script_L, g);
     
+    mpz_t div_bound;
+    mpz_init_set( div_bound, script_P );
+    mpz_sqrt( div_bound, div_bound );
+    
+    mpz_t divisor;
+    mpz_set( divisor, script_R );
+    
     /*
      while( script_R + k*script_L < sqrt( script_P ) )
      {
-        test if g*(script_R + k*script_L) = r_star + k*L is prime
+        
+        test if g*(script_R + k*script_L) + 1 = r_star + k*L is prime
         if it is, test if n = P * (r_star + k*L ) is a CN
         update.  In terms of script_R or r_star:
             script_R += script_L
@@ -731,10 +740,24 @@ void Preproduct::completing_with_exactly_one_prime()
      }
      */
      
-    // set script_R to be R_2 in section 5.3.2
+    while( mpz_cmp( divisor, div_bound) <= 0 )
+     {
+        mpz_mul( R, divisor, g);
+        mpz_add_ui( R, R, 1);
+        if( mpz_probab_prime_p( R, 0 ) != 0 )
+        {
+            // we might do a bounds check (?)
+            // test that P*R is a CN
+        }
+        mpz_add( divisor, divisor, script_L );
+     }
+     
+
+     
+    // set R to be R_2 in section 5.3.2
     mpz_invert( script_R, script_R, script_L);
     mpz_mul( script_R, script_P, script_R );
-    mpz_mod( script_R, script_R, script_L );
+    mpz_mod( divisor, script_R, script_L );
     
      
     /*
@@ -747,13 +770,30 @@ void Preproduct::completing_with_exactly_one_prime()
             k++
      }
      */
+     
+     while( mpz_cmp( divisor, div_bound) <= 0 )
+     {
+        if( mpz_divisible_p( script_P, divisor ) )
+        {
+            mpz_divexact( R, script_P, divisor);
+            mpz_mul( R, R, g);
+            mpz_add_ui( R, R, 1);
+            if( mpz_probab_prime_p( R, 0 ) != 0 )
+            {
+                // we might do a bounds check (?)
+                // test that P*R is a CN
+            }
+        }
+        mpz_add( divisor, divisor, script_L );
+     }
     
-    
+    mpz_clear( divisor );
+    mpz_clear( div_bound );
     mpz_clear( script_R );
     mpz_clear( script_L );
     mpz_clear( script_P );
     mpz_clear( g );
-    mpz_clear( r_star );
+    mpz_clear( R );
     
 }
 
