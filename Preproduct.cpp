@@ -686,6 +686,8 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 // assume that B/PL is "big"
 // if the prime to be found is of the form r_star + k*L for some relatively small value of k
 // call the CN_search method instead (might have to filter out composite completions)
+// we do this "unbounded" - if P^2 L > B, it could produce a CN exceeding B
+// in which case, it should be discarded after the fact or checked in the inner-loop
 void Preproduct::completing_with_exactly_one_prime()
 {
     // set up scaled problem:
@@ -717,10 +719,7 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_divexact( script_L, script_L, g);
     
     /*
-     while( P* [ g*(script_R + k*script_L) ]  < 10^24   &&  script_R + k*script_L < sqrt( script_P ) )
-     P *( r _star + k * L ) <= 10^24 impiles k <  10^24/(PL)
-     r_star + k*L = g*(script_R + k*scriptL) < g*sqrt( script_P )
-     so r_star + k*L < min ( g*sqrt( script_P ), 10^24/PL )
+     while( script_R + k*script_L < sqrt( script_P ) )
      {
         test if g*(script_R + k*script_L) = r_star + k*L is prime
         if it is, test if n = P * (r_star + k*L ) is a CN
@@ -739,10 +738,7 @@ void Preproduct::completing_with_exactly_one_prime()
     
      
     /*
-     k is now defined in a range:
-     The first inequality implies a lower bound on k
-     The second inequality implies an upper bound on k
-     while( P* [ (P-1)/(R_2 + k*script_L) + 1 ]  < 10^24   &&  R_2 + k*script_L < sqrt( script P ) )
+     while(  R_2 + k*script_L < sqrt( script P ) )
      {
         test if R_2 + k*script_L exactly divides (P-1)
             if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
