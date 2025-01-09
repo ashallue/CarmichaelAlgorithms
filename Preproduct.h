@@ -140,6 +140,8 @@ public:
 
     
     // For some preproducts, we will still only need to find exactly one prime
+    // B/(PL) is small, just call CN_search instead
+    // one could work out the cross over depending on the implementation of the below
     // First attempt is the modification of trial division due to the residue class information
     // To do (?): Lenstra's divisor in residue class
     void completing_with_exactly_one_prime( );

@@ -685,6 +685,9 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
+// assume that B/PL is "big"
+// if the prime to be found is of the form r_star + k*L for some relatively small value of k
+// call the CN_search method instead (might have to filter out composite completions)
 void Preproduct::completing_with_exactly_one_prime()
 {
     // set up scaled problem:
@@ -718,7 +721,8 @@ void Preproduct::completing_with_exactly_one_prime()
     /*
      while( P* [ g*(script_R + k*script_L) ]  < 10^24   &&  script_R + k*script_L < sqrt( script_P ) )
      P *( r _star + k * L ) <= 10^24 impiles k <  10^24/(PL)
-     k*script_L < script_R + k*scriptL < sqrt( script_P ) impiles k <= floor( floor( sqrt( script_P ) ) / script_L )
+     r_star + k*L = g*(script_R + k*scriptL) < g*sqrt( script_P )
+     so r_star + k*L < min ( g*sqrt( script_P ), 10^24/PL )
      {
         test if g*(script_R + k*script_L) = r_star + k*L is prime
         if it is, test if n = P * (r_star + k*L ) is a CN
