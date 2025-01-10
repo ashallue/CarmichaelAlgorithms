@@ -693,12 +693,11 @@ void Preproduct::completing_with_exactly_one_prime()
     // set up scaled problem:
     mpz_t R;
     mpz_init( R );
-    mpz_invert( R, P, L );  // holds r_star right now
-    
     
     mpz_t script_R;
-    mpz_init_set( script_R, R );
-    mpz_sub_ui( script_R, script_R, 1 ); //we have scaled r_star and no longer need r_star
+    mpz_init( script_R );
+    mpz_invert( script_R, P, L );
+    mpz_sub_ui( script_R, script_R, 1 );
     
     //scaled problem in terms of the gcd of r_star - 1 and L
     mpz_t g;
