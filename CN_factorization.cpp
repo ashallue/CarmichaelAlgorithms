@@ -32,15 +32,15 @@
 
     // SET P HERE
     // fermat_test is going to hold P until n is computed:
-    mpz_init_set_ui( fermat_result, 515410417841 );
-    uint64_t R = 1750661201;
+    //mpz_init_set_ui( fermat_result, 515410417841 );
+    //uint64_t R = 1750661201;
 
     // below represents the least CN with 14 prime factors
     // where 6 of the primes are in R
-    // mpz_init_set_ui( fermat_result, 31792086053 );
-    // uint64_t R = 2757760839917;
+    mpz_init_set_ui( fermat_result, 31792086053 );
+    uint64_t R = 2757760839917;
 
-    // set n = P*R
+    // set n = P*R, now fermat_result will be used in the obvious way
     mpz_mul_ui( n, fermat_result, R );
 
     // move R into mpz_t for prime test:
