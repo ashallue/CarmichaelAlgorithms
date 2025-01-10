@@ -26,12 +26,15 @@ Preproduct::Preproduct()
 {
     mpz_init( P ) ;
     mpz_init( L ) ;
+    mpz_init_set_ui( BOUND, 10 );
+    mpz_pow_ui( BOUND, BOUND, 24 );
 }
 
 Preproduct::~Preproduct()
 {
     mpz_clear( P );
     mpz_clear( L );
+    mpz_clear( BOUND );
 }
 
 // assumes valid inputs: 
@@ -257,11 +260,7 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
 void Preproduct::CN_search(  )
 {
     const uint32_t cache_bound = 150'000;
-    
-    mpz_t bound;
-    mpz_init_set_ui( bound, 10 );
-    mpz_pow_ui( bound, bound, 24 );
-     
+        
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert(r_star, P, L);
@@ -315,7 +314,7 @@ void Preproduct::CN_search(  )
     
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
-    mpz_cdiv_q( cmp_bound, bound, PL);
+    mpz_cdiv_q( cmp_bound, BOUND, PL);
     mpz_t R;
     mpz_init( R );
     
@@ -335,7 +334,7 @@ void Preproduct::CN_search(  )
             primes_lifting_L.push_back( p );
             mpz_mul_ui( PL, PL, p );
             mpz_mul_ui( lifted_L, lifted_L, p );
-            mpz_cdiv_q( cmp_bound, bound, PL);
+            mpz_cdiv_q( cmp_bound, BOUND, PL);
         }
         prime_index++;
     }
@@ -393,7 +392,7 @@ void Preproduct::CN_search(  )
             // n is initialized correctly here
             mpz_mul( n, P, r_star);
             uint32_t k = 0;
-            while( mpz_cmp( n , bound ) < 0 )
+            while( mpz_cmp( n , BOUND ) < 0 )
             {
                 if( spoke_sieve[k] == 0 )
                 {
@@ -425,7 +424,6 @@ void Preproduct::CN_search(  )
     mpz_clear( base2 );
     mpz_clear( base3 );
     mpz_clear( fermat_result );
-    mpz_clear( bound );
     mpz_clear( lifted_L );
         
 }
@@ -666,13 +664,11 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
     // we use prime divisors of L as the Fermat bases
     mpz_powm( strong_result,  b,  strong_exp, n_as_mpz); // b^( (n-1)/(2^e) ) mod n
     mpz_powm_ui( fermat_result,  strong_result, pow_of_2, n_as_mpz); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
-    mpz_mul( fermat_result, fermat_result, b );  // b^n
 
     //std::cout << "strong_exp = " << mpz_get_str(NULL, 10, strong_exp) << " strong_result = " << mpz_get_str(NULL, 10, strong_result);
     //std::cout << " fermat_result = " << mpz_get_str(NULL, 10, fermat_result) << "\n";
 
-    // is a fermat psp if b^n == b
-    bool is_psp = mpz_cmp( fermat_result, b ) == 0;
+    bool is_psp = mpz_cmp_ui( fermat_result, 1 ) == 0;
 
     // deallocating mpz vars created in this function
     mpz_clear( n_as_mpz );
@@ -683,6 +679,123 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
     return is_psp;   
 }
 
+
+// compare with:
+// https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
+// see section 5.3 of ANTS 2024 work
+// assume that B/PL is "big"
+// if the prime to be found is of the form r_star + k*L for some relatively small value of k
+// call the CN_search method instead (might have to filter out composite completions)
+// we do this "unbounded" - if P^2 L > B, it could produce a CN exceeding B
+// in which case, it should be discarded after the fact or checked in the inner-loop
+void Preproduct::completing_with_exactly_one_prime()
+{
+    // set up scaled problem:
+    mpz_t R;
+    mpz_init( R );
+    mpz_invert( R, P, L );  // holds r_star right now
+    
+    
+    mpz_t script_R;
+    mpz_init_set( script_R, R );
+    mpz_sub_ui( script_R, script_R, 1 ); //we have scaled r_star and no longer need r_star
+    
+    //scaled problem in terms of the gcd of r_star - 1 and L
+    mpz_t g;
+    mpz_init( g );
+    mpz_gcd( g, script_R, L );
+    
+    // the next line now has script_R holding R1 as described in Section 5.3.1 of ANTS 2024 paper
+    mpz_divexact( script_R, script_R, g );
+        
+    // script_P = (P-1)/g
+    mpz_t script_P;
+    mpz_init_set( script_P, P);
+    mpz_sub_ui( script_P, script_P, 1);
+    mpz_divexact( script_P, script_P, g);
+    
+    // script_L = L/g
+    mpz_t script_L;
+    mpz_init_set( script_L, L);
+    mpz_divexact( script_L, script_L, g);
+    
+    mpz_t div_bound;
+    mpz_init_set( div_bound, script_P );
+    mpz_sqrt( div_bound, div_bound );
+    
+    mpz_t divisor;
+    mpz_set( divisor, script_R );
+    
+    /*
+     while( script_R + k*script_L < sqrt( script_P ) )
+     {
+        
+        test if g*(script_R + k*script_L) + 1 = r_star + k*L is prime
+        if it is, test if n = P * (r_star + k*L ) is a CN
+        update.  In terms of script_R or r_star:
+            script_R += script_L
+            r_star += L
+        if the bounds are done as above, no need to explicitly keep track of k
+        the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
+     }
+     */
+     
+    while( mpz_cmp( divisor, div_bound) <= 0 )
+     {
+        mpz_mul( R, divisor, g);
+        mpz_add_ui( R, R, 1);
+        if( mpz_probab_prime_p( R, 0 ) != 0 )
+        {
+            // we might do a bounds check (?)
+            // test that P*R is a CN
+        }
+        mpz_add( divisor, divisor, script_L );
+     }
+     
+
+     
+    // set R to be R_2 in section 5.3.2
+    mpz_invert( script_R, script_R, script_L);
+    mpz_mul( script_R, script_P, script_R );
+    mpz_mod( divisor, script_R, script_L );
+    
+     
+    /*
+     while(  R_2 + k*script_L < sqrt( script P ) )
+     {
+        test if R_2 + k*script_L exactly divides (P-1)
+            if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
+        update the arithmetic progression.
+            script_R += script_L
+            k++
+     }
+     */
+     
+     while( mpz_cmp( divisor, div_bound) <= 0 )
+     {
+        if( mpz_divisible_p( script_P, divisor ) )
+        {
+            mpz_divexact( R, script_P, divisor);
+            mpz_mul( R, R, g);
+            mpz_add_ui( R, R, 1);
+            if( mpz_probab_prime_p( R, 0 ) != 0 )
+            {
+                // we might do a bounds check (?)
+                // test that P*R is a CN
+            }
+        }
+        mpz_add( divisor, divisor, script_L );
+     }
+    
+    mpz_clear( divisor );
+    mpz_clear( div_bound );
+    mpz_clear( script_R );
+    mpz_clear( script_L );
+    mpz_clear( script_P );
+    mpz_clear( g );
+    mpz_clear( R );
+    
+}
 
 int main(void) {
     
@@ -720,6 +833,12 @@ int main(void) {
         std::cout << prime_factors.at(i) << " ";
     }
     std::cout << "\n";
+    
+    Preproduct P1;
+
+    P1.initializing( 515410417841, 115920, 100 );
+    
+    P1.CN_search();
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
