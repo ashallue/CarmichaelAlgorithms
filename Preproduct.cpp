@@ -403,7 +403,7 @@ void Preproduct::CN_search(  )
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
                             mpz_divexact( R, n, P);
-                            // Call Fermat factorization here.
+                            CN_factorization( n, R );
                             gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
@@ -459,7 +459,12 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 
     mpz_sub_ui( P_temp, P_temp, 1);
     return_val = return_val && mpz_divisible_p( P_temp, L_temp );
-        
+    
+    if( return_val )
+    {
+        std::cout << "      THIS IS A CARMICHAEL NUMBER     " << std::endl;
+    }
+    
     mpz_clear( P_temp );
     mpz_clear( L_temp );
     mpz_clear( gcd_result );
@@ -512,173 +517,6 @@ bool Preproduct::is_CN( )
     return return_val;
 }
 
-/* Factor n, storing the unique prime factors in the associated parameter.
-   Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
-   strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
-*/
-bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
-{
-    // use bases from smallprimes, primes up to 1000.  Hopefully we don't need more.
-    // i is the index in the array
-    mpz_t base;
-    mpz_init( base );
-    mpz_set_ui( base, smallprimes[0] );
-    uint32_t i = 0;
-
-    // storage for the gcd result
-    mpz_t gcd_result;
-    mpz_init( gcd_result );
-
-    // storage for the strong result
-    mpz_t strong_result;
-    mpz_init( strong_result );
-
-    // queue for composite factors to be split further.  Starts with n in it
-    // and vars for the factors pulled off the queue
-    std::queue<uint64_t> composite_factors;
-    composite_factors.push(n);
-    
-    mpz_t r_factor;
-    mpz_init( r_factor );
-    uint64_t temp;
-
-    bool is_fermat_psp;
-
-    // loop until no more composite factors, or until a fermat test fails
-    do
-    {
-        //testing
-        //gmp_printf ("base = %Zd \n", base);
-        
-        // Fermat test, with b^( (n-1) / 2^e ) stored in strong_result
-        is_fermat_psp = fermat_test( n, base, strong_result );
-        
-        // this conditional is not expected to be entered
-        // so the do-while loop is not expected to be invoked
-        // most numbers are not Fermat pseudoprimes
-        if( is_fermat_psp )
-        {
-          int start_size = composite_factors.size();
-          // use a for loop to go through all factors that are currently in the queue
-          for( int j = 0; j < start_size; j++ )
-          {
-            // get element out of queue and put into mpz_t
-            // first time through, this is just r_factor will have the value of r_star
-            temp = composite_factors.front();
-            composite_factors.pop();
-            
-            mpz_set_ui( r_factor, temp );
-              
-            // check gcd before prime testing
-            // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
-            mpz_add_ui( strong_result, strong_result, 1);
-            mpz_gcd( gcd_result, strong_result, r_factor);
-
-            //gmp_printf ("GCD %Zd results from %Zd and %Zd \n", gcd_result, strong_result, r_factor);
-              
-            // check that gcd_result has a nontrivial divisor of n
-            // could probably be a check on result1 = +/- 1 mod n
-            // before computing the gcd
-            if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
-            {
-        
-              // will need to add a check about a lower bound on these divisors
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);      
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
-              mpz_divexact(gcd_result, r_factor, gcd_result );
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
-            }
-            else // r_factor was not factored, so it is prime or composite
-            {
-              ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
-            }
-          }
-          // check if Carmichael, or put that somewhere else?
-        }
-        
-        // get next Fermat base
-        i++;
-        mpz_set_ui( base, smallprimes[i] );
-        
-        // do it again if
-        // the number is a Fermat psp and
-        // R_composite queue is not empty
-        // if i == L_len, we should probably output or factor directly 
-            // could be some strange multi-base Fermat pseudoprime - very rare?
-        // room for improvement here
-    }
-    while( is_fermat_psp && !composite_factors.empty() && i < smallprimeslen );
-
-    // need to deallocate the mpz_t vars
-    mpz_clear( base );
-    mpz_clear( gcd_result );
-    mpz_clear( strong_result );
-    mpz_clear( r_factor );
-    
-    // print an error message if the list of bases wasn't enough for some reason
-    if( i == smallprimeslen ){
-        std::cout << "n = " << n << " was not fully factored\n";
-    }
-    
-    // if while loop ended because not a fermat psp, result false
-    if( !is_fermat_psp ) return false;
-    else return true;
-
-}
-
-/* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
-   Additionally, sets strong_result variable to b^((n-1)/2^e)
-   Notes this function returns true for prime n.
- 
-*/
-bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
-{
-    // convert n to mpz
-    mpz_t n_as_mpz;
-    mpz_init( n_as_mpz );
-    mpz_set_ui( n_as_mpz, n );
-    
-    // create a variable for n-1, then compute the largest power of 2 that divides n-1
-    mpz_t nminus;
-    mpz_init( nminus );
-    mpz_sub_ui( nminus, n_as_mpz, 1);
-    // counts the number of 0's that terminate in nminus, i.e. e such that 2^e || n-1
-    uint32_t exp_on_2 = (uint16_t) mpz_scan1( nminus , 0);
-    uint32_t pow_of_2 = ( 1 << exp_on_2 );
-    // QUESTION: should pow_of_2 be larger than 32 bits?
-    // ANSWER:  no.  Indeed, a char would work.  everything in this computation can fit in an uint128_t
-    // which means that exponent is bounded by 128 which is a 7 bit number.
-    
-    
-    // stores the exponent we will apply to the base
-    mpz_t strong_exp;
-    mpz_init( strong_exp );
-
-    // stores the result b^(n-1) mod n, i.e. the Fermat exponent
-    mpz_t fermat_result;
-    mpz_init( fermat_result );
-    
-    // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
-    mpz_tdiv_q_2exp( strong_exp, nminus, exp_on_2 );
-    // we use prime divisors of L as the Fermat bases
-    mpz_powm( strong_result,  b,  strong_exp, n_as_mpz); // b^( (n-1)/(2^e) ) mod n
-    mpz_powm_ui( fermat_result,  strong_result, pow_of_2, n_as_mpz); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
-
-    //std::cout << "strong_exp = " << mpz_get_str(NULL, 10, strong_exp) << " strong_result = " << mpz_get_str(NULL, 10, strong_result);
-    //std::cout << " fermat_result = " << mpz_get_str(NULL, 10, fermat_result) << "\n";
-
-    bool is_psp = mpz_cmp_ui( fermat_result, 1 ) == 0;
-
-    // deallocating mpz vars created in this function
-    mpz_clear( n_as_mpz );
-    mpz_clear( nminus );
-    mpz_clear( strong_exp );
-    mpz_clear( fermat_result );
-    
-    return is_psp;   
-}
-
 
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
@@ -706,7 +544,7 @@ void Preproduct::completing_with_exactly_one_prime()
     
     // the next line now has script_R holding R1 as described in Section 5.3.1 of ANTS 2024 paper
     mpz_divexact( script_R, script_R, g );
-        
+    
     // script_P = (P-1)/g
     mpz_t script_P;
     mpz_init_set( script_P, P);
@@ -728,19 +566,19 @@ void Preproduct::completing_with_exactly_one_prime()
     /*
      while( script_R + k*script_L < sqrt( script_P ) )
      {
-        
-        test if g*(script_R + k*script_L) + 1 = r_star + k*L is prime
-        if it is, test if n = P * (r_star + k*L ) is a CN
-        update.  In terms of script_R or r_star:
-            script_R += script_L
-            r_star += L
-        if the bounds are done as above, no need to explicitly keep track of k
-        the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
+     
+     test if g*(script_R + k*script_L) + 1 = r_star + k*L is prime
+     if it is, test if n = P * (r_star + k*L ) is a CN
+     update.  In terms of script_R or r_star:
+     script_R += script_L
+     r_star += L
+     if the bounds are done as above, no need to explicitly keep track of k
+     the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
      }
      */
-     
+    
     while( mpz_cmp( divisor, div_bound) <= 0 )
-     {
+    {
         mpz_mul( R, divisor, g);
         mpz_add_ui( R, R, 1);
         if( mpz_probab_prime_p( R, 0 ) != 0 )
@@ -749,29 +587,29 @@ void Preproduct::completing_with_exactly_one_prime()
             // test that P*R is a CN
         }
         mpz_add( divisor, divisor, script_L );
-     }
-     
-
-     
+    }
+    
+    
+    
     // set R to be R_2 in section 5.3.2
     mpz_invert( script_R, script_R, script_L);
     mpz_mul( script_R, script_P, script_R );
     mpz_mod( divisor, script_R, script_L );
     
-     
+    
     /*
      while(  R_2 + k*script_L < sqrt( script P ) )
      {
-        test if R_2 + k*script_L exactly divides (P-1)
-            if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
-        update the arithmetic progression.
-            script_R += script_L
-            k++
+     test if R_2 + k*script_L exactly divides (P-1)
+     if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
+     update the arithmetic progression.
+     script_R += script_L
+     k++
      }
      */
-     
-     while( mpz_cmp( divisor, div_bound) <= 0 )
-     {
+    
+    while( mpz_cmp( divisor, div_bound) <= 0 )
+    {
         if( mpz_divisible_p( script_P, divisor ) )
         {
             mpz_divexact( R, script_P, divisor);
@@ -784,7 +622,7 @@ void Preproduct::completing_with_exactly_one_prime()
             }
         }
         mpz_add( divisor, divisor, script_L );
-     }
+    }
     
     mpz_clear( divisor );
     mpz_clear( div_bound );
@@ -793,8 +631,123 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_clear( script_P );
     mpz_clear( g );
     mpz_clear( R );
+
+}
+
+
+// while R is passed as mpz_t type
+// the assumption is that R < 2^64
+bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
+{
+    std::queue<uint64_t> R_composite_factors;
+    std::vector<uint64_t> R_prime_factors;
+    
+    uint64_t r64_factor =  mpz_get_ui( R );
+    mpz_probab_prime_p( R, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
+    
+    mpz_t fermat_result;
+    mpz_t odd_part;
+    mpz_t base;
+    mpz_t gcd_result;
+    
+    mpz_init( gcd_result );
+    mpz_init_set_ui( base, 2);
+    
+    mpz_init( odd_part );
+    mpz_init_set( fermat_result, n );
+    // now using fermat_test to hold n-1
+    mpz_sub_ui( fermat_result, fermat_result, 1 );
+    uint16_t pow_of_2 = (uint16_t) mpz_scan1( fermat_result, 0 );
+    mpz_fdiv_q_2exp( odd_part, fermat_result, pow_of_2 );
+    
+    
+    
+    uint16_t start_size;            // counter to empty queue
+    uint16_t i = 0;                 // counter for powers of 2
+    bool is_fermat_psp = true;      // initialized as true b/c n is a base-2 fermat psp
+
+    // this while loops iterates over Fermat bases, starts with 2 and then odd integers
+    mpz_powm( fermat_result, base, odd_part, n);
+    mpz_set_ui( base, 1);
+    while( !R_composite_factors.empty() && is_fermat_psp )
+    {
+        i = 0;    //counter for powers of 2
+        // this while loop iterates over algebraic factors (b^(d * 2^i) + 1)
+        while( !R_composite_factors.empty() && i < pow_of_2 )
+        {
+            start_size = R_composite_factors.size();
+            // this for loop iterates over composite factors
+            for( int j = 0; j < start_size; j++ )
+            {
+                r64_factor = R_composite_factors.front();
+                R_composite_factors.pop();
+                mpz_set_ui( R, r64_factor );
+                mpz_add_ui( gcd_result, fermat_result, 1); // gcd_result hold b^(d*2^i) + 1
+                mpz_gcd( gcd_result, gcd_result, R);
+
+                if( mpz_cmp(gcd_result, R) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
+                {
+                    // this gcd split r_factor.  Letting g = gcd( gr, rf), then this splits rf into, g and rf/g.
+                    r64_factor = mpz_get_ui( gcd_result );
+                    mpz_probab_prime_p( gcd_result, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
+                    mpz_divexact(gcd_result, R, gcd_result );
+                    r64_factor = mpz_get_ui( gcd_result );
+                    mpz_probab_prime_p( gcd_result, 0 ) == 0  ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
+                }
+                else // r_factor was not factored, so put it back in the queue
+                {
+                    R_composite_factors.push( r64_factor );
+                }
+            }
+            i++;
+            mpz_powm_ui( fermat_result, fermat_result, 2, n );
+        }
+        
+        std::cout << "We found " ;
+        for( auto p : R_prime_factors )
+        {
+            std::cout << p << " " ;
+        }
+        std::cout << "as factors of R with the base " ;
+        gmp_printf( "%Zd", base);
+        std::cout << std::endl;
+        
+        mpz_add_ui( base, base, 2);
+        mpz_powm( fermat_result, base, n, n);
+        is_fermat_psp = ( mpz_cmp( fermat_result, base ) == 0 );
+        mpz_powm( fermat_result, base, odd_part, n);
+    }
+
+    if( !is_fermat_psp )
+    {
+        std::cout << "The program stopped because a base " ;
+        gmp_printf( "%Zd", base);
+        std::cout << " Fermat test detected compositeness which cannot happen for CNs." << std::endl;
+    }
+
+    else if( R_composite_factors.empty( ) )
+    {
+        std::cout << "you now have a complete factorization - check with Korselt" << std::endl;
+        std::cout << "the prime factors are " ;
+        for( auto p : R_prime_factors )
+        {
+            std::cout << p << " " ;
+        }
+        std::cout << std::endl;
+        appending_is_CN( R_prime_factors );
+    }
+        
+    mpz_clear( fermat_result );
+    mpz_clear( gcd_result );
+    mpz_clear( base );
+    mpz_clear( odd_part );
+    
+    return is_fermat_psp;
+
     
 }
+
+
 
 int main(void) {
     
@@ -822,16 +775,7 @@ int main(void) {
     }
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
 
-    std::cout << "Testing fermat_factor\n";
-    uint64_t n = 341;
-    std::vector<uint64_t> prime_factors;
-    bool factored = P0.fermat_factor(n, prime_factors);
-
-    std::cout << n << " factors as: ";
-    for(int i = 0; i < prime_factors.size(); i++){
-        std::cout << prime_factors.at(i) << " ";
-    }
-    std::cout << "\n";
+   
     
     Preproduct P1;
 

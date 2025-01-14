@@ -86,29 +86,6 @@ public:
     uint16_t mod_three_status[ APPEND_LIMIT ];  
     uint64_t appended_primes[ APPEND_LIMIT ];  
 
-    // small primes that serve as Fermat bases
-    static const uint32_t smallprimeslen = 168;
-    static const uint32_t smallprimesmax = 1000;
-    uint32_t smallprimes[smallprimeslen] = {
-       2,   3,   5,   7,  11,  13,  17,  19,  23,  29,
-      31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
-      73,  79,  83,  89,  97, 101, 103, 107, 109, 113,
-     127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
-     179, 181, 191, 193, 197, 199, 211, 223, 227, 229,
-     233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
-     283, 293, 307, 311, 313, 317, 331, 337, 347, 349,
-     353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
-     419, 421, 431, 433, 439, 443, 449, 457, 461, 463,
-     467, 479, 487, 491, 499, 503, 509, 521, 523, 541,
-     547, 557, 563, 569, 571, 577, 587, 593, 599, 601,
-     607, 613, 617, 619, 631, 641, 643, 647, 653, 659,
-     661, 673, 677, 683, 691, 701, 709, 719, 727, 733,
-     739, 743, 751, 757, 761, 769, 773, 787, 797, 809,
-     811, 821, 823, 827, 829, 839, 853, 857, 859, 863,
-     877, 881, 883, 887, 907, 911, 919, 929, 937, 941,
-     947, 953, 967, 971, 977, 983, 991, 997
-    };
-
     // constructor and destructor
     Preproduct();
     ~Preproduct();
@@ -160,17 +137,9 @@ public:
     // to return true, means we need to output which is the actual goal
     bool is_CN( );
 
-    /* Factor n, storing the unique prime factors in the associated parameter.
-       Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
-       strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
-    */
-    bool fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors);
-
-    /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
-       Additionally, sets strong_result variable to b^((n-1)/2^e)
-       Note this function returns true for prime n.
-    */
-    bool fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result);
+    
+    // passes n and R where n = P*R
+    bool CN_factorization( mpz_t& n, mpz_t& R);
 };
 
 #endif
