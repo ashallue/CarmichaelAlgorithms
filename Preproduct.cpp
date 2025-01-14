@@ -459,12 +459,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 
     mpz_sub_ui( P_temp, P_temp, 1);
     return_val = return_val && mpz_divisible_p( P_temp, L_temp );
-    
-    if( return_val )
-    {
-        std::cout << "      THIS IS A CARMICHAEL NUMBER     " << std::endl;
-    }
-    
+       
     mpz_clear( P_temp );
     mpz_clear( L_temp );
     mpz_clear( gcd_result );
@@ -637,6 +632,7 @@ void Preproduct::completing_with_exactly_one_prime()
 
 // while R is passed as mpz_t type
 // the assumption is that R < 2^64
+// NEED TO DO - incorporate append bound, see comments below
 bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
 {
     std::queue<uint64_t> R_composite_factors;
@@ -688,6 +684,7 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
                 if( mpz_cmp(gcd_result, R) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
                 {
                     // this gcd split r_factor.  Letting g = gcd( gr, rf), then this splits rf into, g and rf/g.
+                    // could break here if rf or rf/g < append_bound
                     r64_factor = mpz_get_ui( gcd_result );
                     mpz_probab_prime_p( gcd_result, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
                     mpz_divexact(gcd_result, R, gcd_result );
@@ -734,7 +731,20 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
             std::cout << p << " " ;
         }
         std::cout << std::endl;
-        appending_is_CN( R_prime_factors );
+        // or check here that the least prime factor in R_prime_factors exceeds append_bound
+        // could compare the least element in the sort
+        std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
+        
+        if( appending_is_CN( R_prime_factors ) )
+        {
+            std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
+            gmp_printf ("%Zd = ", n );
+            for( int i = 0; i < P_len; i++ )
+                std::cout << " " << P_primes[ i ] ;
+            for( int i = 0; i < R_prime_factors.size(); i ++ )
+                std::cout << " " << R_prime_factors[i];
+            std::cout << std::endl;
+        }
     }
         
     mpz_clear( fermat_result );
@@ -743,8 +753,6 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
     mpz_clear( odd_part );
     
     return is_fermat_psp;
-
-    
 }
 
 

@@ -139,6 +139,14 @@ public:
 
     
     // passes n and R where n = P*R
+    // uses strong Fermat primality tests for fast factorization
+    // if a simple Fermat test detects a composite number, n cannot be a CN
+    // otherwise, it is likely that n will be detected as composite by the strong test
+    // in which case, we may use the strong test to split R
+    // see:  https://crypto.stackexchange.com/questions/5279/carmichael-number-factoring
+    // in the above link they claim a "typical" number is detected as compoiste with probaility  > 3/4
+    // but that for CN the probability is 7/8
+    // I do not know where the 7/8 comes from
     bool CN_factorization( mpz_t& n, mpz_t& R);
 };
 
