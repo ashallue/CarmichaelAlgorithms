@@ -148,6 +148,18 @@ public:
     // but that for CN the probability is 7/8
     // I do not know where the 7/8 comes from
     bool CN_factorization( mpz_t& n, mpz_t& R);
+
+    /* Factor n, storing the unique prime factors in the associated parameter.
+   Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
+   strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
+    */
+    bool fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors);
+
+    /* Check whether n is a Fermat pseudoprime to the base b (via b^n = b mod n).  Returns bool with this result.
+       Additionally, sets strong_result variable to b^((n-1)/2^e)
+       Notes this function returns true for prime n.
+    */
+    bool fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result);
 };
 
 #endif

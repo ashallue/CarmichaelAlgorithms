@@ -513,23 +513,34 @@ bool Preproduct::is_CN( )
 }
 
 /* Factor n, storing the unique prime factors in the associated parameter.
+Assume that we already know that n is a base-2 and base-3 Fermat pseudoprime.
+Use the strong test to those two bases to split.  Return true if fully factored, false if not
+*/
+
+/* Factor n, storing the unique prime factors in the associated parameter.
    Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
    strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
 */
 bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
 {
-    // bases checked will be odd numbers starting at 3
+    // bases checked will start at 2, then proceed through odd numbers.
     mpz_t base;
     mpz_init( base );
-    mpz_set_ui( base, 3 );
+    mpz_set_ui( base, 2 );
 
     // storage for the gcd result
-    mpz_t gcd_result;
-    mpz_init( gcd_result );
+    mpz_t gcd_result1;
+    mpz_init( gcd_result1 );
+    mpz_t gcd_result2;
+    mpz_init( gcd_result2 );
 
-    // storage for the strong result
+    // storage for the strong result, along with its +/- 1 algebraic pieces
     mpz_t strong_result;
     mpz_init( strong_result );
+    mpz_t strong_plusone;
+    mpz_init( strong_plusone );
+    mpz_t strong_minusone;
+    mpz_init( strong_minusone );
 
     // queue for composite factors to be split further.  Starts with n in it
     // and vars for the factors pulled off the queue
@@ -566,37 +577,57 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
             composite_factors.pop();
             
             mpz_set_ui( r_factor, temp );
-              
-            // check gcd before prime testing
-            // result1 holds the algebraic factor assoicated with b^((n-1)/2^e) + 1
-            mpz_add_ui( strong_result, strong_result, 1);
-            mpz_gcd( gcd_result, strong_result, r_factor);
 
-            //gmp_printf ("GCD %Zd results from %Zd and %Zd \n", gcd_result, strong_result, r_factor);
-              
-            // check that gcd_result has a nontrivial divisor of n
-            // could probably be a check on result1 = +/- 1 mod n
-            // before computing the gcd
-            if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
+            // loop over all algebraic factors: b^((n-1)/2^k) +/- 1 for e <= k <= 0
+            while( mpz_cmp( strong_result, base ) != 0 )
             {
-        
-              // will need to add a check about a lower bound on these divisors
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);      
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
-              mpz_divexact(gcd_result, r_factor, gcd_result );
-              mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-              ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
-            }
-            else // r_factor was not factored, so it is prime or composite
-            {
-              ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                // check gcd before prime testing
+                // strong_plusone holds b^((n-1)/2^k) + 1, strong_minusone holds b^((n-1)/2^k) - 1
+                mpz_add_ui( strong_plusone, strong_result, 1 );
+                mpz_sub_ui( strong_minusone, strong_result, 1 );
+                mpz_gcd( gcd_result1, strong_plusone, r_factor );
+                mpz_gcd( gcd_result2, strong_minusone, r_factor );
+    
+                //gmp_printf ("GCD %Zd results from %Zd and %Zd \n", gcd_result, strong_result, r_factor);
+                  
+                // check that gcd_result has a nontrivial divisor of n
+                // could probably be a check on result1 = +/- 1 mod n
+                // before computing the gcd
+                if( mpz_cmp(gcd_result1, r_factor) < 0 && mpz_cmp_ui(gcd_result1, 1) > 0 )
+                {
+                  // will need to add a check about a lower bound on these divisors
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result1);      
+                  ( mpz_probab_prime_p( gcd_result1, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                  mpz_divexact( gcd_result1, r_factor, gcd_result1 );
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result1);
+                  ( mpz_probab_prime_p( gcd_result1, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                }
+
+                // check gcd( b^((n-1)/2^k) - 1, r_factor ) to see if a split occurred
+                else if( mpz_cmp(gcd_result2, r_factor) < 0 && mpz_cmp_ui(gcd_result2, 1) > 0 )
+                {
+                  // will need to add a check about a lower bound on these divisors
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result2);      
+                  ( mpz_probab_prime_p( gcd_result2, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                  mpz_divexact( gcd_result2, r_factor, gcd_result2 );
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result2);
+                  ( mpz_probab_prime_p( gcd_result2, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                }
+                else // r_factor was not factored, so it is prime or composite
+                {
+                  ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
+                }
+
+                // square strong_result, this turns b^((n-1)/2^k) into b^((n-1)/2^(k+1))
+                mpz_mul( strong_result, strong_result, strong_result );
             }
           }
           // check if Carmichael, or put that somewhere else?
         }
         
-        // get next Fermat base
-        mpz_add_ui( base, base, 2 );
+        // get next Fermat base.  If 2, add 1.  If not 2, add 2 to get next odd
+        if( mpz_cmp_ui(base, 2) == 0) mpz_add_ui( base, base, 1);
+        else mpz_add_ui( base, base, 2 );
         
         // do it again if
         // the number is a Fermat psp and
@@ -609,9 +640,12 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
 
     // need to deallocate the mpz_t vars
     mpz_clear( base );
-    mpz_clear( gcd_result );
+    mpz_clear( gcd_result1 );
+    mpz_clear( gcd_result2 );
     mpz_clear( strong_result );
     mpz_clear( r_factor );
+    mpz_clear( strong_plusone );
+    mpz_clear( strong_minusone );
     
     // if while loop ended because not a fermat psp, result false
     if( !is_fermat_psp ) return false;
