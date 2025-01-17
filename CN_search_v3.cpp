@@ -35,7 +35,7 @@ int main()
     uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
 
     // all primes less than append_bound are used in sieving
-    uint32_t append_bound = 200;
+    uint32_t append_bound = 100;
     
     // compute r^* = p^{-1} mod L
     // this is the start of  R = (r^* + kL) w/ k = 0
