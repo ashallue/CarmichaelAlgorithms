@@ -137,17 +137,17 @@ public:
     // to return true, means we need to output which is the actual goal
     bool is_CN( );
 
-    /* Factor n, storing the unique prime factors in the associated parameter.
-       Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
-       strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
-    */
-    bool fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors);
-
-    /* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
-       Additionally, sets strong_result variable to b^((n-1)/2^e)
-       Note this function returns true for prime n.
-    */
-    bool fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result);
+    
+    // passes n and R where n = P*R
+    // uses strong Fermat primality tests for fast factorization
+    // if a simple Fermat test detects a composite number, n cannot be a CN
+    // otherwise, it is likely that n will be detected as composite by the strong test
+    // in which case, we may use the strong test to split R
+    // see:  https://crypto.stackexchange.com/questions/5279/carmichael-number-factoring
+    // in the above link they claim a "typical" number is detected as compoiste with probaility  > 3/4
+    // but that for CN the probability is 7/8
+    // I do not know where the 7/8 comes from
+    bool CN_factorization( mpz_t& n, mpz_t& R);
 };
 
 #endif
