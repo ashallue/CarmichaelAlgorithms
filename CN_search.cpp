@@ -13,7 +13,7 @@ int main()
   // The upper bound of the computation:      lines 33,34
   // The quantity P:                          line 38
   // The quantity L = lambda(P)               lines 44,45
-  // The array holding the primes dividing L  lines 46 and 166
+  // The array holding the primes dividing L  lines 46
   // e = v_2( LCM( P-1, L0 ) )                line 54
 
   // version 1: 401 s, mpz_class version
@@ -43,7 +43,8 @@ int main()
   mpz_t L;
   mpz_init_set_ui( L, 115920 );
   uint64_t L64 = 115920;
-  uint64_t fermat_bases[5] = { 2, 3, 5, 7, 23};
+  #define NUM_BASES 5
+  uint64_t fermat_bases[NUM_BASES] = { 2, 3, 5, 7, 23};
 
   //mpz_init_set_ui( L, 36756720 );
   //uint64_t L64 = 36756720;
@@ -165,7 +166,7 @@ int main()
       // the number is a Fermat psp and
       // R_composite queue is not empty
     }
-    while( is_fermat_psp && !R_composite_factors.empty() && i < 5 );
+    while( is_fermat_psp && !R_composite_factors.empty() && i < NUM_BASES );
 
     // empty queue
     while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }

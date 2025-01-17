@@ -44,7 +44,7 @@ int main()
 
   // intended bound for the computation is 10^23
   // bounds testing is done with logarithms
-  double bound = 23*log(10);
+  double bound = 24*log(10);
 
   uint64_t prime_count;
   std::cout << "How many primes to use? " ;
@@ -96,8 +96,7 @@ int main()
   }
 
 
-  // output the two jobs lists here:
-  /*
+
   std::ofstream output_file("output_jobs.txt");
   for( int i = 0; i < output_jobs.size(); i++ )
   {
@@ -119,6 +118,5 @@ int main()
       working_file << std::endl;
   }
   working_file.close();
- */
 
 }

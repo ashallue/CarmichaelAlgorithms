@@ -787,7 +787,7 @@ int main(void) {
     
     Preproduct P1;
 
-    P1.initializing( 515410417841, 115920, 100 );
+    P1.initializing( 515410417841, 115920, 50 );
     
     P1.CN_search();
     
