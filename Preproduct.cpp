@@ -518,12 +518,10 @@ bool Preproduct::is_CN( )
 */
 bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
 {
-    // use bases from smallprimes, primes up to 1000.  Hopefully we don't need more.
-    // i is the index in the array
+    // bases checked will be odd numbers starting at 3
     mpz_t base;
     mpz_init( base );
-    mpz_set_ui( base, smallprimes[0] );
-    uint32_t i = 0;
+    mpz_set_ui( base, 3 );
 
     // storage for the gcd result
     mpz_t gcd_result;
@@ -598,8 +596,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
         }
         
         // get next Fermat base
-        i++;
-        mpz_set_ui( base, smallprimes[i] );
+        mpz_add_ui( base, base, 2 );
         
         // do it again if
         // the number is a Fermat psp and
@@ -608,7 +605,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
             // could be some strange multi-base Fermat pseudoprime - very rare?
         // room for improvement here
     }
-    while( is_fermat_psp && !composite_factors.empty() && i < smallprimeslen );
+    while( is_fermat_psp && !composite_factors.empty() );
 
     // need to deallocate the mpz_t vars
     mpz_clear( base );
@@ -616,21 +613,15 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
     mpz_clear( strong_result );
     mpz_clear( r_factor );
     
-    // print an error message if the list of bases wasn't enough for some reason
-    if( i == smallprimeslen ){
-        std::cout << "n = " << n << " was not fully factored\n";
-    }
-    
     // if while loop ended because not a fermat psp, result false
     if( !is_fermat_psp ) return false;
     else return true;
 
 }
 
-/* Check whether n is a Fermat pseudoprime to the base b.  Returns bool with this result.
+/* Check whether n is a Fermat pseudoprime to the base b (via b^n = b mod n).  Returns bool with this result.
    Additionally, sets strong_result variable to b^((n-1)/2^e)
    Notes this function returns true for prime n.
- 
 */
 bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 {
@@ -664,11 +655,12 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
     // we use prime divisors of L as the Fermat bases
     mpz_powm( strong_result,  b,  strong_exp, n_as_mpz); // b^( (n-1)/(2^e) ) mod n
     mpz_powm_ui( fermat_result,  strong_result, pow_of_2, n_as_mpz); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
-
+    mpz_mul( fermat_result, fermat_result, b );  // b^n
+    
     //std::cout << "strong_exp = " << mpz_get_str(NULL, 10, strong_exp) << " strong_result = " << mpz_get_str(NULL, 10, strong_result);
     //std::cout << " fermat_result = " << mpz_get_str(NULL, 10, fermat_result) << "\n";
 
-    bool is_psp = mpz_cmp_ui( fermat_result, 1 ) == 0;
+    bool is_psp = mpz_cmp( fermat_result, b ) == 0;
 
     // deallocating mpz vars created in this function
     mpz_clear( n_as_mpz );
