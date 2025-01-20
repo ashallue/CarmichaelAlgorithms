@@ -404,7 +404,7 @@ void Preproduct::CN_search(  )
                         {
                             mpz_divexact( R, n, P);
                             CN_factorization( n, R );
-                            gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                            // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
                 }
