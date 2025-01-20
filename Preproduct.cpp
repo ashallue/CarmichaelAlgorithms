@@ -763,6 +763,8 @@ void Preproduct::completing_with_exactly_one_prime()
      if the bounds are done as above, no need to explicitly keep track of k
      the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
      }
+     
+     
      */
     
     while( mpz_cmp( divisor, div_bound) <= 0 )
@@ -862,6 +864,7 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
     {
         i = 0;    //counter for powers of 2
         // this while loop iterates over algebraic factors (b^(d * 2^i) + 1)
+        // early abort?  no need to check all factors
         while( !R_composite_factors.empty() && i < pow_of_2 )
         {
             start_size = R_composite_factors.size();
@@ -877,7 +880,7 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
                 if( mpz_cmp(gcd_result, R) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
                 {
                     // this gcd split r_factor.  Letting g = gcd( gr, rf), then this splits rf into, g and rf/g.
-                    // could break here if rf or rf/g < append_bound
+                    // could break here if rf or rf/g < append_bound (exiting early if not)
                     r64_factor = mpz_get_ui( gcd_result );
                     mpz_probab_prime_p( gcd_result, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
                     mpz_divexact(gcd_result, R, gcd_result );
@@ -892,39 +895,16 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
             i++;
             mpz_powm_ui( fermat_result, fermat_result, 2, n );
         }
-        
-        std::cout << "We found " ;
-        for( auto p : R_prime_factors )
-        {
-            std::cout << p << " " ;
-        }
-        std::cout << "as factors of R with the base " ;
-        gmp_printf( "%Zd", base);
-        std::cout << std::endl;
-        
+
+        // get new base
         mpz_add_ui( base, base, 2);
         mpz_powm( fermat_result, base, n, n);
         is_fermat_psp = ( mpz_cmp( fermat_result, base ) == 0 );
         mpz_powm( fermat_result, base, odd_part, n);
     }
 
-    if( !is_fermat_psp )
+    if( R_composite_factors.empty( ) && is_fermat_psp )
     {
-        std::cout << "The program stopped because a base " ;
-        gmp_printf( "%Zd", base);
-        std::cout << " Fermat test detected compositeness which cannot happen for CNs." << std::endl;
-    }
-
-    else if( R_composite_factors.empty( ) )
-    {
-        std::cout << "you now have a complete factorization - check with Korselt" << std::endl;
-        std::cout << "the prime factors are " ;
-        for( auto p : R_prime_factors )
-        {
-            std::cout << p << " " ;
-        }
-        std::cout << std::endl;
-        // or check here that the least prime factor in R_prime_factors exceeds append_bound
         // could compare the least element in the sort
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
         
