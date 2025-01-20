@@ -98,7 +98,7 @@ public:
     // assume we have an admissible prime to append.
     // contains a merge computation of LCM( lambda(PP), p-1 )	
     void appending( Preproduct PP, primes_stuff p );
-
+    
     // member functions
     // done with no gcd check
     bool is_admissible( uint64_t prime_to_append );

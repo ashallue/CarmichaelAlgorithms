@@ -1,6 +1,7 @@
 #include "Preproduct.h"
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <queue>
 #include <vector>
 #include <cstdint>
@@ -103,6 +104,7 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
     }
     len_appended_primes = 0;
 }
+
 
 // assumes prime_stuff is valid and admissible to PP
 void Preproduct::appending( Preproduct PP, primes_stuff p )
@@ -341,12 +343,7 @@ void Preproduct::CN_search(  )
 
     uint32_t cmp_bound32 = mpz_get_ui( cmp_bound );
     boost::dynamic_bitset<> spoke_sieve( cmp_bound32 );
-    
-    for( auto p : primes_lifting_L )
-    {
-        std::cout << p << " " ;
-    }
-    
+        
     // This is the wheel and a creates r_star + m*L
     // The wheel is r_star + m*L
     for( uint64_t m = 0; m < L_lift; m ++)
@@ -957,12 +954,64 @@ int main(void) {
     std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
 
    
-    
+    /*  A good test case
     Preproduct P1;
-
     P1.initializing( 515410417841, 115920, 50 );
-    
     P1.CN_search();
+    */
+     
+    // the triple 132582235, 91872, 941 is in the working jobs with the new rule
+    // this means we have between 2 and 6 primes to append to find a CN
+    // for all primes in ( 941, (B/P)^(1/3) ) = (941, 196112) we append a prime and do CN_search
+    // for all primes in ( 196112, (B/P)^(1/2) ) = ( 196112, 86847502) we append a prime and look for exactly one prime
+    // this represents the first two CN_xearches invoked by the above:
+    
+    
+    uint64_t P = 132582235;
+    uint64_t L = 91872;
+    
+    uint64_t P1;
+    uint64_t L1;
+    
+    uint64_t p64 = 947;
+    mpz_t p ;
+    mpz_init_set_ui( p, p64 );
+    
+   
+    // this example is *not* ideal, we refactor P by trial division every time
+    // the dumb_appending isn't working
+    // I dont' know why - time to debug
+    Preproduct P_testing;
+    
+    while( p64 < 196112 )
+    {
+        mpz_nextprime( p, p);
+        p64 = mpz_get_ui( p );
+        if( 1 != p64 % 5 && 1 != p64 % 17 && 1 != p64 % 23 && 1 != p64 % 73 && 1 != p64 % 929 )
+        {
+           // std::cout << "I found an admissible prime " << p64 << std::endl;
+            P1 = P*p64;
+            L1 = L*((p64-1)/std::gcd( L , p64-1 ) );
+            P_testing.initializing ( P1, L1, p64 );
+            P_testing.CN_search();
+            
+        }
+    }
+    /*
+     This run completes in 4 minutes and 30 seconds on thomas.butler.edu and finds these:
+     433493717815335774335905 =  5 17 23 73 929 2377 7129 10267 18793
+     72425097332690148535105 =  5 17 23 73 929 5347 577 673 263089
+     433493717815335774335905 =  5 17 23 73 929 7129 2377 10267 18793
+     433493717815335774335905 =  5 17 23 73 929 10267 2377 7129 18793
+     433493717815335774335905 =  5 17 23 73 929 18793 2377 7129 10267
+     725906640592907462305 =  5 17 23 73 929 21577 643 394633
+     
+     The fact that these are found duplicated only indicates our failure to implement the append_bound-related checks in CN_factorization
+     */
+   
+    
+    
+    mpz_clear( p );
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
