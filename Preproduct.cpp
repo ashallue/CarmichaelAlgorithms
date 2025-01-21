@@ -317,6 +317,8 @@ void Preproduct::CN_search(  )
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     // fix append_bound to be consistent with the bitset
+    // we probably need to also bound this by cmp_bound
+    // it's not really a sieve if p > cmp_bound
     uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 512);
     
     // remove primes dividing L from the bitset
@@ -708,10 +710,8 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
 // assume that B/PL is "big"
-// if the prime to be found is of the form r_star + k*L for some relatively small value of k
-// call the CN_search method instead (might have to filter out composite completions)
-// we do this "unbounded" - if P^2 L > B, it could produce a CN exceeding B
-// in which case, it should be discarded after the fact or checked in the inner-loop
+// if the prime to be found is of the form r_star + k*L for some relatively small value of k we should probably invoke a call to CN_search
+// the below needs to be fixed so that it is bounded
 void Preproduct::completing_with_exactly_one_prime()
 {
     // set up scaled problem:
@@ -749,53 +749,30 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_t divisor;
     mpz_set( divisor, script_R );
     
-    /*
-     while( script_R + k*script_L < sqrt( script_P ) )
-     {
-     
-     test if g*(script_R + k*script_L) + 1 = r_star + k*L is prime
-     if it is, test if n = P * (r_star + k*L ) is a CN
-     update.  In terms of script_R or r_star:
-     script_R += script_L
-     r_star += L
-     if the bounds are done as above, no need to explicitly keep track of k
-     the bounds are loop-invariant, so we can compute the maximal value of k outside loop and explicitly track k if we want to
-     }
-     
-     
-     */
-    
+    // This constructs the smaller divisor and we should prevent P*R from exceeding B
     while( mpz_cmp( divisor, div_bound) <= 0 )
     {
-        mpz_mul( R, divisor, g);
-        mpz_add_ui( R, R, 1);
-        if( mpz_probab_prime_p( R, 0 ) != 0 )
+        if( mpz_divisible_p( script_P, divisor ) )
         {
-            // we might do a bounds check (?)
-            // test that P*R is a CN
+            mpz_mul( R, divisor, g);
+            mpz_add_ui( R, R, 1);
+            if( mpz_probab_prime_p( R, 0 ) != 0 )
+            {
+                // we might do a bounds check (?)
+                // test that P*R is a CN
+            }
         }
         mpz_add( divisor, divisor, script_L );
     }
     
-    
+    // Now we construct hte larger divisor and we should also prevent P*R from exceeding B
+    // E.g, it should be impossible to enter this section if P > B^(2/3)
     
     // set R to be R_2 in section 5.3.2
     mpz_invert( script_R, script_R, script_L);
     mpz_mul( script_R, script_P, script_R );
     mpz_mod( divisor, script_R, script_L );
-    
-    
-    /*
-     while(  R_2 + k*script_L < sqrt( script P ) )
-     {
-     test if R_2 + k*script_L exactly divides (P-1)
-     if so, define R = (P-1)/(R_2 + k*script_L) + 1, check if R is prime, and if so, check if PR is a CN with Korselt
-     update the arithmetic progression.
-     script_R += script_L
-     k++
-     }
-     */
-    
+       
     while( mpz_cmp( divisor, div_bound) <= 0 )
     {
         if( mpz_divisible_p( script_P, divisor ) )
