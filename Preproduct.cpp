@@ -454,6 +454,8 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     // break the loop(s) when return_val is detected to be false
     for( auto app_prime : primes_to_append )
     {
+        // check that each prime is admissible to P
+        // could call a class method here?
         for( int i = 0; i < P_len; i++ )
         {
             return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
@@ -461,10 +463,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
         // update the preproduct by this prime
         mpz_mul_ui( P_temp, P_temp, app_prime );
         uint64_t temp = app_prime - 1;
-        // compute LCM( L, p-1 ) = (L / gcd( L, p-1 ) )*(p-1)
-        mpz_gcd_ui( gcd_result, L_temp, temp );
-        mpz_divexact( L_temp, L_temp, gcd_result );
-        mpz_mul_ui( L_temp, L_temp, temp );
+        mpz_lcm_ui( L_temp, L_temp, temp );
     }
 
     mpz_sub_ui( P_temp, P_temp, 1);
