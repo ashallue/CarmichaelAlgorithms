@@ -50,18 +50,6 @@ int main()
   std::cout << "How many primes to use? " ;
   std::cin >> prime_count ;
 
-  std::cout << "The elimination rule is of the form P*L*f(p) > B where, " << std::endl;
-  std::cout << " f(p) = C*p^n and p is the current prime. " << std::endl;
-  std::cout << "The paper currently recommends n = 4 and C = 1" << std::endl;
-  std::cout << "What power n of p do you want? " ;
-  uint64_t p_exponent;
-  std::cin >> p_exponent;
-  std::cout << "What constant C do you want? " ;
-  uint64_t C_constant;
-  std::cin >> C_constant;
-  std::cout << std::endl;
-
-  bound = bound - log(C_constant);
 
   for( uint64_t i = 0; i < prime_count; i ++ )
   {
@@ -74,7 +62,7 @@ int main()
         uint64_t b = old_jobs.back()[2];
         old_jobs.pop_back();
 
-        if( log( P ) + log( L ) + p_exponent*log( p ) > bound )
+        if( ( log( P ) + 2*log( L ) + (2.5)*log( p ) > bound ) || ( log( P ) + 4.5*log( p ) > bound ) )
         {
           output_jobs.push_back( { P, L, b }  );
         }
