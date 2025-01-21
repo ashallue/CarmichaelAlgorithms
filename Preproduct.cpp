@@ -442,36 +442,25 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 {
     mpz_t P_temp;
     mpz_t L_temp;
-    mpz_t gcd_result;
 
     mpz_init_set( P_temp, P );
     mpz_init_set( L_temp, L );
-    mpz_init_set_ui( gcd_result, 1);
-    
-    bool return_val = true;
-
-    // not meaningful optimization availalbe
-    // break the loop(s) when return_val is detected to be false
+      
+    // "update" P and L for each prime
     for( auto app_prime : primes_to_append )
     {
-        // check that each prime is admissible to P
-        // could call a class method here?
-        for( int i = 0; i < P_len; i++ )
-        {
-            return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
-        }
-        // update the preproduct by this prime
         mpz_mul_ui( P_temp, P_temp, app_prime );
         uint64_t temp = app_prime - 1;
         mpz_lcm_ui( L_temp, L_temp, temp );
     }
 
     mpz_sub_ui( P_temp, P_temp, 1);
-    return_val = return_val && mpz_divisible_p( P_temp, L_temp );
+    
+    // Does lambda(P) divide (P-1)?
+    bool return_val = mpz_divisible_p( P_temp, L_temp );
        
     mpz_clear( P_temp );
     mpz_clear( L_temp );
-    mpz_clear( gcd_result );
     
     return return_val;
 }
