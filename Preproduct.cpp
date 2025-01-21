@@ -258,6 +258,19 @@ bool Preproduct::is_admissible( uint64_t prime_to_append )
   return ( prime_to_append < next_inadmissible[0] ) ;
 }
 
+bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
+{
+    bool return_val = true;
+    
+    uint16_t i = 0;
+    while( return_val && i < P_len )
+    {
+        return_val = return_val && (1 != ( prime_to_append % P_primes[i] ) );
+    }
+ 
+    return return_val;
+}
+
 
 void Preproduct::CN_search(  )
 {
@@ -979,8 +992,8 @@ int main(void) {
     
    
     // this example is *not* ideal, we refactor P by trial division every time
-    // the dumb_appending isn't working
-    // I dont' know why - time to debug
+    // we need to have p2-1 in factored form in order to use appending call
+    // as you can see below, for ease, I'm just using gmp's next prime
     Preproduct P_testing;
     
     while( p64 < 196112 )

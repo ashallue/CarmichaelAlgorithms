@@ -100,8 +100,14 @@ public:
     void appending( Preproduct PP, primes_stuff p );
     
     // member functions
-    // done with no gcd check
+    
+    // done with no gcd check - keeps track of the next inadmissible prime
     bool is_admissible( uint64_t prime_to_append );
+    
+    
+    // done with no gcd check - checks if input is not 1 mod p for all p | P
+    bool is_admissible_modchecks( uint64_t prime_to_append );
+    
 
     // This will compute L and P with gcd computations
     // does *not* create a Preproduct structure
