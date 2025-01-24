@@ -8,6 +8,9 @@
 #include <gmp.h>
 #include <queue>
 #include <vector>
+#include <chrono>
+
+using namespace std::chrono;
 
 // we could consider a re-write for L and prime_stuff
 // we could only store the exponent for 2
@@ -166,6 +169,11 @@ public:
        Notes this function returns true for prime n.
     */
     bool fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result);
+
+    /* Test function fermat_factor.  Unit tests for a number of base-2 and base-3 pseudoprimes, as 
+    well as a couple that are fermat pseudoprimes to several bases
+    */
+    bool test_suite_factor();
 };
 
 #endif
