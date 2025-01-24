@@ -912,7 +912,12 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
     return is_fermat_psp;
 }
 
-
+/* Test function fermat_factor.  Unit tests for a number of base-2 and base-3 pseudoprimes, as 
+well as a couple that are fermat pseudoprimes to several bases
+*/
+bool test_suite_factor(){
+    
+}
 
 int main(void) {
     
@@ -972,7 +977,15 @@ int main(void) {
     // we need to have p2-1 in factored form in order to use appending call
     // as you can see below, for ease, I'm just using gmp's next prime
     Preproduct P_testing;
-    
+
+    /*
+ 
+  S2.tabulate_car(0, 1, "cars_new.txt", false);
+  auto end_new = high_resolution_clock::now();
+  auto duration_new = duration_cast<seconds>(end_new - start_new);
+  cout << "Timing for SmallP_Carmichael.tabulate_car: " << duration_new.count() << "\n";
+  */
+    auto start_new = high_resolution_clock::now();
     while( p64 < 196112 )
     {
         mpz_nextprime( p, p);
@@ -988,6 +1001,7 @@ int main(void) {
             
         }
     }
+
      
     
     /*
@@ -1027,6 +1041,11 @@ int main(void) {
     }
     */
     
+
+    auto end_new = high_resolution_clock::now();
+    auto duration_new = duration_cast<seconds>(end_new - start_new);
+    std::cout << "Timing for CN_search: " << duration_new.count() << "\n";
+
     
     /*
      This run completes in 4 minutes and 30 seconds on thomas.butler.edu and finds these:
