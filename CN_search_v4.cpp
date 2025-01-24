@@ -27,10 +27,12 @@ int main()
 
     // set preproduct
     mpz_t P;
+
     mpz_init_set_ui( P, 515410417841 );
 
     // set L = lambda(P)
     mpz_t L;
+
     mpz_init_set_ui( L, 115920 );
     const uint64_t L_len = 5;
     uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };

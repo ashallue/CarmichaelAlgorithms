@@ -262,10 +262,13 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 {
     bool return_val = true;
     
+    // use std::all_of or std::any_of or std::none_of instead
+    
     uint16_t i = 0;
     while( return_val && i < P_len )
     {
         return_val = return_val && (1 != ( prime_to_append % P_primes[i] ) );
+        i++;
     }
  
     return return_val;
@@ -717,9 +720,7 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
-// assume that B/PL is "big"
-// if the prime to be found is of the form r_star + k*L for some relatively small value of k we should probably invoke a call to CN_search
-// the below needs to be fixed so that it is bounded
+// need to incorporate BOUND - right now it could easily generate PR > BOUND
 void Preproduct::completing_with_exactly_one_prime()
 {
     // set up scaled problem:
@@ -810,7 +811,6 @@ void Preproduct::completing_with_exactly_one_prime()
 
 // while R is passed as mpz_t type
 // the assumption is that R < 2^64
-// NEED TO DO - incorporate append bound, see comments below
 bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
 {
     std::queue<uint64_t> R_composite_factors;
@@ -888,10 +888,11 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
 
     if( R_composite_factors.empty( ) && is_fermat_psp )
     {
-        // could compare the least element in the sort
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
         
-        if( R_prime_factors[0] > append_bound && appending_is_CN( R_prime_factors ) )
+        // should be in the below - removing to get more output
+        // R_prime_factors[0] > append_bound &&
+        if(  appending_is_CN( R_prime_factors ) )
         {
             std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
             gmp_printf ("%Zd = ", n );
@@ -963,6 +964,9 @@ int main(void) {
     mpz_t p ;
     mpz_init_set_ui( p, p64 );
     
+    Preproduct PP ;
+    
+    PP.initializing( P, L, 941);
    
     // this example is *not* ideal, we refactor P by trial division every time
     // we need to have p2-1 in factored form in order to use appending call
@@ -973,7 +977,8 @@ int main(void) {
     {
         mpz_nextprime( p, p);
         p64 = mpz_get_ui( p );
-        if( 1 != p64 % 5 && 1 != p64 % 17 && 1 != p64 % 23 && 1 != p64 % 73 && 1 != p64 % 929 )
+
+        if(  PP.is_admissible_modchecks( p64 ) )
         {
            // std::cout << "I found an admissible prime " << p64 << std::endl;
             P1 = P*p64;
@@ -983,6 +988,46 @@ int main(void) {
             
         }
     }
+     
+    
+    /*
+    uint64_t P = 526787;
+    uint64_t L = 262668;
+    
+    uint64_t P1;
+    uint64_t L1;
+    
+    uint64_t p64 = 941;
+    mpz_t p ;
+    mpz_init_set_ui( p, p64 );
+    
+    Preproduct PP ;
+    
+    PP.initializing( P, L, 941);
+   
+    // this example is *not* ideal, we refactor P by trial division every time
+    // we need to have p2-1 in factored form in order to use appending call
+    // as you can see below, for ease, I'm just using gmp's next prime
+    Preproduct P_testing;
+    
+    while( p64 < 1238192 )
+    {
+        mpz_nextprime( p, p);
+        p64 = mpz_get_ui( p );
+
+        if(  PP.is_admissible_modchecks( p64 ) )
+        {
+            std::cout << "I found an admissible prime " << p64 << std::endl;
+            P1 = P*p64;
+            L1 = L*((p64-1)/std::gcd( L , p64-1 ) );
+            P_testing.initializing ( P1, L1, p64 );
+            P_testing.CN_search();
+            
+        }
+    }
+    */
+    
+    
     /*
      This run completes in 4 minutes and 30 seconds on thomas.butler.edu and finds these:
      433493717815335774335905 =  5 17 23 73 929 2377 7129 10267 18793

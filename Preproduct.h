@@ -55,7 +55,7 @@ struct primes_stuff
 
 class Preproduct{
     
-	
+    
 public:
 
     mpz_t BOUND;  // constructor always sets to 10^24
@@ -72,7 +72,7 @@ public:
     mpz_t L;
     // consider changing to vectors...
     uint64_t L_distinct_primes[ L_PRIME_FACTORS ];
-    uint16_t L_exponents[ L_PRIME_FACTORS ];   
+    uint16_t L_exponents[ L_PRIME_FACTORS ];
     uint16_t L_len;
 
     // two forms of initialization
@@ -83,8 +83,8 @@ public:
     // these arrays are used to avoid gcd computations for admissibility checks
     // updated assuming primes are tested for admissibility in increasing order
     uint64_t next_inadmissible[ APPEND_LIMIT ];
-    uint16_t mod_three_status[ APPEND_LIMIT ];  
-    uint64_t appended_primes[ APPEND_LIMIT ];  
+    uint16_t mod_three_status[ APPEND_LIMIT ];
+    uint64_t appended_primes[ APPEND_LIMIT ];
 
     // constructor and destructor
     Preproduct();
@@ -96,7 +96,7 @@ public:
     
     // appending call
     // assume we have an admissible prime to append.
-    // contains a merge computation of LCM( lambda(PP), p-1 )	
+    // contains a merge computation of LCM( lambda(PP), p-1 )
     void appending( Preproduct PP, primes_stuff p );
     
     // member functions
@@ -120,7 +120,7 @@ public:
     // uses a stronger Fermat test to factor composite R
     // if R is fully factored (and has passed the Fermat tests)
     // then P*R is to be checked with Korselt's criterion  NYI
-    // meant to be called when it is no longer efficient to do prime-by-prime appending 
+    // meant to be called when it is no longer efficient to do prime-by-prime appending
     // this takes the bound on R as an argument which implies R <= (B/P) < 2^64
     // and that L < 2^64
     void CN_search( );
@@ -156,7 +156,7 @@ public:
     bool CN_factorization( mpz_t& n, mpz_t& R);
 
     /* Factor n, storing the unique prime factors in the associated parameter.
-   Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
+   Technique is the Fermat method: if n passes the fermat test to a base b, the associated
    strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
     */
     bool fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors);
