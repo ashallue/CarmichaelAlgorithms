@@ -457,17 +457,8 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     // "update" P and L for each prime
     for( auto app_prime : primes_to_append )
     {
-        // check that each prime is admissible to P
-        // could call a class method here?
-        // I don't understand why this is necessary but when I remove it, it breaks
-        // it is checking that primes are individually admissible
-        // but I would think that checking lambda(P) divides (P-1) would be sufficient
-        for( int i = 0; i < P_len; i++ )
-        {
-            return_val = ( return_val && ( app_prime % P_primes[i] != 1 ) );
-        }
-        // update the preproduct by this prime
         mpz_mul_ui( P_temp, P_temp, app_prime );
+
         uint64_t temp = app_prime - 1;
         mpz_lcm_ui( L_temp, L_temp, temp );
     }
@@ -900,7 +891,7 @@ bool Preproduct::CN_factorization(mpz_t& n, mpz_t& R)
         // could compare the least element in the sort
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
         
-        if( appending_is_CN( R_prime_factors ) )
+        if( R_prime_factors[0] > append_bound && appending_is_CN( R_prime_factors ) )
         {
             std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
             gmp_printf ("%Zd = ", n );
