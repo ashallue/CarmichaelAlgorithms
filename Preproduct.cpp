@@ -38,13 +38,13 @@ Preproduct::~Preproduct()
     mpz_clear( BOUND );
 }
 
-// assumes valid inputs: 
-// 1) does not check that init_preproduct is cylic 
+// assumes valid inputs:
+// 1) does not check that init_preproduct is cylic
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
 // intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
-// could consider another version that passes in arrays of factors
-// precomputation.cpp would need to be re-written
+// could consider another version that passes in arrays of factors but precomputation.cpp would need to be re-written
+// could also consider some other factorization method
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     mpz_set_ui( P, init_preproduct );
@@ -112,7 +112,7 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
     mpz_mul_ui( P, PP.P, p.prime );
     P_len = PP.P_len + 1;
     std::copy( PP.P_primes,PP.P_primes + PP.P_len, P_primes );
-    P_primes[ P_len ] =  p.prime;   
+    P_primes[ P_len ] =  p.prime;
     append_bound = p.prime;
     
     // initialize L to be PP.L and increase only when new factors are seen
@@ -196,7 +196,7 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
     if( p.prime % 3 == 1 )
     {
         temp_next_inad += 2*p.prime;
-        temp_mod_3 = 1; 
+        temp_mod_3 = 1;
     }
     
     if( len_appended_primes == 1 )
@@ -221,7 +221,7 @@ void Preproduct::appending( Preproduct PP, primes_stuff p )
         }
         next_inadmissible[i] = temp_next_inad;
         mod_three_status[i] = temp_mod_3;
-        appended_primes[i] = p.prime; 
+        appended_primes[i] = p.prime;
         while( i < PP.len_appended_primes )
         {
             next_inadmissible[i+1] = PP.next_inadmissible[i];
@@ -319,7 +319,7 @@ void Preproduct::CN_search(  )
     // fix append_bound to be consistent with the bitset
     // we probably need to also bound this by cmp_bound
     // it's not really a sieve if p > cmp_bound
-    uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 512);
+    uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 256);
     
     // remove primes dividing L from the bitset
     uint16_t i = 1;
@@ -535,7 +535,7 @@ Use the strong test to those two bases to split.  Return true if fully factored,
 */
 
 /* Factor n, storing the unique prime factors in the associated parameter.
-   Technique is the Fermat method: if n passes the fermat test to a base b, the associated 
+   Technique is the Fermat method: if n passes the fermat test to a base b, the associated
    strong test can be used to split.  If n fails a fermat test, quit and return false to signify not carmichael.
 */
 bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
@@ -613,7 +613,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
                 if( mpz_cmp(gcd_result1, r_factor) < 0 && mpz_cmp_ui(gcd_result1, 1) > 0 )
                 {
                   // will need to add a check about a lower bound on these divisors
-                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result1);      
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result1);
                   ( mpz_probab_prime_p( gcd_result1, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
                   mpz_divexact( gcd_result1, r_factor, gcd_result1 );
                   mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result1);
@@ -624,7 +624,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
                 else if( mpz_cmp(gcd_result2, r_factor) < 0 && mpz_cmp_ui(gcd_result2, 1) > 0 )
                 {
                   // will need to add a check about a lower bound on these divisors
-                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result2);      
+                  mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result2);
                   ( mpz_probab_prime_p( gcd_result2, 0 ) == 0 ) ? composite_factors.push( temp ) : prime_factors.push_back( temp );
                   mpz_divexact( gcd_result2, r_factor, gcd_result2 );
                   mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result2);
@@ -649,7 +649,7 @@ bool Preproduct::fermat_factor(uint64_t n, std::vector<uint64_t>& prime_factors)
         // do it again if
         // the number is a Fermat psp and
         // R_composite queue is not empty
-        // if i == L_len, we should probably output or factor directly 
+        // if i == L_len, we should probably output or factor directly
             // could be some strange multi-base Fermat pseudoprime - very rare?
         // room for improvement here
     }
@@ -719,7 +719,7 @@ bool Preproduct::fermat_test(uint64_t& n, mpz_t& b, mpz_t& strong_result)
     mpz_clear( strong_exp );
     mpz_clear( fermat_result );
     
-    return is_psp;   
+    return is_psp;
 }
 
 
@@ -935,18 +935,18 @@ int main(void) {
     
     for( int i = 0; i < ( P0.P_len - 1 ); i++)
     {
-        std::cout << P0.P_primes[i] << " * "  ;       
+        std::cout << P0.P_primes[i] << " * "  ;
     }
-    std::cout << P0.P_primes[P0.P_len - 1 ] << std::endl ;  
+    std::cout << P0.P_primes[P0.P_len - 1 ] << std::endl ;
     
     std::cout << "Initializing Lambda : " ;
     gmp_printf ("%Zd = ", P0.L );
     
     for( int i = 0; i < ( P0.L_len - 1 ); i++)
     {
-        std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;       
+        std::cout << P0.L_distinct_primes[i] << " ^ "  << P0.L_exponents[ i ] << " * "  ;
     }
-    std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;  
+    std::cout << P0.L_distinct_primes[P0.L_len - 1] << " ^ "  << P0.L_exponents[ P0.L_len - 1 ] << std::endl ;
 
    
     /*  A good test case
@@ -1013,4 +1013,3 @@ int main(void) {
     
     return 0;
 }
-
