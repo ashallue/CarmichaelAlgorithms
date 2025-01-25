@@ -36,7 +36,8 @@ Preproduct::~Preproduct()
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
 // intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
-// could consider another version that passes in arrays of factors
+// could consider another version that passes array/vector with primes
+// could also consider faster factorization
 // precomputation.cpp would need to be re-written
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
@@ -180,13 +181,12 @@ void Preproduct::CN_search(  )
     
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
-    // fix append_bound to be consistent with the bitset
-    // we probably need to also bound this by cmp_bound
-    // it's not really a sieve if p > cmp_bound
+    
+    // "(append_bound-3)/2" converts to bitset values
+    // we probably need to also bound this by cmp_bound: it's not really a sieve if p > cmp_bound
     uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 256);
     
-  
-    // remove primes dividing L from the bitset
+    // remove primes dividing L from the bitset so that they aren't used for sieving
     // i initialized to 1 so that the prime 2 is skipped
     uint16_t i = 1;
     while( i < L_primes.size() &&  L_primes[i] < 512 )
@@ -223,8 +223,8 @@ void Preproduct::CN_search(  )
         prime_index++;
     }
 
-    uint32_t cmp_bound32 = mpz_get_ui( cmp_bound );
-    boost::dynamic_bitset<> spoke_sieve( cmp_bound32 );
+    uint64_t cmp_bound64 = mpz_get_ui( cmp_bound );
+    boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
         
     // This is the wheel and a creates r_star + m*L
     // The wheel is r_star + m*L
@@ -258,7 +258,7 @@ void Preproduct::CN_search(  )
                     mpz_mod( n, n, small_prime );               // reduce modulo p
                     uint64_t k = mpz_get_ui( n );
 
-                    while( k < cmp_bound32 )
+                    while( k < cmp_bound64 )
                     {
                         spoke_sieve[k] = 1;
                         k += p;
@@ -353,8 +353,6 @@ bool Preproduct::is_CN( )
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
-// assume that B/PL is "big"
-// if the prime to be found is of the form r_star + k*L for some relatively small value of k we should probably invoke a call to CN_search
 // the below needs to be fixed so that it is bounded
 void Preproduct::completing_with_exactly_one_prime()
 {
