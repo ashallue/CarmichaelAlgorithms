@@ -356,6 +356,16 @@ bool Preproduct::is_CN( )
 // the below needs to be fixed so that it is bounded
 void Preproduct::completing_with_exactly_one_prime()
 {
+    // two bounds to incorporate
+    // P( r* + k1*L ) < B  implies
+    // P( k1 * L ) < B
+    // k1 < B/PL
+    
+    // R1 + k2 script_L < script_P implies
+    // k2 < script_P/script_L
+    
+    // if k1 < k2, we do not need to the part for R2
+    
     // set up scaled problem:
     mpz_t R;
     mpz_init( R );
@@ -391,7 +401,8 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_t divisor;
     mpz_set( divisor, script_R );
     
-    // This constructs the smaller divisor and we should prevent P*R from exceeding B
+    // The bounds check has implicitly been done through k1 or k2
+    // and the loop should be done with respect to that quantity rather than the bounds check
     while( mpz_cmp( divisor, div_bound) <= 0 )
     {
         if( mpz_divisible_p( script_P, divisor ) )
@@ -406,15 +417,24 @@ void Preproduct::completing_with_exactly_one_prime()
         }
         mpz_add( divisor, divisor, script_L );
     }
+
+    // Only enter if k2 < k1
+    // There are two possible bounds (but one is alower bound)
+    // P (P-1) < B*( R2 + k3 * script_L ) implies
+    // P(P-1)/B < R2 + k3 * script_L
+    // P(P-1) / ( B* script_L ) - 1 <= k3
+    // k3 = max( k3, 0 );
     
-    // Now we construct hte larger divisor and we should also prevent P*R from exceeding B
-    // E.g, it should be impossible to enter this section if P > B^(2/3)
+    // k4 < script_P/script_L
+    
     
     // set R to be R_2 in section 5.3.2
     mpz_invert( script_R, script_R, script_L);
     mpz_mul( script_R, script_P, script_R );
     mpz_mod( divisor, script_R, script_L );
        
+    // loop initialize to divisor = R2 + k3 * script_L
+    // and iterate until R + k4*script_L is created
     while( mpz_cmp( divisor, div_bound) <= 0 )
     {
         if( mpz_divisible_p( script_P, divisor ) )
