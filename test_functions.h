@@ -3,6 +3,7 @@
  */
 
 #include "Preproduct.h"
+#include <iostream>
 
 // call CN_factorization on several Preproduct objects
 bool test_factor();

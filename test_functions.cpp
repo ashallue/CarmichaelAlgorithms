@@ -19,15 +19,28 @@ bool test_factor(){
     mpz_set_ui(n, 561);
     mpz_t r;
     mpz_init(r);
-    mpz_set_ui(r, 187);
+    mpz_set_ui(r, 189);
 
-    PPP.CN_factorization(n, r);
+    std::vector<uint64_t> r_primes;
 
-    return true;
+    bool is_carmichael = PPP.CN_factorization(n, r, r_primes);
+    if(is_carmichael){
+        std::cout << "factored: ";
+        for(uint64_t i = 0; i < r_primes.size(); ++i){
+            std::cout << r_primes.at(i) << " ";
+        }
+        std::cout << "\n";
+    }else{
+        std::cout << "not carmichael\n";
+    }
+    
+    return is_carmichael;
 }
 
 // main for testing
 int main(){
     bool t1 = test_factor();
+
+    
 
 }

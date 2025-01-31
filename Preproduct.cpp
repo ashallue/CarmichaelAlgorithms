@@ -208,6 +208,9 @@ void Preproduct::CN_search(  )
     // L_lift will store the product of primes and gives the count of spokes on the wheel
     uint64_t L_lift= 1;
     uint16_t prime_index = 0;
+
+    // store the prime factors of r
+    std::vector<uint64_t> r_primes;
     
     while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
     {
@@ -282,7 +285,8 @@ void Preproduct::CN_search(  )
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
                             mpz_divexact( R, n, P);
-                            CN_factorization( n, R );
+                            r_primes.clear();
+                            CN_factorization( n, R, r_primes );
                             // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
@@ -465,10 +469,9 @@ void Preproduct::completing_with_exactly_one_prime()
 // while R is passed as mpz_t type
 // the assumption is that R < 2^64
 // NEED TO DO - incorporate append bound, see comments below
-bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R )
+bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors )
 {
     std::queue<uint64_t> R_composite_factors;
-    std::vector<uint64_t> R_prime_factors;
     
     uint64_t r64_factor =  mpz_get_ui( R );
     mpz_probab_prime_p( R, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
