@@ -469,6 +469,7 @@ void Preproduct::completing_with_exactly_one_prime()
 // while R is passed as mpz_t type
 // the assumption is that R < 2^64
 // NEED TO DO - incorporate append bound, see comments below
+// Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors )
 {
     std::queue<uint64_t> R_composite_factors;
