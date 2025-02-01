@@ -16,13 +16,13 @@ To list all primes from 1 to n, use this:
 
 */
 
-//#include "int.h"
+
 #include<cmath>
 #include<cstdint>
 #include<vector>
-//#include"factorlist2.h"
 
-using namespace std;
+
+//using namespace std;
 
 class Rollsieve
 {
@@ -82,7 +82,7 @@ class Rollsieve
         inline uint32_t gettopbitlen() { return getbitlen(plen-1); }
         inline void makeempty() { clear(); }
 
-        void getlist(uint64_t n, vector<uint64_t> & plist)
+        void getlist(uint64_t n, std::vector<uint64_t> & plist)
         {
             plist.clear();
 
@@ -109,7 +109,7 @@ class Rollsieve
     static const uint16_t primesmax = 1000;
     static const uint16_t primes[168]; // initialized at the end of the file
 
-    vector<Factorlist2> T;
+    std::vector<Factorlist2> T;
     uint32_t delta;
 
     uint64_t n, s;
@@ -194,7 +194,7 @@ class Rollsieve
         return ( (0 == n%2) && T[ (pos+1) % delta ].isempty() && ( s != ( n + 1 ) ) ) ;
     }
 
-    void getlist(vector<uint64_t> & plist) { T[pos].getlist(n,plist); }
+    void getlist(std::vector<uint64_t> & plist) { T[pos].getlist(n,plist); }
 };
 
 const uint16_t Rollsieve::primes[168] = {
