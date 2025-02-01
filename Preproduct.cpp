@@ -19,9 +19,6 @@ Preproduct::Preproduct()
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
     mpz_pow_ui( BOUND, BOUND, 24 );
-    
-
-    
 }
 
 Preproduct::~Preproduct()
@@ -124,7 +121,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     bool return_val = true;
     
     // can be done with std::all_of or std::any_of or std::none_of
-    
     uint16_t i = 0;
     while( return_val && i < P_primes.size() )
     {
@@ -160,17 +156,8 @@ void Preproduct::CN_search(  )
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    // will need more bases later
-    // use bases from the prime divisors of L
-    mpz_t base;
-    mpz_init( base );
-
-    // storage for the gcd result
     mpz_t gcd_result;
     mpz_init( gcd_result );
-    
-    mpz_t mpz_prime;
-    mpz_init( mpz_prime );
     
     mpz_t small_prime;
     mpz_init( small_prime );
@@ -178,7 +165,6 @@ void Preproduct::CN_search(  )
     mpz_t lifted_L;
     mpz_init_set( lifted_L, L );
 
-    
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     
@@ -311,11 +297,8 @@ void Preproduct::CN_search(  )
         
 }
 
-
-
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 {
-
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -340,10 +323,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     return return_val;
 }
 
-
 // Check that lambda(P) divides (P-1)
-// consider changing this to int-type return matching how gmp returns
-// and have the same return standard as gmp
 bool Preproduct::is_CN( )
 {
     bool return_val;
@@ -357,7 +337,7 @@ bool Preproduct::is_CN( )
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
-// the below needs to be fixed so that it is bounded
+// comments below indicate cahnges so that it is the bounded version which is what we want
 void Preproduct::completing_with_exactly_one_prime()
 {
     // two bounds to incorporate
