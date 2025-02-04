@@ -1,9 +1,10 @@
-
+#include "rollsieve.h"
 #include "Preproduct.h"
 #include <iostream>
 #include <algorithm>
 #include <gmp.h>
 #include <numeric>
+#include <chrono>
 
 int main(void) {
     
@@ -44,7 +45,10 @@ int main(void) {
     // for all primes in ( 196112, (B/P)^(1/2) ) = ( 196112, 86847502) we append a prime and look for exactly one prime
     // this represents the first two CN_xearches invoked by the above:
     
-    
+
+    auto start1 = std::chrono::high_resolution_clock::now();
+
+   
     uint64_t P = 132582235;
     uint64_t L = 91872;
     
@@ -78,9 +82,41 @@ int main(void) {
             
         }
     }
+    mpz_clear( p );
+
+    auto end1 = std::chrono::high_resolution_clock::now();
+    auto duration1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1);
+
+    std::cout << "Time taken: " << duration1.count() << " microseconds" << std::endl;
+    
+    auto start2 = std::chrono::high_resolution_clock::now();
     
     
+    Rollsieve r(941);
+    p64 = r.getn();
+    std::vector< uint64_t > factors;
     
+    Preproduct PP;
+    PP.initializing( 132582235, 91872, 900  );
+       
+    while( p64 < 196112 )
+    {
+        if( r.isnextprime() && PP.is_admissible_modchecks( p64+1 ) )
+        {
+            r.getlist( factors );
+            std::sort( factors.begin(), factors.end() );
+
+            P_testing.appending( &PP, p64+1, factors );
+            P_testing.CN_search();
+        }
+        r.next();
+        p64 = r.getn();
+    }
+    
+    auto end2 = std::chrono::high_resolution_clock::now();
+    auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
+
+    std::cout << "Time taken: " << duration2.count() << " microseconds" << std::endl;
 
     /*
      This run completes in 4 minutes and 30 seconds on thomas.butler.edu and finds these:
@@ -96,7 +132,7 @@ int main(void) {
    
     
     
-    mpz_clear( p );
+  
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);

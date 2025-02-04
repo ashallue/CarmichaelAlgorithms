@@ -1,4 +1,5 @@
 #include "Preproduct.h"
+#include "rollsieve.h"
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -94,25 +95,28 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 
 
 // assumes prime_stuff is valid and admissible to PP
-void Preproduct::appending( Preproduct PP, primes_stuff p )
+void Preproduct::appending(Preproduct* PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 )
 {
     // compute new P value:
-    mpz_mul_ui( P, PP.P, p.prime );
+    mpz_set( P, PP->P );
+    mpz_mul_ui( P, P, prime );
+    
     // set the vector
     P_primes.clear();
-    // copy the old vector over
-    P_primes = PP.P_primes;
-    // add the new prime
-    P_primes.push_back( p.prime );
-        
+    P_primes = PP->P_primes;
+    P_primes.push_back( prime );
+
     // compute L
-    mpz_lcm_ui( L, PP.L, p.prime - 1 );
+    mpz_set( L, PP->L );
+    mpz_lcm_ui( L, L, prime - 1 );
+
     // set L's vector
     L_primes.clear();
-    std::set_union( (PP.L_primes).begin(), (PP.L_primes).end(), (p.pm1_distinct_primes).begin(), (p.pm1_distinct_primes).end(), std::back_inserter( L_primes ) );
+
+    std::set_union( (PP->L_primes).begin(),(PP->L_primes).end(), distinct_primes_dividing_pm1.begin(), distinct_primes_dividing_pm1.end(), std::back_inserter( L_primes ) );
     
-    append_bound = p.prime;
-    
+    append_bound = prime;
+
 }
 
 
@@ -131,6 +135,56 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+
+void Preproduct::complete_tabulation( )
+{
+    // rule to be set later
+    // if P L^2 > B then rule should be true
+    bool rule = true;
+    
+    if( rule )
+    {
+        this->CN_search();
+    }
+    else
+    {
+        Rollsieve r( append_bound );
+        uint64_t pm1 = r.getn();
+        std::vector< uint64_t > factors;
+        
+        Preproduct Pq;
+        
+        // set to (B/P)^(1/3)
+        while( pm1 < 100000 )
+        {
+            if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
+            {
+                r.getlist( factors );
+                std::sort( factors.begin(), factors.end() );
+
+                Pq.appending( this, pm1 + 1, factors );
+                Pq.complete_tabulation();
+            }
+            r.next();
+            pm1 = r.getn();
+        }
+        // set to (B/P)^(1/2)
+        while( pm1 < 100000000 )
+        {
+            if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
+            {
+                r.getlist( factors );
+                std::sort( factors.begin(), factors.end() );
+
+                Pq.appending( this, pm1 + 1, factors );
+                Pq.completing_with_exactly_one_prime();
+            }
+            r.next();
+            pm1 = r.getn();
+        }
+        
+    }
+}
 
 void Preproduct::CN_search(  )
 {
@@ -174,6 +228,8 @@ void Preproduct::CN_search(  )
     
     // remove primes dividing L from the bitset so that they aren't used for sieving
     // i initialized to 1 so that the prime 2 is skipped
+    
+    
     uint16_t i = 1;
     while( i < L_primes.size() &&  L_primes[i] < 512 )
     {

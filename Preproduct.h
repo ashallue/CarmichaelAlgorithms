@@ -10,12 +10,6 @@
 #include <vector>
 
 
-struct primes_stuff
-{
-    uint32_t prime;
-    std::vector< uint32_t > pm1_distinct_primes;
-};
-
 class Preproduct{
     
 
@@ -44,14 +38,21 @@ public:
     // appending call
     // assume we have an admissible prime to append.
     // contains a merge computation of LCM( lambda(PP), p-1 )	
-    void appending( Preproduct PP, primes_stuff p );
+    void appending( Preproduct* PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 );
     
     // member functions
        
     // done with no gcd check - checks if input is not 1 mod p for all p | P
     bool is_admissible_modchecks( uint64_t prime_to_append );
     
-
+    
+    // uses a rule to decide whether to call CN_search or
+    // initialize an incremental sieve and do prime-by-prime appending
+    // for primes q in (append_bound, (B/P)^(1/3) ) we recursively call this on preproduct Pq
+    // for primes q in ((B/P)^(1/3) , (B/P)^(1/2) ) we do the factorization on Pq-1
+    void complete_tabulation( );
+    
+    
     // This will compute L and P with gcd computations
     // does *not* create a Preproduct structure
     // future version should probably have a filestream argument
