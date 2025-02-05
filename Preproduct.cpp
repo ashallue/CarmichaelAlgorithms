@@ -135,7 +135,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
-
 void Preproduct::complete_tabulation( )
 {
     // rule to be set later
@@ -157,8 +156,13 @@ void Preproduct::complete_tabulation( )
         // 2 - for smaller primes q, Pq will still be small enough that more than one prime could be appended
         //         For these preproducts, we need to recursively do a complete_tabulation on these
         // 3 - for larger primes q, Pq can only have a single prime remaining, so call that
+        mpz_t BoverP;
+        mpz_t bound;
+        mpz_init( bound );
+        mpz_init( BoverP);
+        mpz_cdiv_q( BoverP, BOUND, P );
         
-        
+                
         // this is "1"
         this->completing_with_exactly_one_prime();
         
@@ -169,10 +173,10 @@ void Preproduct::complete_tabulation( )
         Preproduct Pq;
         
         // bound1 should be (B/P)^(1/3)
-        uint64_t bound1 = 100000;
-        
+        mpz_root( bound, BoverP, 3);
+        uint64_t bound1 = mpz_get_ui( bound );
+    
         // This is "2"
-        // set to (B/P)^(1/3)
         while( pm1 < bound1 )
         {
             if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
@@ -188,7 +192,8 @@ void Preproduct::complete_tabulation( )
         }
         
         // bound2 should be (B/P)^(1/2)
-        uint64_t bound2 = 100000000;
+        mpz_sqrt( bound, BoverP );
+        uint64_t bound2 = mpz_get_ui( bound );
         
         // This is "3"
         while( pm1 < bound2 )
@@ -205,6 +210,8 @@ void Preproduct::complete_tabulation( )
             pm1 = r.getn();
         }
         
+        mpz_clear( BoverP );
+        mpz_clear( bound );
     }
 }
 
