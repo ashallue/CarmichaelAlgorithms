@@ -139,7 +139,11 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 void Preproduct::complete_tabulation( )
 {
     // rule to be set later
-    // if P L^2 > B then rule should be true
+    // compare We show that if PL^2 > B then rule should be true
+    // however, assumes the cost of the else block is porportional to the cost of generating the primes
+    // this is almost certain too small of an estimate.
+    // something like PL^3 > B might be justified
+    // some analytic work required but not needed for correctness
     bool rule = true;
     
     if( rule )
@@ -148,14 +152,28 @@ void Preproduct::complete_tabulation( )
     }
     else
     {
-        Rollsieve r( append_bound );
+        // by taking this route, we need to do up to three things (depending on X, the crossover)
+        // 1 -  we need to see if P has a single-prime completion
+        // 2 - for smaller primes q, Pq will still be small enough that more than one prime could be appended
+        //         For these preproducts, we need to recursively do a complete_tabulation on these
+        // 3 - for larger primes q, Pq can only have a single prime remaining, so call that
+        
+        
+        // this is "1"
+        this->completing_with_exactly_one_prime();
+        
+        Rollsieve r( append_bound + 1 );
         uint64_t pm1 = r.getn();
         std::vector< uint64_t > factors;
         
         Preproduct Pq;
         
+        // bound1 should be (B/P)^(1/3)
+        uint64_t bound1 = 100000;
+        
+        // This is "2"
         // set to (B/P)^(1/3)
-        while( pm1 < 100000 )
+        while( pm1 < bound1 )
         {
             if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
             {
@@ -168,8 +186,12 @@ void Preproduct::complete_tabulation( )
             r.next();
             pm1 = r.getn();
         }
-        // set to (B/P)^(1/2)
-        while( pm1 < 100000000 )
+        
+        // bound2 should be (B/P)^(1/2)
+        uint64_t bound2 = 100000000;
+        
+        // This is "3"
+        while( pm1 < bound2 )
         {
             if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
             {
