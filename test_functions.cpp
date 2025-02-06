@@ -41,7 +41,7 @@ ashallue@hyperion:~/tabulate_car/datafiles_22$ awk 'NF == 4 && $2 == 7' cars_tab
 
 #include "test_functions.h"
 
-// call CN_factorization on several Preproduct objects
+// call CN_factorization on all squarefree multiples of 7 with 4 prime factors
 bool test_factor(){
     // primes for building numbers to factor
     // 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 
@@ -138,6 +138,28 @@ bool test_factor(){
     return factor_fail;
 }
 
+// function that tabulates all Carmichaels up to a given bound.  Only large case, no small case
+// need to read in jobs from output_jobs.txt, create a preproduct object for each one, call CN search, assemble the output
+void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file){
+    //setup jobs as an input file, setup file for writing carmichael numbers as output
+    std::ofstream output;
+    output.open(cars_file);
+    std::ifstream jobs_input;
+    jobs_input.open(jobs_file);
+
+    //std::string input_line = jobs_input.getline();
+    uint64_t one, two, three;
+    
+    // test that I can read and process a job triple
+    while(jobs_input >> one >> two >> three){
+        std::cout << "line read: " << one << " " << two << " " << three << "\n";
+    }
+    
+    output.close();
+    jobs_input.close();
+
+}
+
 // main for testing
 int main(){
     mpz_t n;
@@ -148,5 +170,9 @@ int main(){
     bool t1 = test_factor();
 
     std::cout << "result of test_factor " << t1 << "\n";
+
+    std::cout << "\nTabulating up to 10^9\n";
+    uint64_t upper = 1000000000;
+    tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
 
 }

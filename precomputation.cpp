@@ -44,8 +44,11 @@ int main()
 
   // intended bound for the computation is 10^23
   // bounds testing is done with logarithms
-  double bound = 24*log(10);
+  //double bound = 24*log(10);
 
+  // bound for a test run
+  double bound = 9 * log(10);
+    
   uint64_t prime_count;
   std::cout << "How many primes to use? " ;
   std::cin >> prime_count ;

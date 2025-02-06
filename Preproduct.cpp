@@ -312,7 +312,9 @@ void Preproduct::CN_search(  )
 }
 
 
-
+/* Depends on primes_to_append being a vector of true primes.
+    
+*/
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 {
 
