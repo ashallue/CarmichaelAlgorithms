@@ -441,16 +441,19 @@ bool Preproduct::is_CN( )
 // comments below indicate cahnges so that it is the bounded version which is what we want
 void Preproduct::completing_with_exactly_one_prime()
 {
+    // This should only be invoked with P < 2^64
+    // We could probably do this all with "machine arithmetic" instead of mpz
+    
     // two bounds to incorporate
-    // P( r* + k1*L ) < B  implies
-    // P( k1 * L ) < B
-    // k1 < B/PL
+    // P( r + k1*L ) <  B
+    // r + K*L < B/P
     
-    // R1 + k2 script_L < script_P implies
-    // k2 < script_P/script_L
+    // script_R + k2 script_L < sqrt( script_P )  implies
+    // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
+    // r + K*L < g*sqrt( script_P ) + 1
     
-    // if k1 < k2, we do not need to the part for R2
-    
+    // r + k*L < min( g*sqrt( script_P ) + 1, B/P )
+        
     // set up scaled problem:
     mpz_t R;
     mpz_init( R );
