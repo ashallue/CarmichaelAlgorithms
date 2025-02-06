@@ -1,4 +1,5 @@
 #include "Preproduct.h"
+#include "rollsieve.h"
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -19,9 +20,6 @@ Preproduct::Preproduct()
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
     mpz_pow_ui( BOUND, BOUND, 24 );
-    
-
-    
 }
 
 Preproduct::~Preproduct()
@@ -97,25 +95,28 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 
 
 // assumes prime_stuff is valid and admissible to PP
-void Preproduct::appending( Preproduct PP, primes_stuff p )
+void Preproduct::appending(Preproduct* PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 )
 {
     // compute new P value:
-    mpz_mul_ui( P, PP.P, p.prime );
+    mpz_set( P, PP->P );
+    mpz_mul_ui( P, P, prime );
+    
     // set the vector
     P_primes.clear();
-    // copy the old vector over
-    P_primes = PP.P_primes;
-    // add the new prime
-    P_primes.push_back( p.prime );
-        
+    P_primes = PP->P_primes;
+    P_primes.push_back( prime );
+
     // compute L
-    mpz_lcm_ui( L, PP.L, p.prime - 1 );
+    mpz_set( L, PP->L );
+    mpz_lcm_ui( L, L, prime - 1 );
+
     // set L's vector
     L_primes.clear();
-    std::set_union( (PP.L_primes).begin(), (PP.L_primes).end(), (p.pm1_distinct_primes).begin(), (p.pm1_distinct_primes).end(), std::back_inserter( L_primes ) );
+
+    std::set_union( (PP->L_primes).begin(),(PP->L_primes).end(), distinct_primes_dividing_pm1.begin(), distinct_primes_dividing_pm1.end(), std::back_inserter( L_primes ) );
     
-    append_bound = p.prime;
-    
+    append_bound = prime;
+
 }
 
 
@@ -124,7 +125,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     bool return_val = true;
     
     // can be done with std::all_of or std::any_of or std::none_of
-    
     uint16_t i = 0;
     while( return_val && i < P_primes.size() )
     {
@@ -135,6 +135,101 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+void Preproduct::complete_tabulation( )
+{
+    // Unanswered question that we need to answer before production:
+    // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
+    
+    // rule to be set later
+    // compare We show that if PL^2 > B then rule should be true
+    // however, assumes the cost of the else block is porportional to the cost of generating the primes
+    // this is almost certain too small of an estimate.
+    // something like PL^3 > B might be justified
+    // some analytic work required but not needed for correctness
+    bool rule = true;
+    
+   
+    if( rule )
+    {
+        this->CN_search();
+    }
+    else
+    {
+        // in the below, let p be the largest prime dividing P
+        // by taking this route, we need to do up to three things:
+        // 1 - find the single prime q so that Pq is a CN
+        // 2 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
+        // 3 - for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+
+        // tabulation assumes all CN of the form P*q*r with P < X have already been found
+        // This creates 2 special cases for the above cases:
+        //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
+        //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
+        
+        const uint64_t X = 101'000'000;
+
+        mpz_t BoverP;
+        mpz_t bound;
+        mpz_init( bound );
+        mpz_init( BoverP);
+        mpz_cdiv_q( BoverP, BOUND, P );
+                
+        // this is case 1
+        // this is only invoked if P > X * P_primes.back()
+        mpz_set_ui( bound, X);
+        mpz_mul_ui( bound, bound, P_primes.back() );
+        if( mpz_cmp( P, bound ) > 0 )
+            this->completing_with_exactly_one_prime();
+        
+        // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
+        Preproduct Pq;
+        Rollsieve r( append_bound + 1 );
+        // qm1 for "q minus 1" because the Rollsieve has the prime factors of q-1
+        uint64_t qm1 = r.getn();
+        std::vector< uint64_t > factors;
+        
+        // this is the start of case 2
+        mpz_root( bound, BoverP, 3);
+        uint64_t bound1 = mpz_get_ui( bound );
+        while( qm1 < bound1 )
+        {
+            // having the factors for q-1, we need to ask if (q - 1) + 1 = q is prime
+            // and that q is admissible to P
+            if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
+            {
+                r.getlist( factors );
+                std::sort( factors.begin(), factors.end() );
+                Pq.appending( this, qm1 + 1, factors );
+                Pq.complete_tabulation();
+            }
+            r.next();
+            qm1 = r.getn();
+        }
+        
+        // this is the start of caes 3
+        // first we check that it needs to be done
+        if( mpz_cmp_ui( P, X ) > 0 )
+        {
+            mpz_sqrt( bound, BoverP );
+            uint64_t bound2 = mpz_get_ui( bound );
+            while( qm1 < bound2 )
+            {
+                if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
+                {
+                    r.getlist( factors );
+                    std::sort( factors.begin(), factors.end() );
+                    Pq.appending( this, qm1 + 1, factors );
+                    Pq.completing_with_exactly_one_prime();
+                }
+                r.next();
+                qm1 = r.getn();
+            }
+        }
+        
+        mpz_clear( BoverP );
+        mpz_clear( bound );
+    }
+}
 
 void Preproduct::CN_search(  )
 {
@@ -160,17 +255,8 @@ void Preproduct::CN_search(  )
     mpz_init( PL );
     mpz_mul( PL, P, L );
 
-    // will need more bases later
-    // use bases from the prime divisors of L
-    mpz_t base;
-    mpz_init( base );
-
-    // storage for the gcd result
     mpz_t gcd_result;
     mpz_init( gcd_result );
-    
-    mpz_t mpz_prime;
-    mpz_init( mpz_prime );
     
     mpz_t small_prime;
     mpz_init( small_prime );
@@ -178,7 +264,6 @@ void Preproduct::CN_search(  )
     mpz_t lifted_L;
     mpz_init_set( lifted_L, L );
 
-    
     // position i has the truth value of the statement "(2i + 3) is prime"
     std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     
@@ -188,6 +273,8 @@ void Preproduct::CN_search(  )
     
     // remove primes dividing L from the bitset so that they aren't used for sieving
     // i initialized to 1 so that the prime 2 is skipped
+    
+    
     uint16_t i = 1;
     while( i < L_primes.size() &&  L_primes[i] < 512 )
     {
@@ -311,13 +398,11 @@ void Preproduct::CN_search(  )
         
 }
 
-
 /* Depends on primes_to_append being a vector of true primes.
     
 */
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 {
-
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -342,10 +427,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
     return return_val;
 }
 
-
 // Check that lambda(P) divides (P-1)
-// consider changing this to int-type return matching how gmp returns
-// and have the same return standard as gmp
 bool Preproduct::is_CN( )
 {
     bool return_val;
@@ -359,19 +441,22 @@ bool Preproduct::is_CN( )
 // compare with:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 // see section 5.3 of ANTS 2024 work
-// the below needs to be fixed so that it is bounded
+// comments below indicate cahnges so that it is the bounded version which is what we want
 void Preproduct::completing_with_exactly_one_prime()
 {
+    // This should only be invoked with P < 2^64
+    // We could probably do this all with "machine arithmetic" instead of mpz
+    
     // two bounds to incorporate
-    // P( r* + k1*L ) < B  implies
-    // P( k1 * L ) < B
-    // k1 < B/PL
+    // P( r + k1*L ) <  B
+    // r + K*L < B/P
     
-    // R1 + k2 script_L < script_P implies
-    // k2 < script_P/script_L
+    // script_R + k2 script_L < sqrt( script_P )  implies
+    // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
+    // r + K*L < g*sqrt( script_P ) + 1
     
-    // if k1 < k2, we do not need to the part for R2
-    
+    // r + k*L < min( g*sqrt( script_P ) + 1, B/P )
+        
     // set up scaled problem:
     mpz_t R;
     mpz_init( R );
