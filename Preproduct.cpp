@@ -137,6 +137,9 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 void Preproduct::complete_tabulation( )
 {
+    // Unanswered question that we need to answer before production:
+    // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
+    
     // rule to be set later
     // compare We show that if PL^2 > B then rule should be true
     // however, assumes the cost of the else block is porportional to the cost of generating the primes
@@ -145,69 +148,84 @@ void Preproduct::complete_tabulation( )
     // some analytic work required but not needed for correctness
     bool rule = true;
     
+   
     if( rule )
     {
         this->CN_search();
     }
     else
     {
-        // by taking this route, we need to do up to three things (depending on X, the crossover)
-        // 1 -  we need to see if P has a single-prime completion
-        // 2 - for smaller primes q, Pq will still be small enough that more than one prime could be appended
-        //         For these preproducts, we need to recursively do a complete_tabulation on these
-        // 3 - for larger primes q, Pq can only have a single prime remaining, so call that
+        // in the below, let p be the largest prime dividing P
+        // by taking this route, we need to do up to three things:
+        // 1 - find the single prime q so that Pq is a CN
+        // 2 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
+        // 3 - for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+
+        // tabulation assumes all CN of the form P*q*r with P < X have already been found
+        // This creates 2 special cases for the above cases:
+        //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
+        //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
+        
+        const uint64_t X = 101'000'000;
+
         mpz_t BoverP;
         mpz_t bound;
         mpz_init( bound );
         mpz_init( BoverP);
         mpz_cdiv_q( BoverP, BOUND, P );
-        
                 
-        // this is "1"
-        this->completing_with_exactly_one_prime();
+        // this is case 1
+        // this is only invoked if P > X * P_primes.back()
+        mpz_set_ui( bound, X);
+        mpz_mul_ui( bound, bound, P_primes.back() );
+        if( mpz_cmp( P, bound ) > 0 )
+            this->completing_with_exactly_one_prime();
         
-        Rollsieve r( append_bound + 1 );
-        uint64_t pm1 = r.getn();
-        std::vector< uint64_t > factors;
+        // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         
         Preproduct Pq;
+        Rollsieve r( append_bound + 1 );
+        // pm1 for "p minus 1" because the Rollsieve has the prime factor of q-1
+        uint64_t qm1 = r.getn();
+        std::vector< uint64_t > factors;
+
         
-        // bound1 should be (B/P)^(1/3)
+        // this is the start of case 2
         mpz_root( bound, BoverP, 3);
         uint64_t bound1 = mpz_get_ui( bound );
-    
-        // This is "2"
-        while( pm1 < bound1 )
+        while( qm1 < bound1 )
         {
-            if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
+            // having the factors for q-1, we need to ask if (q - 1) + 1 = q is prime
+            // and that q is admissible to P
+            if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
             {
                 r.getlist( factors );
                 std::sort( factors.begin(), factors.end() );
-
-                Pq.appending( this, pm1 + 1, factors );
+                Pq.appending( this, qm1 + 1, factors );
                 Pq.complete_tabulation();
             }
             r.next();
-            pm1 = r.getn();
+            qm1 = r.getn();
         }
         
-        // bound2 should be (B/P)^(1/2)
-        mpz_sqrt( bound, BoverP );
-        uint64_t bound2 = mpz_get_ui( bound );
-        
-        // This is "3"
-        while( pm1 < bound2 )
+        // this is the start of caes 3
+        // first we check that it needs to be done
+        if( mpz_cmp_ui( P, X ) > 0 )
         {
-            if( r.isnextprime() && this->is_admissible_modchecks( pm1 + 1 ) )
+            mpz_sqrt( bound, BoverP );
+            uint64_t bound2 = mpz_get_ui( bound );
+            while( qm1 < bound2 )
             {
-                r.getlist( factors );
-                std::sort( factors.begin(), factors.end() );
-
-                Pq.appending( this, pm1 + 1, factors );
-                Pq.completing_with_exactly_one_prime();
+                if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
+                {
+                    r.getlist( factors );
+                    std::sort( factors.begin(), factors.end() );
+                    Pq.appending( this, qm1 + 1, factors );
+                    Pq.completing_with_exactly_one_prime();
+                }
+                r.next();
+                qm1 = r.getn();
             }
-            r.next();
-            pm1 = r.getn();
         }
         
         mpz_clear( BoverP );
