@@ -182,13 +182,11 @@ void Preproduct::complete_tabulation( )
             this->completing_with_exactly_one_prime();
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
-        
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
-        // pm1 for "p minus 1" because the Rollsieve has the prime factor of q-1
+        // qm1 for "q minus 1" because the Rollsieve has the prime factors of q-1
         uint64_t qm1 = r.getn();
         std::vector< uint64_t > factors;
-
         
         // this is the start of case 2
         mpz_root( bound, BoverP, 3);
