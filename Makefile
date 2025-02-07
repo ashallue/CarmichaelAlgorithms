@@ -8,7 +8,7 @@ CXXFLAGS = -O3 -lgmp
 TARGETS = CN_search precomputation tab_job test
 
 # Source files
-SRCS = CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp
+SRCS = rollsieve.cpp CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
@@ -25,11 +25,11 @@ precomputation: precomputation.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Rule for compiling tabulation job, shortened to tab_job
-tab_job: tab_job.o Preproduct.o
+tab_job: tab_job.o Preproduct.o rollsieve.o
 	$(CXX) $^  -o $@ $(CXXFLAGS)
 
 # Rule for compiling test
-test: test_functions.o Preproduct.o
+test: test_functions.o Preproduct.o rollsieve.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Generic rule for compiling .cpp to .o
