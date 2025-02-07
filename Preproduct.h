@@ -49,7 +49,7 @@ public:
     // initialize an incremental sieve and do prime-by-prime appending
     // for primes q in (append_bound, (B/P)^(1/3) ) we recursively call this on preproduct Pq
     // for primes q in ((B/P)^(1/3) , (B/P)^(1/2) ) we do the factorization on Pq-1
-    void complete_tabulation( );
+    void complete_tabulation( std::string cars_file );
     
     
     // This will compute L and P with gcd computations
@@ -61,7 +61,7 @@ public:
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // checks that each candidate is a Fermat psuedoprime
     // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
-    void CN_search( );
+    void CN_search( std::string cars_file  );
 
     
     // For some preproducts, we will still only need to find exactly one prime
@@ -86,7 +86,7 @@ public:
     // in the above link they claim a "typical" number is detected as compoiste with probaility  > 3/4
     // but that for CN the probability is 7/8
     // I do not know where the 7/8 comes from
-    bool CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors);
+    bool CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file );
 
 
 };

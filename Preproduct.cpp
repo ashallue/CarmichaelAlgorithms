@@ -135,7 +135,7 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
-void Preproduct::complete_tabulation( )
+void Preproduct::complete_tabulation( std::string cars_file )
 {
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
@@ -151,7 +151,7 @@ void Preproduct::complete_tabulation( )
    
     if( rule )
     {
-        this->CN_search();
+        this->CN_search( cars_file );
     }
     else
     {
@@ -200,7 +200,7 @@ void Preproduct::complete_tabulation( )
                 r.getlist( factors );
                 std::sort( factors.begin(), factors.end() );
                 Pq.appending( this, qm1 + 1, factors );
-                Pq.complete_tabulation();
+                Pq.complete_tabulation( cars_file );
             }
             r.next();
             qm1 = r.getn();
@@ -231,7 +231,7 @@ void Preproduct::complete_tabulation( )
     }
 }
 
-void Preproduct::CN_search(  )
+void Preproduct::CN_search( std::string cars_file )
 {
     const uint32_t cache_bound = 150'000;
         
@@ -373,7 +373,7 @@ void Preproduct::CN_search(  )
                         {
                             mpz_divexact( R, n, P);
                             r_primes.clear();
-                            CN_factorization( n, R, r_primes );
+                            CN_factorization( n, R, r_primes, cars_file  );
                             // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
@@ -557,7 +557,7 @@ void Preproduct::completing_with_exactly_one_prime()
 // the assumption is that R < 2^64
 // NEED TO DO - incorporate append bound, see comments below
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
-bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors )
+bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
 {
     std::queue<uint64_t> R_composite_factors;
     
@@ -640,6 +640,7 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
         // R_prime_factors[0] > append_bound &&
         if( appending_is_CN( R_prime_factors ) )
         {
+            /*
             std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
             gmp_printf ("%Zd = ", n );
             // use iterators !
@@ -648,6 +649,10 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
             for( int i = 0; i < R_prime_factors.size(); i ++ )
                 std::cout << " " << R_prime_factors[i];
             std::cout << std::endl;
+            */
+
+            // output to a file
+            
         }
     }
         
