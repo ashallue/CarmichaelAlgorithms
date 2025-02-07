@@ -234,7 +234,9 @@ void Preproduct::complete_tabulation( std::string cars_file )
 void Preproduct::CN_search( std::string cars_file )
 {
     const uint32_t cache_bound = 150'000;
-        
+
+    std::cout << "Starting CN_search\n";
+    
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert(r_star, P, L);
@@ -563,6 +565,13 @@ void Preproduct::completing_with_exactly_one_prime()
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
 {
+    // file object for storing the carmichael numbers
+    FILE* cars_output;
+    char filename[100];
+    cars_file.copy(filename, cars_file.length());
+    
+    cars_output = fopen (filename,"w");
+    
     std::queue<uint64_t> R_composite_factors;
     
     uint64_t r64_factor =  mpz_get_ui( R );
@@ -656,7 +665,7 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
             */
 
             // output to a file
-            
+            gmp_fprintf(cars_output, "%Zd", n);
         }
     }
         
@@ -664,6 +673,9 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
     mpz_clear( gcd_result );
     mpz_clear( base );
     mpz_clear( odd_part );
+
+    // close file
+    fclose (cars_output);
     
     return is_fermat_psp;
 }

@@ -146,8 +146,8 @@ bool test_factor(){
 // need to read in jobs from output_jobs.txt, create a preproduct object for each one, call CN search, assemble the output
 void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file){
     //setup jobs as an input file, setup file for writing carmichael numbers as output
-    std::ofstream output;
-    output.open(cars_file);
+    //std::ofstream output;
+    //output.open(cars_file);
     std::ifstream jobs_input;
     jobs_input.open(jobs_file);
 
@@ -166,7 +166,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
         preprod.CN_search( cars_file );
     }
     
-    output.close();
+    //output.close();
     jobs_input.close();
 
 }
@@ -186,6 +186,13 @@ int main(){
     uint64_t upper = 1000000000;
     //tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
 
+    Preproduct preprod = Preproduct();
+    preprod.initializing( 1001, 60, 13 );
+
+    // search for all carmichael numbers that complete that preproduct
+    preprod.CN_search( "cars.txt" );
+    
+    /*
     // testing file writing.  Source: https://cplusplus.com/reference/cstdio/fprintf/
     FILE * pFile;
    int m;
@@ -200,5 +207,6 @@ int main(){
      gmp_fprintf(pFile, "%Zd = ", n);
    }
    fclose (pFile);
+    */
 
 }
