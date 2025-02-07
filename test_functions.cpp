@@ -40,6 +40,7 @@ ashallue@hyperion:~/tabulate_car/datafiles_22$ awk 'NF == 4 && $2 == 7' cars_tab
  */
 
 #include "test_functions.h"
+#include <stdio.h>
 
 // call CN_factorization on all squarefree multiples of 7 with 4 prime factors
 bool test_factor(){
@@ -183,6 +184,21 @@ int main(){
 
     std::cout << "\nTabulating up to 10^9\n";
     uint64_t upper = 1000000000;
-    tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
+    //tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
+
+    // testing file writing.  Source: https://cplusplus.com/reference/cstdio/fprintf/
+    FILE * pFile;
+   int m;
+   char name [100];
+
+   pFile = fopen ("myfile.txt","w");
+   for (m=0 ; m<3 ; m++)
+   {
+     puts ("please, enter a name: ");
+     std::cin >> name;
+     fprintf (pFile, "Name %d [%-10.10s]\n",m+1,name);
+     gmp_fprintf(pFile, "%Zd = ", n);
+   }
+   fclose (pFile);
 
 }
