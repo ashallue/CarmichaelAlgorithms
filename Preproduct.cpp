@@ -467,7 +467,7 @@ void Preproduct::completing_with_exactly_one_prime()
     
     mpz_t script_P;
     mpz_init_set( script_P, P );
-    mpz_sub_ui( script_P, 1 );
+    mpz_sub_ui( script_P, script_P, 1 );
     mpz_divexact( script_P, script_P, g);
     
     // set up the two bounds
@@ -535,7 +535,7 @@ void Preproduct::completing_with_exactly_one_prime()
                 // we are done with r_star, using it as storage for R
                 mpz_divexact( r_star, script_P, r_star2);
                 mpz_mul( r_star, r_star, g);
-                mpz_add_ui( r_star, r_star, r_star);
+                mpz_add_ui( r_star, r_star, 1 );
                 if( mpz_probab_prime_p( r_star,  0 ) != 0 )
                 {
                     // we might do a bounds check (?)
@@ -545,7 +545,7 @@ void Preproduct::completing_with_exactly_one_prime()
             mpz_add( r_star2, r_star2, script_L );
         }
         
-        mpz_clear( r_sart2 );
+        mpz_clear( r_star2 );
         mpz_clear( script_L );
     }
     
