@@ -72,6 +72,7 @@ class Rollsieve
 
     public:
 
+
     inline uint64_t getn() { return n; }
 
     bool next();  // this code is nearly verbatim from the paper
