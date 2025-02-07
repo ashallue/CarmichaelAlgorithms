@@ -37,7 +37,7 @@ public:
     // appending call
     // assume we have an admissible prime to append.
     // contains a merge computation of LCM( lambda(PP), p-1 )	
-    void appending( Preproduct* PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 );
+    void appending( Preproduct& PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 );
     
     // member functions
        

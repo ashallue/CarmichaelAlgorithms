@@ -95,25 +95,25 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 
 
 // assumes prime_stuff is valid and admissible to PP
-void Preproduct::appending(Preproduct* PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 )
+void Preproduct::appending(Preproduct& PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 )
 {
     // compute new P value:
-    mpz_set( P, PP->P );
+    mpz_set( P, PP.P );
     mpz_mul_ui( P, P, prime );
     
     // set the vector
     P_primes.clear();
-    P_primes = PP->P_primes;
+    P_primes = PP.P_primes;
     P_primes.push_back( prime );
 
     // compute L
-    mpz_set( L, PP->L );
+    mpz_set( L, PP.L );
     mpz_lcm_ui( L, L, prime - 1 );
 
     // set L's vector
     L_primes.clear();
 
-    std::set_union( (PP->L_primes).begin(),(PP->L_primes).end(), distinct_primes_dividing_pm1.begin(), distinct_primes_dividing_pm1.end(), std::back_inserter( L_primes ) );
+    std::set_union( (PP.L_primes).begin(),(PP.L_primes).end(), distinct_primes_dividing_pm1.begin(), distinct_primes_dividing_pm1.end(), std::back_inserter( L_primes ) );
     
     append_bound = prime;
 
@@ -151,7 +151,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        this->CN_search( cars_file );
+        CN_search( cars_file );
     }
     else
     {
@@ -179,7 +179,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         mpz_set_ui( bound, X);
         mpz_mul_ui( bound, bound, P_primes.back() );
         if( mpz_cmp( P, bound ) > 0 )
-            this->completing_with_exactly_one_prime();
+            completing_with_exactly_one_prime();
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
@@ -195,11 +195,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             // having the factors for q-1, we need to ask if (q - 1) + 1 = q is prime
             // and that q is admissible to P
-            if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
+            if( r.isnextprime() && is_admissible_modchecks( qm1 + 1 ) )
             {
                 r.getlist( factors );
                 std::sort( factors.begin(), factors.end() );
-                Pq.appending( this, qm1 + 1, factors );
+                Pq.appending( *this, qm1 + 1, factors );
                 Pq.complete_tabulation( cars_file );
             }
             r.next();
@@ -214,11 +214,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
             uint64_t bound2 = mpz_get_ui( bound );
             while( qm1 < bound2 )
             {
-                if( r.isnextprime() && this->is_admissible_modchecks( qm1 + 1 ) )
+                if( r.isnextprime() && is_admissible_modchecks( qm1 + 1 ) )
                 {
                     r.getlist( factors );
                     std::sort( factors.begin(), factors.end() );
-                    Pq.appending( this, qm1 + 1, factors );
+                    Pq.appending( *this, qm1 + 1, factors );
                     Pq.completing_with_exactly_one_prime();
                 }
                 r.next();
