@@ -148,11 +148,11 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
     jobs_input.open(jobs_file);
 
     //std::string input_line = jobs_input.getline();
-    uint64_t one, two, three;
+    uint64_t P, L, prime_lower;
     
     // test that I can read and process a job triple
-    while(jobs_input >> one >> two >> three){
-        std::cout << "line read: " << one << " " << two << " " << three << "\n";
+    while(jobs_input >> P >> L >> prime_lower){
+        std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
     }
     
     output.close();
