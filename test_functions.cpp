@@ -43,6 +43,9 @@ ashallue@hyperion:~/tabulate_car/datafiles_22$ awk 'NF == 4 && $2 == 7' cars_tab
 
 // call CN_factorization on all squarefree multiples of 7 with 4 prime factors
 bool test_factor(){
+    // file for printing carmichael numbers
+    std::string cars_file = "cars.txt";
+    
     // primes for building numbers to factor
     // 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97 
     uint64_t num_small_primes = 20;
@@ -100,7 +103,7 @@ bool test_factor(){
                 
                 // factor
                 r_primes.clear();
-                bool is_factored = PPP.CN_factorization(n, r, r_primes);
+                bool is_factored = PPP.CN_factorization(n, r, r_primes, cars_file);
 
                 /* testing
                 if( small_primes[i1] == 11 && small_primes[i2] == 13 && small_primes[i3] == 41 ){
@@ -153,6 +156,13 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
     // test that I can read and process a job triple
     while(jobs_input >> P >> L >> prime_lower){
         std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
+
+        // create preproduct object
+        Preproduct preprod = Preproduct();
+        preprod.initializing( P, L, prime_lower );
+
+        // search for all carmichael numbers that complete that preproduct
+        preprod.CN_search( cars_file );
     }
     
     output.close();

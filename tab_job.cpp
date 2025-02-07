@@ -78,7 +78,7 @@ int main(void) {
             P1 = P*p64;
             L1 = L*((p64-1)/std::gcd( L , p64-1 ) );
             P_testing.initializing ( P1, L1, p64 );
-            P_testing.CN_search();
+            P_testing.CN_search( "cars.txt" );
             
         }
     }
@@ -108,7 +108,7 @@ int main(void) {
             std::sort( factors.begin(), factors.end() );
 
             P_testing.appending( &PP, p64+1, factors );
-            P_testing.CN_search();
+            P_testing.CN_search( "cars.txt" );
         }
         r.next();
         p64 = r.getn();
