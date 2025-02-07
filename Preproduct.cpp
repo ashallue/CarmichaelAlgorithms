@@ -444,112 +444,116 @@ bool Preproduct::is_CN( )
 // comments below indicate cahnges so that it is the bounded version which is what we want
 void Preproduct::completing_with_exactly_one_prime()
 {
-    // This should only be invoked with P < 2^64
-    // We could probably do this all with "machine arithmetic" instead of mpz
-    
     // two bounds to incorporate
-    // P( r + k1*L ) <  B
-    // r + K*L < B/P
+    // P( r + k*L ) <  B
+    // r + k*L < B/P
     
-    // script_R + k2 script_L < sqrt( script_P )  implies
+    // script_R + k*script_L < sqrt( script_P )  implies
     // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
     // r + K*L < g*sqrt( script_P ) + 1
     
     // r + k*L < min( g*sqrt( script_P ) + 1, B/P )
-        
-    // set up scaled problem:
-    mpz_t R;
-    mpz_init( R );
     
-    mpz_t script_R;
-    mpz_init( script_R );
-    mpz_invert( script_R, P, L );
-    mpz_sub_ui( script_R, script_R, 1 );
+    // construct rstar
+    mpz_t r_star;
+    mpz_init( r_star );
+    mpz_invert( r_star, P, L);
     
-    //scaled problem in terms of the gcd of r_star - 1 and L
+    // construct script_P
     mpz_t g;
     mpz_init( g );
-    mpz_gcd( g, script_R, L );
+    mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
+    mpz_gcd( g, g, L );    // g = gcd ( r^{\star} - 1, L )
     
-    // the next line now has script_R holding R1 as described in Section 5.3.1 of ANTS 2024 paper
-    mpz_divexact( script_R, script_R, g );
-    
-    // script_P = (P-1)/g
     mpz_t script_P;
-    mpz_init_set( script_P, P);
-    mpz_sub_ui( script_P, script_P, 1);
+    mpz_init_set( script_P, P );
+    mpz_sub_ui( script_P, 1 );
     mpz_divexact( script_P, script_P, g);
     
-    // script_L = L/g
-    mpz_t script_L;
-    mpz_init_set( script_L, L);
-    mpz_divexact( script_L, script_L, g);
+    // set up the two bounds
+    // set div_bound1 to g*sqrt(script_P) + 1
+    mpz_t div_bound1;
+    mpz_init_set( div_bound1, script_P );
+    mpz_mul( div_bound1, div_bound1, g );
+    mpz_mul( div_bound1, div_bound1, g );
+    mpz_sqrt( div_bound1, div_bound1 );
+    mpz_add_ui( div_bound1, div_bound1, 1);
     
-    mpz_t div_bound;
-    mpz_init_set( div_bound, script_P );
-    mpz_sqrt( div_bound, div_bound );
+    // set div_bound2 to B/P
+    mpz_t div_bound2;
+    mpz_init_set( div_bound2, BOUND );
+    mpz_cdiv_q( div_bound2, div_bound2, P);
     
-    mpz_t divisor;
-    mpz_set( divisor, script_R );
-    
-    // The bounds check has implicitly been done through k1 or k2
-    // and the loop should be done with respect to that quantity rather than the bounds check
-    while( mpz_cmp( divisor, div_bound) <= 0 )
+    if( mpz_cmp( div_bound1, div_bound2 ) > 0 )
     {
-        if( mpz_divisible_p( script_P, divisor ) )
+        // we are here becuase div_bound1 > div_bound2
+        // which means that div_bound2 = B/P is the relevant bound
+        // and so this is the bounded case, we do not construct R2
+        while( mpz_cmp( r_star, div_bound2) <= 0 )
         {
-            mpz_mul( R, divisor, g);
-            mpz_add_ui( R, R, 1);
-            if( mpz_probab_prime_p( R, 0 ) != 0 )
+            if( mpz_probab_prime_p( r_star, 0) != 0 )
             {
-                // we might do a bounds check (?)
-                // test that P*R is a CN
+                // check that P*r_star is CN
+                // possible write to vector and calling appending?  or need a new check for a singel prime
             }
+            mpz_add( r_star, r_star, L );
         }
-        mpz_add( divisor, divisor, script_L );
+        
     }
+    else
+    {
+        // still needs work
+        
+        // we need script_L
+        mpz_t script_L;
+        mpz_init( script_L );
+        mpz_divexact( script_L, L, g );
 
-    // Only enter if k2 < k1
-    // There are two possible bounds (but one is alower bound)
-    // P (P-1) < B*( R2 + k3 * script_L ) implies
-    // P(P-1)/B < R2 + k3 * script_L
-    // P(P-1) / ( B* script_L ) - 1 <= k3
-    // k3 = max( k3, 0 );
-    
-    // k4 < script_P/script_L
-    
-    
-    // set R to be R_2 in section 5.3.2
-    mpz_invert( script_R, script_R, script_L);
-    mpz_mul( script_R, script_P, script_R );
-    mpz_mod( divisor, script_R, script_L );
-       
-    // loop initialize to divisor = R2 + k3 * script_L
-    // and iterate until R + k4*script_L is created
-    while( mpz_cmp( divisor, div_bound) <= 0 )
-    {
-        if( mpz_divisible_p( script_P, divisor ) )
+        // we need to use r_star again
+        mpz_t r_star2;
+        mpz_init( r_star2 );
+        mpz_invert( r_star2, r_star, script_L );
+        mpz_mul( r_star2, r_star2, script_P );
+        mpz_mod( r_star2, r_star2, script_L );
+        
+        while( mpz_cmp( r_star, div_bound1) <= 0 )
         {
-            mpz_divexact( R, script_P, divisor);
-            mpz_mul( R, R, g);
-            mpz_add_ui( R, R, 1);
-            if( mpz_probab_prime_p( R, 0 ) != 0 )
+            if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
-                // we might do a bounds check (?)
-                // test that P*R is a CN
+                // check that P*r_star is CN
+                // possible write to vector and calling appending?  or need a new check for a singel prime
             }
+            mpz_add( r_star, r_star, L );
         }
-        mpz_add( divisor, divisor, script_L );
+        
+        
+        
+        while( mpz_cmp( r_star2, div_bound1) <= 0 )
+        {
+            if( mpz_divisible_p( script_P, r_star2 ) )
+            {
+                // we are done with r_star, using it as storage for R
+                mpz_divexact( r_star, script_P, r_star2);
+                mpz_mul( r_star, r_star, g);
+                mpz_add_ui( r_star, r_star, r_star);
+                if( mpz_probab_prime_p( r_star,  0 ) != 0 )
+                {
+                    // we might do a bounds check (?)
+                    // test that P*R is a CN
+                }
+            }
+            mpz_add( r_star2, r_star2, script_L );
+        }
+        
+        mpz_clear( r_sart2 );
+        mpz_clear( script_L );
     }
     
-    mpz_clear( divisor );
-    mpz_clear( div_bound );
-    mpz_clear( script_R );
-    mpz_clear( script_L );
+    mpz_clear( div_bound2 );
+    mpz_clear( div_bound1 );
     mpz_clear( script_P );
     mpz_clear( g );
-    mpz_clear( R );
-
+    mpz_clear( r_star );
 }
 
 

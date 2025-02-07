@@ -1,5 +1,5 @@
-#include "rollsieve.h"
 #include "Preproduct.h"
+
 #include <iostream>
 #include <algorithm>
 #include <gmp.h>
@@ -89,6 +89,7 @@ int main(void) {
 
     std::cout << "Time taken: " << duration1.count() << " microseconds" << std::endl;
     
+    /*
     auto start2 = std::chrono::high_resolution_clock::now();
     
     
@@ -136,6 +137,7 @@ int main(void) {
     
     // P0.CN_search(1873371784);
     //P0.CN_search(149637241475922);
+
     
     return 0;
 }

@@ -72,7 +72,7 @@ class Rollsieve
 
     public:
 
-    Rollsieve(uint64_t start);
+
 
     inline uint64_t getn() { return n; }
 
