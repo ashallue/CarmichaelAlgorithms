@@ -107,7 +107,7 @@ class Rollsieve
 
     static const int primeslen = 168;
     static const uint16_t primesmax = 1000;
-    static const uint16_t primes[168]; // initialized at the end of the file
+    static const uint16_t rollsieve_primes[168]; // initialized at the end of the file
 
     std::vector<Factorlist2> T;
     uint32_t delta;
@@ -130,9 +130,9 @@ class Rollsieve
         
         // small primes first - take from int.h array if possible
         // for(int i=0; i<primeslen && primes[i]<=sqrtstart; i++)
-        for( uint32_t i=1; i<primeslen && primes[i]<=sqrtstart; i++)
+        for( uint32_t i=1; i<primeslen && rollsieve_primes[i]<=sqrtstart; i++)
         {
-            uint32_t p=primes[i];
+            uint32_t p=rollsieve_primes[i];
             uint32_t j=(p-(start%p))%p;
             T[j].push(p);
         }
@@ -197,7 +197,7 @@ class Rollsieve
     void getlist(std::vector<uint64_t> & plist) { T[pos].getlist(n,plist); }
 };
 
-const uint16_t Rollsieve::primes[168] = {
+const uint16_t Rollsieve::rollsieve_primes[168] = {
      2,   3,   5,   7,  11,  13,  17,  19,  23,  29,
     31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
     73,  79,  83,  89,  97, 101, 103, 107, 109, 113,
