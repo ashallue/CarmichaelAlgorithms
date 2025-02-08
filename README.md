@@ -10,3 +10,5 @@ I'm going to write some things that really shouldn't be in a readme.  We will ne
 
 On the topic of ignoring files, see https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 A potential problem: this is in the repository, so I think it would be ignored for all collaborators.  I don't yet know how to get a single collaborator to ignore a file that is tracked by a different collaborator.
+
+Note that this project is designed only for a 10^24 tabulation.  This includes hard-coded bounds (upper and cross-over), and integer size choices that only make sense if the upper bound is 10^24.

@@ -19,7 +19,12 @@ Preproduct::Preproduct()
     mpz_init( P );
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
-    mpz_pow_ui( BOUND, BOUND, 24 );
+
+    // bound for full computation
+    //mpz_pow_ui( BOUND, BOUND, 24 );
+
+    // bound for testing
+    mpz_pow_ui( BOUND, BOUND, 9 );
 }
 
 Preproduct::~Preproduct()
@@ -358,6 +363,7 @@ void Preproduct::CN_search( std::string cars_file )
                 }
                 sieve_prime_index++;
             }
+            //std::cout << "After spoke, m = " << m << " up to " << L_lift << "\n";
             
             // spoke has been sieved, so only do modular exponentiations on valid places
             // n is initialized correctly here
@@ -567,8 +573,10 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
 {
     // file object for storing the carmichael numbers
     FILE* cars_output;
-    char filename[100];
-    cars_file.copy(filename, cars_file.length());
+    //char filename[100];
+    //cars_file.copy(filename, cars_file.length());
+    const char* filename;
+    filename = cars_file.c_str();
     
     cars_output = fopen (filename,"w");
     

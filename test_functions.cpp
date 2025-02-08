@@ -187,7 +187,7 @@ int main(){
     //tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
 
     Preproduct preprod = Preproduct();
-    preprod.initializing( 1001, 60, 13 );
+    preprod.initializing( 1, 1, 97 );
 
     // search for all carmichael numbers that complete that preproduct
     preprod.CN_search( "cars.txt" );
