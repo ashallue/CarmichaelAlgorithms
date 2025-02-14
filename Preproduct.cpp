@@ -173,8 +173,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
-        
-
 
         mpz_t BoverP;
         mpz_t bound;
