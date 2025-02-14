@@ -579,7 +579,7 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
     const char* filename;
     filename = cars_file.c_str();
     
-    cars_output = fopen (filename,"w");
+    cars_output = fopen (filename,"a");
     
     std::queue<uint64_t> R_composite_factors;
     
@@ -674,7 +674,7 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
             */
 
             // output to a file
-            gmp_fprintf(cars_output, "%Zd", n);
+            gmp_fprintf(cars_output, "%Zd\n", n);
         }
     }
         
