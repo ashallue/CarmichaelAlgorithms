@@ -184,13 +184,13 @@ int main(){
 
     std::cout << "\nTabulating up to 10^9\n";
     uint64_t upper = 1000000000;
-    //tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
+    tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
 
-    Preproduct preprod = Preproduct();
-    preprod.initializing( 1, 1, 97 );
+    //Preproduct preprod = Preproduct();
+    //preprod.initializing( 1, 1, 97 );
 
     // search for all carmichael numbers that complete that preproduct
-    preprod.CN_search( "cars.txt" );
+    //preprod.CN_search( "cars.txt" );
     
     /*
     // testing file writing.  Source: https://cplusplus.com/reference/cstdio/fprintf/
