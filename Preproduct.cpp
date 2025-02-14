@@ -374,16 +374,22 @@ void Preproduct::CN_search( std::string cars_file )
             {
                 if( spoke_sieve[k] == 0 )
                 {
+                    // sift out n which are not a Fermat psp to bases 2 and 3
                     mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
                     if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
                     {
                         mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
-                            mpz_divexact( R, n, P);
-                            r_primes.clear();
-                            CN_factorization( n, R, r_primes, cars_file  );
-                            // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                            // sift out n which are prime (according to Baillie-PSW psp test)
+                            // test returns 0 if composite, 1 if probably prime, 2 if provably prime
+                            if( mpz_probab_prime_p( n, 20 ) > 0 )
+                            {
+                                mpz_divexact( R, n, P);
+                                r_primes.clear();
+                                CN_factorization( n, R, r_primes, cars_file  );
+                                // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                            }
                         }
                     }
                 }
@@ -685,6 +691,11 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
 
             // output to a file
             gmp_fprintf(cars_output, "%Zd\n", n);
+
+            // testing
+            if ( mpz_cmp_ui(n, 97) == 0 ){
+                std::cout << "97 found\n";
+            }
         }
     }
         
