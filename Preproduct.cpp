@@ -447,40 +447,33 @@ bool Preproduct::is_CN( )
 }
 
 
-// compare with:
+// see section 5.3 of ANTS 2024 work and the corresponding implementation:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
-// see section 5.3 of ANTS 2024 work
-// comments below indicate cahnges so that it is the bounded version which is what we want
 void Preproduct::completing_with_exactly_one_prime()
 {
-    // two bounds to incorporate
-    // P( r + k*L ) <  B
-    // r + k*L < B/P
-    
-    // script_R + k*script_L < sqrt( script_P )  implies
-    // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
-    // r + K*L < g*sqrt( script_P ) + 1
-    
-    // r + k*L < min( g*sqrt( script_P ) + 1, B/P )
+    std::vector <uint64_t> the_prime_factor;
     
     // construct rstar
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert( r_star, P, L);
     
-    // construct script_P
+    // construct g, the scaling factor
     mpz_t g;
     mpz_init( g );
     mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
     mpz_gcd( g, g, L );    // g = gcd ( r^{\star} - 1, L )
     
+    // construct script_P
     mpz_t script_P;
     mpz_init_set( script_P, P );
     mpz_sub_ui( script_P, script_P, 1 );
     mpz_divexact( script_P, script_P, g);
-    
-    // set up the two bounds
-    // set div_bound1 to g*sqrt(script_P) + 1
+        
+    // set div_bound1
+    // script_R + k*script_L < sqrt( script_P )  implies
+    // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
+    // r + K*L < g*sqrt( script_P ) + 1
     mpz_t div_bound1;
     mpz_init_set( div_bound1, script_P );
     mpz_mul( div_bound1, div_bound1, g );
@@ -488,30 +481,33 @@ void Preproduct::completing_with_exactly_one_prime()
     mpz_sqrt( div_bound1, div_bound1 );
     mpz_add_ui( div_bound1, div_bound1, 1);
     
-    // set div_bound2 to B/P
+    // set div_bound2
+    // P( r + k*L ) <  B
+    // r + k*L < B/P
     mpz_t div_bound2;
     mpz_init_set( div_bound2, BOUND );
     mpz_cdiv_q( div_bound2, div_bound2, P);
     
     if( mpz_cmp( div_bound1, div_bound2 ) > 0 )
     {
-        // we are here becuase div_bound1 > div_bound2
-        // which means that div_bound2 = B/P is the relevant bound
-        // and so this is the bounded case, we do not construct R2
+        // div_bound2 = B/P is the relevant bound
+        // we do not need to look for the large divisor (see 5.3.2 Case 2)
         while( mpz_cmp( r_star, div_bound2) <= 0 )
         {
             if( mpz_probab_prime_p( r_star, 0) != 0 )
             {
-                // check that P*r_star is CN
-                // possible write to vector and calling appending?  or need a new check for a singel prime
+                the_prime_factor.clear();
+                the_prime_factor.push_back( mpz_get_ui( r_star ) );
+                if( appending_is_CN( the_prime_factor ) )
+                {
+                    // We found a CN!
+                }
             }
             mpz_add( r_star, r_star, L );
         }
-        
     }
     else
     {
-        // still needs work
         
         // we need script_L
         mpz_t script_L;
@@ -529,13 +525,22 @@ void Preproduct::completing_with_exactly_one_prime()
         {
             if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
-                // check that P*r_star is CN
-                // possible write to vector and calling appending?  or need a new check for a singel prime
+                the_prime_factor.clear();
+                the_prime_factor.push_back( mpz_get_ui( r_star ) );
+                if( appending_is_CN( the_prime_factor ) )
+                {
+                    // We found a CN!
+                }
             }
             mpz_add( r_star, r_star, L );
         }
         
+        // can do a computation to find a possilbe k > 0 so and set
+        // r_star2 = r_star2 + k*script_L
+        // see this done in the previous version:
+        // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L479-L484
         
+        mpz_sqrt( div_bound1, script_P );
         
         while( mpz_cmp( r_star2, div_bound1) <= 0 )
         {
@@ -547,8 +552,13 @@ void Preproduct::completing_with_exactly_one_prime()
                 mpz_add_ui( r_star, r_star, 1 );
                 if( mpz_probab_prime_p( r_star,  0 ) != 0 )
                 {
-                    // we might do a bounds check (?)
-                    // test that P*R is a CN
+                    the_prime_factor.clear();
+                    the_prime_factor.push_back( mpz_get_ui( r_star ) );
+                    if( appending_is_CN( the_prime_factor ) )
+                    {
+                        // we might do a bounds check (?)
+                        // We found a CN!
+                    }
                 }
             }
             mpz_add( r_star2, r_star2, script_L );
