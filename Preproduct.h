@@ -14,7 +14,8 @@ class Preproduct{
 
 public:
 
-    mpz_t BOUND;  // constructor always sets to 10^24
+    // constructor always sets to 10^24
+    mpz_t BOUND;
   
     mpz_t P;
     std::vector< uint64_t > P_primes;
@@ -65,15 +66,16 @@ public:
 
     
     // For some preproducts, we will still only need to find exactly one prime
-    // B/(PL) is small, just call CN_search instead
-    // one could work out the cross over depending on the implementation of the below
-    // First attempt is the modification of trial division due to the residue class information
-    // To do (?): Lenstra's divisor in residue class
-    // To do : incorporate bounded search
+    // Implements the modified trial division of Serction 5.3 ANTS 2024 paper
+    // We could consider two version:
+    // Version 1 - a custom version of CN_search that only outputs primes (consider this the bounded factorization)
+    // Version 2 - the Lenstra Divisors in residue class algorithm
+    // Contrary-wise:
+    // Our implementation accounts for the bounded case (although does not do prime sieving when bounded)
+    // and uses residue class information in a straighforward way (easier to check the correctness)
     void completing_with_exactly_one_prime( );
     
     // check that L exactly divides P - 1
-    // in the future modify to take filestream?
     bool is_CN( );
 
     

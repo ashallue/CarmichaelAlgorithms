@@ -40,8 +40,7 @@ Preproduct::~Preproduct()
 // intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes array/vector with primes
-// could also consider faster factorization
-// precomputation.cpp would need to be re-written
+// could also consider faster factorization algorithms
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     uint64_t temp;
@@ -75,10 +74,10 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
     // clear vector and fill
     L_primes.clear();
     
-    // take care of 2 then look for odd primes
+    // take care of 2:
     L_primes.push_back( 2 );
     init_LofP = ( init_LofP >>  __builtin_ctzl( init_LofP ) );
-    // the prime 2 is now taken care of.  Account for odd primes:
+    // Account for odd primes:
     temp = 3;
     while( init_LofP != 1 )
     {
