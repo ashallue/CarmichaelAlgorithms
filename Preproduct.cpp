@@ -240,6 +240,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
 // Do not call this method on a preproduct of the form (1, 1, b)
 // Calling this method on (1, 1, b) results in a lienar search up to B
 // and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
+// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
 void Preproduct::CN_search( std::string cars_file )
 {
     const uint32_t cache_bound = 150'000;
