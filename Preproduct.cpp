@@ -456,6 +456,7 @@ bool Preproduct::is_CN( )
 void Preproduct::completing_with_exactly_one_prime()
 {
     std::vector <uint64_t> the_prime_factor;
+    uint64_t prime_factor;
     
     // construct rstar
     mpz_t r_star;
@@ -500,11 +501,12 @@ void Preproduct::completing_with_exactly_one_prime()
         {
             if( mpz_probab_prime_p( r_star, 0) != 0 )
             {
-                the_prime_factor.clear();
-                the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                if( appending_is_CN( the_prime_factor ) )
+                prime_factor = mpz_get_ui( r_star );
+                if( prime_factor > append_bound )
                 {
-                    // We found a CN!
+                    the_prime_factor.clear();
+                    the_prime_factor.push_back( prime_factor );
+                    appending_is_CN( the_prime_factor );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -529,11 +531,12 @@ void Preproduct::completing_with_exactly_one_prime()
         {
             if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
-                the_prime_factor.clear();
-                the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                if( appending_is_CN( the_prime_factor ) )
+                prime_factor = mpz_get_ui( r_star );
+                if( prime_factor > append_bound )
                 {
-                    // We found a CN!
+                    the_prime_factor.clear();
+                    the_prime_factor.push_back( prime_factor );
+                    appending_is_CN( the_prime_factor );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -556,12 +559,12 @@ void Preproduct::completing_with_exactly_one_prime()
                 mpz_add_ui( r_star, r_star, 1 );
                 if( mpz_probab_prime_p( r_star,  0 ) != 0 )
                 {
-                    the_prime_factor.clear();
-                    the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                    if( appending_is_CN( the_prime_factor ) )
+                    prime_factor = mpz_get_ui( r_star );
+                    if( prime_factor > append_bound )
                     {
-                        // we might do a bounds check (?)
-                        // We found a CN!
+                        the_prime_factor.clear();
+                        the_prime_factor.push_back( prime_factor );
+                        appending_is_CN( the_prime_factor );
                     }
                 }
             }
