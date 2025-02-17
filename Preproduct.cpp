@@ -142,18 +142,25 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 void Preproduct::complete_tabulation( std::string cars_file )
 {
     
-    const uint64_t X = 101'000'000;
+    const uint64_t X = 102'000'000;
     
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     
     // rule to be set later
-    // compare We show that if PL^2 > B then rule should be true
+    // We show that if PL^2 > B then rule should be true
     // however, assumes the cost of the else block is porportional to the cost of generating the primes
     // this is almost certain too small of an estimate.
     // something like PL^3 > B might be justified
     // some analytic work required but not needed for correctness
-    bool rule = ( mpz_cmp_ui( P , X ) >= 0 );
+    
+    mpz_t to_recurse_or_not_to_recurse;
+    mpz_init_set(  to_recurse_or_not_to_recurse, P);
+    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
+    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
+    // a factor of 20 thrown in to favor CN_search:
+    mpz_mul_ui(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, 20);
+    bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
     
    
     if( rule )
@@ -234,6 +241,8 @@ void Preproduct::complete_tabulation( std::string cars_file )
         mpz_clear( BoverP );
         mpz_clear( bound );
     }
+    
+    mpz_clear( to_recurse_or_not_to_recurse );
 }
 
 // Do not call this method on a preproduct of the form (1, 1, b)
