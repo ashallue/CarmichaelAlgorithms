@@ -497,6 +497,7 @@ void Preproduct::completing_with_exactly_one_prime()
     {
         // div_bound2 = B/P is the relevant bound
         // we do not need to look for the large divisor (see 5.3.2 Case 2)
+        // this path is essentially CN_search but with no sieving and no CN_factorization needed
         while( mpz_cmp( r_star, div_bound2) <= 0 )
         {
             if( mpz_probab_prime_p( r_star, 0) != 0 )
@@ -514,7 +515,6 @@ void Preproduct::completing_with_exactly_one_prime()
     }
     else
     {
-        
         // we need script_L
         mpz_t script_L;
         mpz_init( script_L );
