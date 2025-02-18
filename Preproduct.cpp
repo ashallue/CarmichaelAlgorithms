@@ -142,8 +142,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 void Preproduct::complete_tabulation( std::string cars_file )
 {
     
-    const uint64_t X = 102'000'000;
-    
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     
@@ -161,7 +159,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
     // a factor of 20 thrown in to favor CN_search:
     mpz_mul_ui(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, 20);
     bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
-    
    
     if( rule )
     {
@@ -179,6 +176,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
+        const uint64_t X = 110'000'000;
 
         mpz_t BoverP;
         mpz_t bound;
