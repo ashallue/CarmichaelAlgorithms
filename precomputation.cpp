@@ -1,3 +1,4 @@
+#include "rollsieve.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -11,6 +12,12 @@
 
 int main()
 {
+ 
+  // I don't get what's wrong:
+  //  uint64_t start = 2;
+  //  Rollsieve incremental_sieve( start );
+    
+    
   const uint64_t primes[167] = {
      3,   5,   7,  11,  13,  17,  19,  23,  29,
     31,  37,  41,  43,  47,  53,  59,  61,  67,  71,
