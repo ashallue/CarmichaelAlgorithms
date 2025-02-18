@@ -72,7 +72,7 @@ int main()
         uint64_t b = old_jobs.back()[2];
         old_jobs.pop_back();
 
-        if( ( log( P ) + 2*log( L ) + (2.5)*log( p ) > bound ) || ( log( P ) + 4.5*log( p ) > bound ) )
+        if( ( log( P ) + 2*log( L ) + (3)*log( p ) > bound ) || ( log( P ) + 5*log( p ) > bound ) )
         {
           output_jobs.push_back( { P, L, b }  );
         }
