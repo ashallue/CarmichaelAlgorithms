@@ -448,17 +448,14 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     const uint32_t bitset_size = 512;
     std::bitset<bitset_size> small_primes{"00110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     
-    mpz_t cmp_bound;
-    mpz_init( cmp_bound );
-    mpz_cdiv_q( cmp_bound, BOUND, PL);
+    mpz_t R;
+    mpz_init( R );                              // using R as a temp variable here
+    mpz_cdiv_q( R, BOUND, PL);
     
-    uint64_t cmp_bound64 = mpz_get_ui( cmp_bound );
+    uint64_t cmp_bound64 = mpz_get_ui( R );     // done using R as a temp variable
     boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
     spoke_sieve.reset();
-   
-    mpz_t R;
-    mpz_init( R );
-    
+       
     // store the prime factors of r
     std::vector<uint64_t> r_primes;
     
@@ -518,7 +515,6 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
    
     mpz_clear( R );
     mpz_clear( small_prime );
-    mpz_clear( cmp_bound );
     mpz_clear( r_star );
     mpz_clear( n );
     mpz_clear( PL );
