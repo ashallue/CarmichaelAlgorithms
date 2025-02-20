@@ -462,23 +462,24 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     // store the prime factors of r
     std::vector<uint64_t> r_primes;
     
+    // sieve
     uint16_t prime_index = 0;
     while( prime_index < bitset_size )
     {
         if( small_primes[ prime_index ] )
         {
             uint32_t p = 2*prime_index + 3;
+            // we do not want R to be divisible by primes less than append_bound
+            // we can also use any prime inadmissible to P
             if( p < append_bound || !is_admissible_modchecks( p ) )
             {
                 mpz_set_ui( small_prime, p );
-                if( mpz_invert( n, L, small_prime ) ) // n has L^{-1} mod p, if the inverse exists
+                if( mpz_invert( n, L, small_prime ) )   // n has L^{-1} mod p, if the inverse exists
                 {
-                    mpz_neg( n, n);  // n has -(L)^{-1} mod p
-                    mpz_mul( n, n, r_star ); // muliply by r_star
-                    mpz_mod( n, n, small_prime );  // reduce modulo p
-                    uint64_t k = mpz_get_ui( n );
-                    
-                    // we just found the starting point for k, now sieve:
+                    mpz_neg( n, n);                     // n has -(L)^{-1} mod p
+                    mpz_mul( n, n, r_star );            // muliply by r_star
+                    mpz_mod( n, n, small_prime );       // reduce modulo p
+                    uint64_t k = mpz_get_ui( n );       // k has the starting point for sieve
                     while( k < cmp_bound64 )
                     {
                         spoke_sieve[k] = 1;
@@ -491,8 +492,8 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     }
     // sieving now done
     
-    mpz_mul( n, P, r_star);
-    uint32_t k = 0;
+    mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
+    uint32_t k = 0;             // and so k has the value 0
     while( mpz_cmp( n , BOUND ) < 0 )
     {
         if( spoke_sieve[k] == 0 )
