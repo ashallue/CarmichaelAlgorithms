@@ -272,10 +272,7 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_t PL;
     mpz_init( PL );
     mpz_mul( PL, P, L );
-
-    mpz_t gcd_result;
-    mpz_init( gcd_result );
-    
+   
     mpz_t small_prime;
     mpz_init( small_prime );
     
@@ -417,6 +414,120 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_clear( lifted_L );
         
 }
+
+// Do not call this method on a preproduct of the form (1, 1, b)
+// Calling this method on (1, 1, b) results in a lienar search up to B
+// and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
+// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
+void Preproduct::CN_search_no_wheel( std::string cars_file )
+{
+    mpz_t r_star;
+    mpz_init( r_star );
+    mpz_invert(r_star, P, L);
+    
+    mpz_t base2;
+    mpz_t base3;
+    mpz_init_set_ui( base2, 2 );
+    mpz_init_set_ui( base3, 3 );
+    
+    mpz_t fermat_result;
+    mpz_init( fermat_result );
+    
+    mpz_t n;
+    mpz_init(n);
+
+    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
+    mpz_t PL;
+    mpz_init( PL );
+    mpz_mul( PL, P, L );
+    
+    mpz_t small_prime;
+    mpz_init( small_prime );
+    
+    // position i has the truth value of the statement "(2i + 3) is prime"
+    const uint32_t bitset_size = 512;
+    std::bitset<bitset_size> small_primes{"00110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    
+    mpz_t cmp_bound;
+    mpz_init( cmp_bound );
+    mpz_cdiv_q( cmp_bound, BOUND, PL);
+    
+    uint64_t cmp_bound64 = mpz_get_ui( cmp_bound );
+    boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
+    spoke_sieve.reset();
+   
+    mpz_t R;
+    mpz_init( R );
+    
+    // store the prime factors of r
+    std::vector<uint64_t> r_primes;
+    
+    uint16_t prime_index = 0;
+    while( prime_index < bitset_size )
+    {
+        if( small_primes[ prime_index ] )
+        {
+            uint32_t p = 2*prime_index + 3;
+            if( p < append_bound || !is_admissible_modchecks( p ) )
+            {
+                mpz_set_ui( small_prime, p );
+                if( mpz_invert( n, L, small_prime ) ) // n has L^{-1} mod p, if the inverse exists
+                {
+                    mpz_neg( n, n);  // n has -(L)^{-1} mod p
+                    mpz_mul( n, n, r_star ); // muliply by r_star
+                    mpz_mod( n, n, small_prime );  // reduce modulo p
+                    uint64_t k = mpz_get_ui( n );
+                    
+                    // we just found the starting point for k, now sieve:
+                    while( k < cmp_bound64 )
+                    {
+                        spoke_sieve[k] = 1;
+                        k += p;
+                    }
+                }
+            }
+        }
+        prime_index++;
+    }
+    // sieving now done
+    
+    mpz_mul( n, P, r_star);
+    uint32_t k = 0;
+    while( mpz_cmp( n , BOUND ) < 0 )
+    {
+        if( spoke_sieve[k] == 0 )
+        {
+            mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
+            if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
+            {
+                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
+                {
+                    mpz_divexact( R, n, P);
+                    r_primes.clear();
+                    CN_factorization( n, R, r_primes, cars_file  );
+                    // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                }
+            }
+        }
+        k++;
+        mpz_add( n, n, PL);
+    }
+    
+   
+    mpz_clear( R );
+    mpz_clear( small_prime );
+    mpz_clear( cmp_bound );
+    mpz_clear( r_star );
+    mpz_clear( n );
+    mpz_clear( PL );
+    mpz_clear( base2 );
+    mpz_clear( base3 );
+    mpz_clear( fermat_result );
+
+        
+}
+
 
 /* Depends on primes_to_append being a vector of true primes.
     
