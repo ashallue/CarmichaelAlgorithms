@@ -22,6 +22,16 @@ public:
    
     // stores the distinct primes that divide L
     mpz_t L;
+    
+    // consider getting rid of this
+    // here is a sketch of places where eliminating this vector causes simplifications or changes
+    //      Preproduct::initializing would not need to factor L (see lines 73-93)
+    //      Preproduct::appending would not need the set_union call (see lines 118-120)
+    //      Preproduct::complete_tabulation would only need a simple prime sieve
+    //      Preproduct::CN_search has a few places depending on this array changes:
+    //              1 - lines 297-301 changes the bit vector to avoid sieving by primes dividing L
+    //              2 - this change guarantees the lifted primes are ok (see lines 314-332)
+    //              3 - this change guarantees the sieve primes are ok (see lines 358-374)
     std::vector< uint64_t > L_primes;
 
     // primes appended to P need to exceed this bound
