@@ -74,6 +74,11 @@ public:
     // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
     void CN_search( std::string cars_file  );
 
+    // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
+    // checks that each candidate is a Fermat psuedoprime
+    // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
+    void CN_search_no_wheel( std::string cars_file  );
+    
     
     // For some preproducts, we will still only need to find exactly one prime
     // Implements the modified trial division of Serction 5.3 ANTS 2024 paper
