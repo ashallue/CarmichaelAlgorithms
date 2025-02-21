@@ -700,9 +700,10 @@ void Preproduct::completing_with_exactly_one_prime()
 }
 
 
-// while R is passed as mpz_t type
-// the assumption is that R < 2^64
-// NEED TO DO - incorporate append bound, see comments below
+// R is passed as mpz_t type but we assume is that R < 2^64 because it is immediately written put into a uint64_t type
+// minor improvements:
+//  1) break earlier with append bound
+//  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
 {
