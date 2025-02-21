@@ -438,7 +438,7 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     mpz_t n;
     mpz_init(n);
 
-    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
+    // n = P*( r_star + k*L ) = P*r_star * k*(P*L), an arithmetic progression with common difference PL
     mpz_t PL;
     mpz_init( PL );
     mpz_mul( PL, P, L );
