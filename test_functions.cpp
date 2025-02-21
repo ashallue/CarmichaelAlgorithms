@@ -182,10 +182,20 @@ int main(){
 
     std::cout << "result of test_factor " << t1 << "\n";
 
+    Rollsieve prime_gen = Rollsieve(3);
+    uint64_t prime = prime_gen.nextprime();
+
+    while(prime < 100){
+        
+        std::cout << "prime found: " << prime << "\n";
+        prime = prime_gen.nextprime();
+    }
+        
+    /*
     std::cout << "\nTabulating up to 10^9\n";
     uint64_t upper = 1000000000;
     tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
-
+    */
     //Preproduct preprod = Preproduct();
     //preprod.initializing( 1, 1, 97 );
 
