@@ -40,8 +40,7 @@ Preproduct::~Preproduct()
 // intended use is initializing from precomputation which only generates valid inputs
 // uses trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes array/vector with primes
-// could also consider faster factorization
-// precomputation.cpp would need to be re-written
+// could also consider faster factorization algorithms
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     uint64_t temp;
@@ -75,10 +74,10 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
     // clear vector and fill
     L_primes.clear();
     
-    // take care of 2 then look for odd primes
+    // take care of 2:
     L_primes.push_back( 2 );
     init_LofP = ( init_LofP >>  __builtin_ctzl( init_LofP ) );
-    // the prime 2 is now taken care of.  Account for odd primes:
+    // Account for odd primes:
     temp = 3;
     while( init_LofP != 1 )
     {
@@ -143,19 +142,23 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 void Preproduct::complete_tabulation( std::string cars_file )
 {
     
-    const uint64_t X = 101'000'000;
-    
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     
     // rule to be set later
-    // compare We show that if PL^2 > B then rule should be true
+    // We show that if PL^2 > B then rule should be true
     // however, assumes the cost of the else block is porportional to the cost of generating the primes
     // this is almost certain too small of an estimate.
     // something like PL^3 > B might be justified
     // some analytic work required but not needed for correctness
-    bool rule = ( mpz_cmp_ui( P , X ) >= 0 );
     
+    mpz_t to_recurse_or_not_to_recurse;
+    mpz_init_set(  to_recurse_or_not_to_recurse, P);
+    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
+    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
+    // a factor of 20 thrown in to favor CN_search:
+    mpz_mul_ui(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, 20);
+    bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
    
     if( rule )
     {
@@ -173,6 +176,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
+        const uint64_t X = 110'000'000;
 
         mpz_t BoverP;
         mpz_t bound;
@@ -235,8 +239,14 @@ void Preproduct::complete_tabulation( std::string cars_file )
         mpz_clear( BoverP );
         mpz_clear( bound );
     }
+    
+    mpz_clear( to_recurse_or_not_to_recurse );
 }
 
+// Do not call this method on a preproduct of the form (1, 1, b)
+// Calling this method on (1, 1, b) results in a lienar search up to B
+// and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
+// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
 void Preproduct::CN_search( std::string cars_file )
 {
     const uint32_t cache_bound = 150'000;
@@ -262,10 +272,7 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_t PL;
     mpz_init( PL );
     mpz_mul( PL, P, L );
-
-    mpz_t gcd_result;
-    mpz_init( gcd_result );
-    
+   
     mpz_t small_prime;
     mpz_init( small_prime );
     
@@ -409,6 +416,117 @@ void Preproduct::CN_search( std::string cars_file )
         
 }
 
+// Do not call this method on a preproduct of the form (1, 1, b)
+// Calling this method on (1, 1, b) results in a lienar search up to B
+// and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
+// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
+void Preproduct::CN_search_no_wheel( std::string cars_file )
+{
+    mpz_t r_star;
+    mpz_init( r_star );
+    mpz_invert(r_star, P, L);
+    
+    mpz_t base2;
+    mpz_t base3;
+    mpz_init_set_ui( base2, 2 );
+    mpz_init_set_ui( base3, 3 );
+    
+    mpz_t fermat_result;
+    mpz_init( fermat_result );
+    
+    mpz_t n;
+    mpz_init(n);
+
+    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
+    mpz_t PL;
+    mpz_init( PL );
+    mpz_mul( PL, P, L );
+    
+    mpz_t small_prime;
+    mpz_init( small_prime );
+    
+    // position i has the truth value of the statement "(2i + 3) is prime"
+    const uint32_t bitset_size = 512;
+    std::bitset<bitset_size> small_primes{"00110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    
+    mpz_t R;
+    mpz_init( R );                              // using R as a temp variable here
+    mpz_cdiv_q( R, BOUND, PL);
+    
+    uint64_t cmp_bound64 = mpz_get_ui( R );     // done using R as a temp variable
+    boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
+    spoke_sieve.reset();
+       
+    // store the prime factors of r
+    std::vector<uint64_t> r_primes;
+    
+    // sieve
+    uint16_t prime_index = 0;
+    while( prime_index < bitset_size )
+    {
+        if( small_primes[ prime_index ] )
+        {
+            uint32_t p = 2*prime_index + 3;
+            // we do not want R to be divisible by primes less than append_bound
+            // we can also use any prime inadmissible to P
+            if( p < append_bound || !is_admissible_modchecks( p ) )
+            {
+                mpz_set_ui( small_prime, p );
+                if( mpz_invert( n, L, small_prime ) )   // n has L^{-1} mod p, if the inverse exists
+                {
+                    mpz_neg( n, n);                     // n has -(L)^{-1} mod p
+                    mpz_mul( n, n, r_star );            // muliply by r_star
+                    mpz_mod( n, n, small_prime );       // reduce modulo p
+                    uint64_t k = mpz_get_ui( n );       // k has the starting point for sieve
+                    while( k < cmp_bound64 )
+                    {
+                        spoke_sieve[k] = 1;
+                        k += p;
+                    }
+                }
+            }
+        }
+        prime_index++;
+    }
+    // sieving now done
+    
+    mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
+    uint32_t k = 0;             // and so k has the value 0
+    while( mpz_cmp( n , BOUND ) < 0 )
+    {
+        if( spoke_sieve[k] == 0 )
+        {
+            mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
+            if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
+            {
+                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
+                {
+                    mpz_divexact( R, n, P);
+                    r_primes.clear();
+                    CN_factorization( n, R, r_primes, cars_file  );
+                    // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                }
+            }
+        }
+        k++;
+        mpz_add( n, n, PL);
+    }
+    
+   
+    mpz_clear( R );
+    mpz_clear( small_prime );
+    mpz_clear( r_star );
+    mpz_clear( n );
+    mpz_clear( PL );
+    mpz_clear( base2 );
+    mpz_clear( base3 );
+    mpz_clear( fermat_result );
+
+        
+}
+
+
 /* Depends on primes_to_append being a vector of true primes.
     
 */
@@ -454,6 +572,7 @@ bool Preproduct::is_CN( )
 void Preproduct::completing_with_exactly_one_prime()
 {
     std::vector <uint64_t> the_prime_factor;
+    uint64_t prime_factor;
     
     // construct rstar
     mpz_t r_star;
@@ -494,15 +613,17 @@ void Preproduct::completing_with_exactly_one_prime()
     {
         // div_bound2 = B/P is the relevant bound
         // we do not need to look for the large divisor (see 5.3.2 Case 2)
+        // this path is essentially CN_search but with no sieving and no CN_factorization needed
         while( mpz_cmp( r_star, div_bound2) <= 0 )
         {
             if( mpz_probab_prime_p( r_star, 0) != 0 )
             {
-                the_prime_factor.clear();
-                the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                if( appending_is_CN( the_prime_factor ) )
+                prime_factor = mpz_get_ui( r_star );
+                if( prime_factor > append_bound )
                 {
-                    // We found a CN!
+                    the_prime_factor.clear();
+                    the_prime_factor.push_back( prime_factor );
+                    appending_is_CN( the_prime_factor );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -510,7 +631,6 @@ void Preproduct::completing_with_exactly_one_prime()
     }
     else
     {
-        
         // we need script_L
         mpz_t script_L;
         mpz_init( script_L );
@@ -527,11 +647,12 @@ void Preproduct::completing_with_exactly_one_prime()
         {
             if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
-                the_prime_factor.clear();
-                the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                if( appending_is_CN( the_prime_factor ) )
+                prime_factor = mpz_get_ui( r_star );
+                if( prime_factor > append_bound )
                 {
-                    // We found a CN!
+                    the_prime_factor.clear();
+                    the_prime_factor.push_back( prime_factor );
+                    appending_is_CN( the_prime_factor );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -554,12 +675,12 @@ void Preproduct::completing_with_exactly_one_prime()
                 mpz_add_ui( r_star, r_star, 1 );
                 if( mpz_probab_prime_p( r_star,  0 ) != 0 )
                 {
-                    the_prime_factor.clear();
-                    the_prime_factor.push_back( mpz_get_ui( r_star ) );
-                    if( appending_is_CN( the_prime_factor ) )
+                    prime_factor = mpz_get_ui( r_star );
+                    if( prime_factor > append_bound )
                     {
-                        // we might do a bounds check (?)
-                        // We found a CN!
+                        the_prime_factor.clear();
+                        the_prime_factor.push_back( prime_factor );
+                        appending_is_CN( the_prime_factor );
                     }
                 }
             }

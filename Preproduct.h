@@ -14,13 +14,24 @@ class Preproduct{
 
 public:
 
-    mpz_t BOUND;  // constructor always sets to 10^24
+    // constructor always sets to 10^24
+    mpz_t BOUND;
   
     mpz_t P;
     std::vector< uint64_t > P_primes;
    
     // stores the distinct primes that divide L
     mpz_t L;
+    
+    // consider getting rid of this
+    // here is a sketch of places where eliminating this vector causes simplifications or changes
+    //      Preproduct::initializing would not need to factor L (see lines 73-93)
+    //      Preproduct::appending would not need the set_union call (see lines 118-120)
+    //      Preproduct::complete_tabulation would only need a simple prime sieve
+    //      Preproduct::CN_search has a few places depending on this array changes:
+    //              1 - lines 297-301 changes the bit vector to avoid sieving by primes dividing L
+    //              2 - this change guarantees the lifted primes are ok (see lines 314-332)
+    //              3 - this change guarantees the sieve primes are ok (see lines 358-374)
     std::vector< uint64_t > L_primes;
 
     // primes appended to P need to exceed this bound
@@ -63,17 +74,23 @@ public:
     // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
     void CN_search( std::string cars_file  );
 
+    // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
+    // checks that each candidate is a Fermat psuedoprime
+    // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
+    void CN_search_no_wheel( std::string cars_file  );
+    
     
     // For some preproducts, we will still only need to find exactly one prime
-    // B/(PL) is small, just call CN_search instead
-    // one could work out the cross over depending on the implementation of the below
-    // First attempt is the modification of trial division due to the residue class information
-    // To do (?): Lenstra's divisor in residue class
-    // To do : incorporate bounded search
+    // Implements the modified trial division of Serction 5.3 ANTS 2024 paper
+    // We could consider two version:
+    // Version 1 - a custom version of CN_search that only outputs primes (consider this the bounded factorization)
+    // Version 2 - the Lenstra Divisors in residue class algorithm
+    // Contrary-wise:
+    // Our implementation accounts for the bounded case (although does not do prime sieving when bounded)
+    // and uses residue class information in a straighforward way (easier to check the correctness)
     void completing_with_exactly_one_prime( );
     
     // check that L exactly divides P - 1
-    // in the future modify to take filestream?
     bool is_CN( );
 
     
