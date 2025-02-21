@@ -3,6 +3,7 @@
  */
 
 #include "Preproduct.h"
+#include "rollsieve.h"
 #include <iostream>
 #include <fstream>
 
