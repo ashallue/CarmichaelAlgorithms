@@ -21,7 +21,7 @@ CN_search: CN_search.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Rule for compiling precomputation
-precomputation: precomputation.o
+precomputation: precomputation.o rollsieve.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Rule for compiling tabulation job, shortened to tab_job
