@@ -495,10 +495,10 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     {
         if( spoke_sieve[k] == 0 )
         {
-            mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
-            if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
+            mpz_powm( fermat_result,  base2,  n, n);        // 2^n mod n
+            if( mpz_cmp( fermat_result, base2 ) == 0 )      // check if 2 = 2^n mod n
             {
-                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                mpz_powm( fermat_result,  base3,  n, n);    // 3^n mod n
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
                     mpz_divexact( R, n, P);
