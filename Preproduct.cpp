@@ -308,6 +308,7 @@ void Preproduct::CN_search( std::string cars_file )
     std::vector< uint16_t > primes_lifting_L;
     
     // L_lift will store the product of primes and gives the count of spokes on the wheel
+    // then these primes are multiplied into lifted_L
     uint64_t L_lift= 1;
     uint16_t prime_index = 0;
 
