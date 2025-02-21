@@ -301,6 +301,7 @@ void Preproduct::CN_search( std::string cars_file )
     std::vector< uint16_t > primes_lifting_L;
     
     // L_lift will store the product of primes and gives the count of spokes on the wheel
+    // then these primes are multiplied into lifted_L
     uint64_t L_lift= 1;
     uint16_t prime_index = 0;
 
@@ -381,15 +382,10 @@ void Preproduct::CN_search( std::string cars_file )
                         mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
                         if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                         {
-                            // sift out n which are prime (according to Baillie-PSW psp test)
-                            // test returns 0 if composite, 1 if probably prime, 2 if provably prime
-                            if( mpz_probab_prime_p( n, 20 ) > 0 )
-                            {
-                                mpz_divexact( R, n, P);
-                                r_primes.clear();
-                                CN_factorization( n, R, r_primes, cars_file  );
-                                // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
-                            }
+                            mpz_divexact( R, n, P);
+                            r_primes.clear();
+                            CN_factorization( n, R, r_primes, cars_file  );
+                            // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                         }
                     }
                 }
