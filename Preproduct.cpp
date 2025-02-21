@@ -162,7 +162,8 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        CN_search( cars_file );
+        CN_search_no_wheel( cars_file );
+//        CN_search( cars_file );
     }
     else
     {
