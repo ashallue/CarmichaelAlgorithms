@@ -22,17 +22,16 @@ int main()
     // set search bound, set as 10^24
     mpz_t bound;
     mpz_init_set_ui( bound, 10 );
-    mpz_pow_ui( bound, bound, 25 );
+    mpz_pow_ui( bound, bound, 24 );
 
     // set preproduct
     mpz_t P;
     mpz_init_set_ui( P, 515410417841 );
-
+    // P = 11* 17 * 29* 31* 37* 41* 43* 47
+    
     // set L = lambda(P)
     mpz_t L;
     mpz_init_set_ui( L, 115920 );
-    const uint64_t L_len = 5;
-    uint64_t L_distinct_primes[L_len] = { 2, 3, 5, 7, 23 };
 
     // all primes less than append_bound are used in sieving
     uint32_t append_bound = 100;
@@ -60,18 +59,13 @@ int main()
     mpz_mul( PL, P, L );
     
     // position i has the truth value of the statement "(2i + 3) is prime"
-    std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    const uint32_t bitset_size = 512;
+    std::bitset<bitset_size> small_primes{"00110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    // const uint32_t bitset_size = 256;
+    // std::bitset<bitset_size> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     // fix append_bound to be consistent with the bitset
-    append_bound = (append_bound - 3)/2;
+    
         
-    // turn off the bits corresponding to primes dividing L
-    // this will need to be modified so that we don't try to turn off bits out of range
-    // that is, we need to be carefuly if L has a prime dividing it that exceeds 513
-    for( uint16_t i = 1; i < L_len; i++ )
-    {
-        small_primes [ ( L_distinct_primes[i] - 3) /2 ] = 0;
-    }
-
     // create bit-vector for sieving here:
     mpz_t cmp_bound;
     mpz_init( cmp_bound );
@@ -80,48 +74,58 @@ int main()
     boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
     spoke_sieve.reset();
     
-    // now sieve
-    // the "10" needs to be related to append_bound found in preproduct.h
     mpz_t small_prime;
     mpz_init( small_prime );
     uint16_t prime_index = 0;
     std::cout << "we sieved by " ;
-    while( prime_index < append_bound )
+    while( prime_index < bitset_size )
     {
-        // r_star + k*L = 0 mod p
-        // implies k = -r*L^{-1} mod p
-       if( small_primes[ prime_index ] )
+        if( small_primes[ prime_index ] )
         {
-            int p = 2*prime_index + 3;
-            std::cout << p << " " ;
-            mpz_set_ui( small_prime, p );
-            mpz_invert( n, L, small_prime );  // n has L^{-1} mod p
-            mpz_neg( n, n);  // n has -(L)^{-1} mod p
-            mpz_mul( n, n, r_star ); // muliply by r_star
-            mpz_mod( n, n, small_prime );  // reduce modulo p
-            uint64_t k = mpz_get_ui( n );
-            
-            // we just found the starting point for k, now sieve:
-            while( k < cmp_bound64 )
+            uint32_t p = 2*prime_index + 3;
+            if( p < append_bound || (1 == p % 11) || (1 == p % 17) || (1 == p % 29) || (1 == p % 31) || (1 == p % 37) || (1 == p % 41) || (1 == p % 43) || (1 == p % 47) )   // check that p is inadmissible to P
+                // if( p < append_bound || is_admissible_modchecks( p ) )
             {
-                spoke_sieve[k] = 1;
-                k += p;
+                mpz_set_ui( small_prime, p );
+                if( mpz_invert( n, L, small_prime ) ) // n has L^{-1} mod p, if the inverse exists
+                {
+                    mpz_neg( n, n);  // n has -(L)^{-1} mod p
+                    mpz_mul( n, n, r_star ); // muliply by r_star
+                    mpz_mod( n, n, small_prime );  // reduce modulo p
+                    uint64_t k = mpz_get_ui( n );
+                    
+                    // we just found the starting point for k, now sieve:
+                    while( k < cmp_bound64 )
+                    {
+                        spoke_sieve[k] = 1;
+                        k += p;
+                    }
+                    std::cout << p << " " ; // now we will see what we sieve by
+                }
             }
         }
         prime_index++;
     }
     std::cout << std::endl;
     mpz_clear( small_prime );
-          
+    
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    std::cout << "sieving is done and took " << ms_double.count() << "ms\n";
+    
+    t1 = high_resolution_clock::now();
+    
     // sieve is set up
     // do normal loop but only enter on unmarked items
     // compare to v1
     mpz_mul( n, P, r_star);
     uint32_t k = 0;
+    uint32_t count = 0;
     while( mpz_cmp( n , bound ) < 0 )
     {
         if( spoke_sieve[k] == 0 )
         {
+            count++;
             mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
             if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
             {
@@ -150,7 +154,7 @@ int main()
     mpz_clear( fermat_result );
     mpz_clear( bound );
 
-    auto t2 = high_resolution_clock::now();
-    duration<double, std::milli> ms_double = t2 - t1;
-    std::cout << ms_double.count() << "ms\n";
+    t2 = high_resolution_clock::now();
+    ms_double = t2 - t1;
+    std::cout << "the " << count << " modular exponentiations took " << ms_double.count() << "ms\n";
 }
