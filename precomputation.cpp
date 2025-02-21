@@ -14,8 +14,8 @@ int main()
 {
  
   // I don't get what's wrong:
-  //  uint64_t start = 2;
-  //  Rollsieve incremental_sieve( start );
+    uint64_t start = 2;
+    Rollsieve incremental_sieve( start );
     
     
   const uint64_t primes[200] = {
@@ -65,7 +65,7 @@ int main()
         uint64_t b = old_jobs.back()[2];
         old_jobs.pop_back();
 
-        if( ( log( P ) + 3*log( L ) + (3)*log( p ) > bound ) || ( log( P ) + 6*log( p ) > bound ) )
+        if( ( log( P ) + 3*log( L ) + (4)*log( p ) > bound ) || ( log( P ) + 7*log( p ) > bound ) )
         {
           output_jobs.push_back( { P, L, b }  );
         }
