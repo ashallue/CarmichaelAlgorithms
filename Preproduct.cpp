@@ -162,7 +162,8 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        CN_search( cars_file );
+        CN_search_no_wheel( cars_file );
+//        CN_search( cars_file );
     }
     else
     {
@@ -437,7 +438,7 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     mpz_t n;
     mpz_init(n);
 
-    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
+    // n = P*( r_star + k*L ) = P*r_star * k*(P*L), an arithmetic progression with common difference PL
     mpz_t PL;
     mpz_init( PL );
     mpz_mul( PL, P, L );
@@ -496,10 +497,10 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     {
         if( spoke_sieve[k] == 0 )
         {
-            mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
-            if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
+            mpz_powm( fermat_result,  base2,  n, n);        // 2^n mod n
+            if( mpz_cmp( fermat_result, base2 ) == 0 )      // check if 2 = 2^n mod n
             {
-                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
+                mpz_powm( fermat_result,  base3,  n, n);    // 3^n mod n
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
                     mpz_divexact( R, n, P);
@@ -699,9 +700,10 @@ void Preproduct::completing_with_exactly_one_prime()
 }
 
 
-// while R is passed as mpz_t type
-// the assumption is that R < 2^64
-// NEED TO DO - incorporate append bound, see comments below
+// R is passed as mpz_t type but we assume is that R < 2^64 because it is immediately written put into a uint64_t type
+// minor improvements:
+//  1) break earlier with append bound
+//  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
 {
