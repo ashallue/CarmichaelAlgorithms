@@ -12,19 +12,24 @@ int main(void) {
 
     uint64_t p = r.getn();
     
-    while( p < 100 )
+    while( p < 400 )
     {
-        std::cout << p << std::endl;
-        if( r.isnextprime() )
+        r.next();
+        p = r.getn();
+    }
+    
+    
+    while( p < 600 )
+    {
+        r.getlist( pm1_factors );
+        std::cout << "prime factors of " << p << " are " ;
+        std::sort( pm1_factors.begin(), pm1_factors.end() );
+        for( auto f : pm1_factors )
         {
-            std::cout << p + 1 << " is prime." << std::endl;
-            r.getlist( pm1_factors );
-            for( auto f : pm1_factors )
-            {
-                std::cout << f << " " ;
-            }
-            std::cout << std::endl;
+            std::cout << f << " " ;
         }
+        std::cout << std::endl;
+
         r.next();
         p = r.getn();
     }

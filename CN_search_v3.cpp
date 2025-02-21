@@ -22,7 +22,7 @@ int main()
     // set search bound, set as 10^24
     mpz_t bound;
     mpz_init_set_ui( bound, 10 );
-    mpz_pow_ui( bound, bound, 24 );
+    mpz_pow_ui( bound, bound, 25 );
 
     // set preproduct
     mpz_t P;
