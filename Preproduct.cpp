@@ -196,7 +196,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
                 if( is_admissible_modchecks( q ) )
                 {
                     Pq.appending( *this, q ) ;
-                    Pq.complete_tabulation( cars_file );
+                    Pq.completing_with_exactly_one_prime();
                 }
                 q = r.nextprime();
             }
