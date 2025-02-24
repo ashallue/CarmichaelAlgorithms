@@ -17,13 +17,24 @@ public:
     // constructor always sets to 10^24
     mpz_t BOUND;
   
+    // stores P and the primes dividing p in sorted order
     mpz_t P;
     std::vector< uint64_t > P_primes;
+    
+    // previous versions had extra data associated to P_primes
+    // would store candidate for inadmissibility so that admissibiliy checks were inequality
+    // if the inequality failed, an "easy" update would restore the data strucutre updating the least candidate
+    // this is still viable - a hybrid of mod checks for small primes and the data structure for larger primes
    
     // stores L
-    // earlier version stored prime information for L to enable updating without computing a lcm
     mpz_t L;
     
+    // previous versions had extra data assocaited with L
+    // if the complete prime factorization of L and p-1 are known
+    // then LCM( L, p - 1) may be computed via a merge
+    // and the euclidaean algorithm need not be invoked
+    // we might revisit this but in the present version we do not do this and removed this support
+
     // primes appended to P need to exceed this bound
     uint64_t append_bound;
 
@@ -42,6 +53,8 @@ public:
     // member functions
        
     // done with no gcd check - checks if input is not 1 mod p for all p | P
+    // consdier Lemire's fast remainders (?)
+    // see also comment above
     bool is_admissible_modchecks( uint64_t prime_to_append );
     
     
@@ -52,13 +65,13 @@ public:
     void complete_tabulation( std::string cars_file );
     
     
-    // This will compute L and P with gcd computations
-    // does *not* create a Preproduct structure
-    // future version should probably have a filestream argument
-    // and have this method be void but write output to file
+    // This does *not* create a Preproduct structure
     bool appending_is_CN( std::vector< uint64_t >&  primes_to_append );
 
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
+    // does a sieve on k values and removes candidates where
+    //      R would be divisibly be a prime less than or equal append_bound
+    //      or R would be divisible by a prime inadmissible to P
     // checks that each candidate is a Fermat psuedoprime
     // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
     void CN_search( std::string cars_file  );
@@ -75,6 +88,7 @@ public:
     void completing_with_exactly_one_prime( );
     
     // check that L exactly divides P - 1
+    // we might not need this
     bool is_CN( );
 
     
