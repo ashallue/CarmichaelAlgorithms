@@ -470,7 +470,7 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
             uint32_t p = 2*prime_index + 3;
             // we do not want R to be divisible by primes less than append_bound
             // we can also use any prime inadmissible to P
-            if( p < append_bound || !is_admissible_modchecks( p ) )
+            if( p <= append_bound || !is_admissible_modchecks( p ) )
             {
                 mpz_set_ui( small_prime, p );
                 if( mpz_invert( n, L, small_prime ) )   // n has L^{-1} mod p, if the inverse exists
@@ -790,12 +790,10 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
 
     if( R_composite_factors.empty( ) && is_fermat_psp )
     {
-        // could compare the least element in the sort
+        // could grab the minimum of R_prime_factors but we are sorting for the output to be correct
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
-        
-        // should be in the below - removing to get more output
-        // R_prime_factors[0] > append_bound &&
-        if( appending_is_CN( R_prime_factors ) )
+
+        if( R_prime_factors[0] > append_bound && appending_is_CN( R_prime_factors ) )
         {
             /*
             std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
