@@ -71,26 +71,6 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
     
     //set info for L:
     mpz_set_ui( L, init_LofP );
-    // clear vector and fill
-    L_primes.clear();
-    
-    // take care of 2:
-    L_primes.push_back( 2 );
-    init_LofP = ( init_LofP >>  __builtin_ctzl( init_LofP ) );
-    // Account for odd primes:
-    temp = 3;
-    while( init_LofP != 1 )
-    {
-        if( init_LofP % temp == 0 )
-        {
-            L_primes.push_back( temp );
-            while( init_LofP % temp == 0 )
-            {
-                init_LofP /= temp;
-            }
-        }
-        temp += 2;
-    }
     
     // set append_bound
     append_bound = init_append_bound;
@@ -98,8 +78,8 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 }
 
 
-// assumes prime_stuff is valid and admissible to PP
-void Preproduct::appending(Preproduct& PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 )
+// assumes prime is admissible to PP
+void Preproduct::appending(Preproduct& PP, uint64_t prime )
 {
     // compute new P value:
     mpz_set( P, PP.P );
@@ -114,13 +94,7 @@ void Preproduct::appending(Preproduct& PP, uint64_t prime, std::vector< uint64_t
     mpz_set( L, PP.L );
     mpz_lcm_ui( L, L, prime - 1 );
 
-    // set L's vector
-    L_primes.clear();
-
-    std::set_union( (PP.L_primes).begin(),(PP.L_primes).end(), distinct_primes_dividing_pm1.begin(), distinct_primes_dividing_pm1.end(), std::back_inserter( L_primes ) );
-    
     append_bound = prime;
-
 }
 
 
@@ -162,8 +136,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        CN_search_no_wheel( cars_file );
-//        CN_search( cars_file );
+        CN_search( cars_file );
     }
     else
     {
@@ -194,27 +167,19 @@ void Preproduct::complete_tabulation( std::string cars_file )
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
-        Rollsieve r( append_bound + 1 );
-        // qm1 for "q minus 1" because the Rollsieve has the prime factors of q-1
-        uint64_t qm1 = r.getn();
-        std::vector< uint64_t > factors;
-        
+        Rollsieve r( append_bound );
+       
         // this is the start of case 2
         mpz_root( bound, BoverP, 3);
         uint64_t bound1 = mpz_get_ui( bound );
-        while( qm1 < bound1 )
+        
+        for( uint64_t q = r.nextprime(); q < bound1; q = r.nextprime() )
         {
-            // having the factors for q-1, we need to ask if (q - 1) + 1 = q is prime
-            // and that q is admissible to P
-            if( r.isnextprime() && is_admissible_modchecks( qm1 + 1 ) )
+            if( is_admissible_modchecks( q ) )
             {
-                r.getlist( factors );
-                std::sort( factors.begin(), factors.end() );
-                Pq.appending( *this, qm1 + 1, factors );
+                Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
-            r.next();
-            qm1 = r.getn();
         }
         
         // this is the start of caes 3
@@ -223,17 +188,13 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             mpz_sqrt( bound, BoverP );
             uint64_t bound2 = mpz_get_ui( bound );
-            while( qm1 < bound2 )
+            for( uint64_t q = r.nextprime(); q < bound2; q = r.nextprime() )
             {
-                if( r.isnextprime() && is_admissible_modchecks( qm1 + 1 ) )
+                if( is_admissible_modchecks( q ) )
                 {
-                    r.getlist( factors );
-                    std::sort( factors.begin(), factors.end() );
-                    Pq.appending( *this, qm1 + 1, factors );
-                    Pq.completing_with_exactly_one_prime();
+                    Pq.appending( *this, q ) ;
+                    Pq.complete_tabulation( cars_file );
                 }
-                r.next();
-                qm1 = r.getn();
             }
         }
         
@@ -244,184 +205,12 @@ void Preproduct::complete_tabulation( std::string cars_file )
     mpz_clear( to_recurse_or_not_to_recurse );
 }
 
+
 // Do not call this method on a preproduct of the form (1, 1, b)
 // Calling this method on (1, 1, b) results in a lienar search up to B
 // and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
 // the rule used in complete tabulation should prevent (1,1,b) from being used to call this
 void Preproduct::CN_search( std::string cars_file )
-{
-    const uint32_t cache_bound = 150'000;
-
-    std::cout << "Starting CN_search\n";
-    
-    mpz_t r_star;
-    mpz_init( r_star );
-    mpz_invert(r_star, P, L);
-    
-    mpz_t base2;
-    mpz_t base3;
-    mpz_init_set_ui( base2, 2 );
-    mpz_init_set_ui( base3, 3 );
-    
-    mpz_t fermat_result;
-    mpz_init( fermat_result );
-    
-    mpz_t n;
-    mpz_init(n);
-
-    // n will be created in an arithmetic progression with P*L*(possibly lifted small primes)
-    mpz_t PL;
-    mpz_init( PL );
-    mpz_mul( PL, P, L );
-   
-    mpz_t small_prime;
-    mpz_init( small_prime );
-    
-    mpz_t lifted_L;
-    mpz_init_set( lifted_L, L );
-
-    // position i has the truth value of the statement "(2i + 3) is prime"
-    std::bitset<256> small_primes{"0010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
-    
-    // "(append_bound-3)/2" converts to bitset values
-    // we probably need to also bound this by cmp_bound: it's not really a sieve if p > cmp_bound
-    uint64_t sieve_index_bound = std::min( (append_bound - 3)/2, (uint64_t) 256);
-    
-    // remove primes dividing L from the bitset so that they aren't used for sieving
-    // i initialized to 1 so that the prime 2 is skipped
-    
-    
-    uint16_t i = 1;
-    while( i < L_primes.size() &&  L_primes[i] < 512 )
-    {
-        small_primes [ ( L_primes[i] - 3) /2 ] = 0;
-        i++;
-    }
-    
-    mpz_t cmp_bound;
-    mpz_init( cmp_bound );
-    mpz_cdiv_q( cmp_bound, BOUND, PL);
-   
-    mpz_t R;
-    mpz_init( R );
-    
-    // store the primes that we append
-    std::vector< uint16_t > primes_lifting_L;
-    
-    // L_lift will store the product of primes and gives the count of spokes on the wheel
-    // then these primes are multiplied into lifted_L
-    uint64_t L_lift= 1;
-    uint16_t prime_index = 0;
-
-    // store the prime factors of r
-    std::vector<uint64_t> r_primes;
-    
-    while( mpz_cmp_ui( cmp_bound, cache_bound ) > 0  )
-    {
-        if( small_primes[ prime_index ] )
-        {
-            uint16_t p = 2*prime_index + 3;
-            L_lift *= p;
-            primes_lifting_L.push_back( p );
-            mpz_mul_ui( PL, PL, p );
-            mpz_mul_ui( lifted_L, lifted_L, p );
-            mpz_cdiv_q( cmp_bound, BOUND, PL);
-        }
-        prime_index++;
-    }
-
-    uint64_t cmp_bound64 = mpz_get_ui( cmp_bound );
-    boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
-        
-    // This is the wheel and a creates r_star + m*L
-    // The wheel is r_star + m*L
-    for( uint64_t m = 0; m < L_lift; m++ )
-    {
-        bool enter_loop = true;
-        // checks to make sure that r_star + m*L is not divisible by lifted_primes
-        for( auto p : primes_lifting_L )
-        {
-            enter_loop = ( enter_loop && ( mpz_divisible_ui_p( r_star, p ) == 0 ) );
-        }
-        
-        // This is a spoke.  It sieves on k-values numbers of the form (r_star + m*L) + k*L_lift*L
-        if( enter_loop )
-        {
-            //sieve a spoke
-            spoke_sieve.reset();
-            uint16_t sieve_prime_index = prime_index;
-            while( sieve_prime_index < sieve_index_bound )
-            {
-                // r_star + k*(L_lift*L) = 0 mod p
-                // implies k = -r*( L_lift*L)^{-1} mod p
-               if( small_primes[ sieve_prime_index ] )
-                {
-                    uint32_t p = 2*sieve_prime_index + 3;
-                    mpz_set_ui( small_prime, p );
-                    // n is being used as a temporary variable in the following 5 lines
-                    mpz_invert( n, lifted_L, small_prime );     // n has (L_lift*L)^{-1} mod p
-                    mpz_neg( n, n);                             // n has -(L)^{-1} mod p
-                    mpz_mul( n, n, r_star );                    // muliply by r_star
-                    mpz_mod( n, n, small_prime );               // reduce modulo p
-                    uint64_t k = mpz_get_ui( n );
-
-                    while( k < cmp_bound64 )
-                    {
-                        spoke_sieve[k] = 1;
-                        k += p;
-                    }
-                }
-                sieve_prime_index++;
-            }
-            //std::cout << "After spoke, m = " << m << " up to " << L_lift << "\n";
-            
-            // spoke has been sieved, so only do modular exponentiations on valid places
-            // n is initialized correctly here
-            mpz_mul( n, P, r_star);
-            uint32_t k = 0;
-            while( mpz_cmp( n , BOUND ) < 0 )
-            {
-                if( spoke_sieve[k] == 0 )
-                {
-                    // sift out n which are not a Fermat psp to bases 2 and 3
-                    mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
-                    if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
-                    {
-                        mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
-                        if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
-                        {
-                            mpz_divexact( R, n, P);
-                            r_primes.clear();
-                            CN_factorization( n, R, r_primes, cars_file  );
-                            // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
-                        }
-                    }
-                }
-                k++;
-                mpz_add( n, n, PL);
-            }
-        }
-        mpz_add( r_star, r_star, L);
-    }
-       
-    mpz_clear( R );
-    mpz_clear( small_prime );
-    mpz_clear( cmp_bound );
-    mpz_clear( r_star );
-    mpz_clear( n );
-    mpz_clear( PL );
-    mpz_clear( base2 );
-    mpz_clear( base3 );
-    mpz_clear( fermat_result );
-    mpz_clear( lifted_L );
-        
-}
-
-// Do not call this method on a preproduct of the form (1, 1, b)
-// Calling this method on (1, 1, b) results in a lienar search up to B
-// and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
-// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
-void Preproduct::CN_search_no_wheel( std::string cars_file )
 {
     mpz_t r_star;
     mpz_init( r_star );
@@ -514,7 +303,6 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
         mpz_add( n, n, PL);
     }
     
-   
     mpz_clear( R );
     mpz_clear( small_prime );
     mpz_clear( r_star );
@@ -524,7 +312,6 @@ void Preproduct::CN_search_no_wheel( std::string cars_file )
     mpz_clear( base3 );
     mpz_clear( fermat_result );
 
-        
 }
 
 

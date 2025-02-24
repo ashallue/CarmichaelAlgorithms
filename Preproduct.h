@@ -20,20 +20,10 @@ public:
     mpz_t P;
     std::vector< uint64_t > P_primes;
    
-    // stores the distinct primes that divide L
+    // stores L
+    // earlier version stored prime information for L to enable updating without computing a lcm
     mpz_t L;
     
-    // consider getting rid of this
-    // here is a sketch of places where eliminating this vector causes simplifications or changes
-    //      Preproduct::initializing would not need to factor L (see lines 73-93)
-    //      Preproduct::appending would not need the set_union call (see lines 118-120)
-    //      Preproduct::complete_tabulation would only need a simple prime sieve
-    //      Preproduct::CN_search has a few places depending on this array changes:
-    //              1 - lines 297-301 changes the bit vector to avoid sieving by primes dividing L
-    //              2 - this change guarantees the lifted primes are ok (see lines 314-332)
-    //              3 - this change guarantees the sieve primes are ok (see lines 358-374)
-    std::vector< uint64_t > L_primes;
-
     // primes appended to P need to exceed this bound
     uint64_t append_bound;
 
@@ -47,8 +37,7 @@ public:
     
     // appending call
     // assume we have an admissible prime to append.
-    // contains a merge computation of LCM( lambda(PP), p-1 )	
-    void appending( Preproduct& PP, uint64_t prime, std::vector< uint64_t >& distinct_primes_dividing_pm1 );
+    void appending( Preproduct& PP, uint64_t prime );
     
     // member functions
        
@@ -68,16 +57,11 @@ public:
     // future version should probably have a filestream argument
     // and have this method be void but write output to file
     bool appending_is_CN( std::vector< uint64_t >&  primes_to_append );
-    
-    // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
-    // checks that each candidate is a Fermat psuedoprime
-    // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
-    void CN_search( std::string cars_file  );
 
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // checks that each candidate is a Fermat psuedoprime
     // calls CN_factorization when P*R ius a base 2 and base 3 Fermat psp
-    void CN_search_no_wheel( std::string cars_file  );
+    void CN_search( std::string cars_file  );
     
     
     // For some preproducts, we will still only need to find exactly one prime

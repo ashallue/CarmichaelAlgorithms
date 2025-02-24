@@ -25,13 +25,7 @@ int main(void) {
     
     std::cout << "Initializing Lambda : " ;
     gmp_printf ("%Zd = ", P0.L );
-    
-    for( int i = 0; i < ( P0.L_primes.size() - 1 ); i++)
-    {
-        std::cout << P0.L_primes[i] << " * "  ;
-    }
-    std::cout << P0.L_primes[P0.L_primes.size()  - 1 ] <<  std::endl ;
-
+    std::cout << std::endl;
    
     /*  A good test case
     Preproduct P1;
