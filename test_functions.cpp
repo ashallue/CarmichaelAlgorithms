@@ -146,25 +146,60 @@ bool test_factor(){
 // need to read in jobs from output_jobs.txt, create a preproduct object for each one, call CN search, assemble the output
 void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file){
     //setup jobs as an input file, setup file for writing carmichael numbers as output
-    //std::ofstream output;
-    //output.open(cars_file);
+    std::ofstream output;
+    output.open(cars_file, std::ios_base::app);
     std::ifstream jobs_input;
     jobs_input.open(jobs_file);
 
     //std::string input_line = jobs_input.getline();
     uint64_t P, L, prime_lower;
+    uint64_t prime;
+    uint64_t third_bound = pow(bound, 1.0/3);
+
+    std::cout << "tabulating up to " << bound << " with primes up to " << third_bound << "\n";
     
     // test that I can read and process a job triple
     while(jobs_input >> P >> L >> prime_lower){
         std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
 
-        // create preproduct object
-        Preproduct preprod = Preproduct();
-        preprod.initializing( P, L, prime_lower );
+        // ignore the (1, 1, p) job, we'll deal with it in a separate loop
+        if(P != 1){
+            
+            // create preproduct object
+            Preproduct preprod = Preproduct();
+            preprod.initializing( P, L, prime_lower );
 
-        // search for all carmichael numbers that complete that preproduct
-        preprod.CN_search( cars_file );
+            // search for all carmichael numbers that complete that preproduct
+            preprod.CN_search( cars_file );
+        }else{
+            // time to deal with the (1, 1, p) job.  We replace with (p, p-1, p) for all 
+            // primes p satisfying prime_lower < p < bound^(1/3)
+
+            // set up a rollsieve to generate primes
+            Rollsieve prime_gen = Rollsieve(prime_lower + 1);
+            prime = prime_gen.nextprime();
+
+            // loop until bound reached
+            while ( prime < third_bound ){
+                std::cout << "Running job for prime " << prime << "\n";
+
+                // for (p, p-1, p) job
+                P = prime;
+                L = prime - 1;
+                prime_lower = prime;
+
+                // create preproduct object and run job
+                Preproduct preprod = Preproduct();
+                preprod.initializing( P, L, prime_lower );
+                preprod.CN_search( cars_file );
+                
+                // next prime
+                prime = prime_gen.nextprime();
+            }
+        }
     }
+
+    
     
     //output.close();
     jobs_input.close();
@@ -182,20 +217,11 @@ int main(){
 
     std::cout << "result of test_factor " << t1 << "\n";
 
-    Rollsieve prime_gen = Rollsieve(3);
-    uint64_t prime = prime_gen.nextprime();
-
-    while(prime < 100){
         
-        std::cout << "prime found: " << prime << "\n";
-        prime = prime_gen.nextprime();
-    }
-        
-    /*
     std::cout << "\nTabulating up to 10^9\n";
     uint64_t upper = 1000000000;
     tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
-    */
+
     //Preproduct preprod = Preproduct();
     //preprod.initializing( 1, 1, 97 );
 

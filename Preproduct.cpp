@@ -812,8 +812,8 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
             gmp_fprintf(cars_output, "%Zd\n", n);
 
             // testing
-            if ( mpz_cmp_ui(n, 97) == 0 ){
-                std::cout << "97 found\n";
+            if ( mpz_cmp_ui(n, 1105) == 0 ){
+                std::cout << "1105 printed to file\n";
             }
         }
     }

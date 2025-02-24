@@ -14,8 +14,8 @@ int main()
 {
  
   // I don't get what's wrong:
-    uint64_t start = 2;
-    Rollsieve incremental_sieve( start );
+  uint64_t start = 2;
+  Rollsieve incremental_sieve( start );
     
     
   const uint64_t primes[200] = {
@@ -44,10 +44,10 @@ int main()
 
   // intended bound for the computation is 10^24
   // bounds testing is done with logarithms
-    double bound = 24*log(10);
+  // double bound = 24*log(10);
 
   // bound for a test run
-  // double bound = 9 * log(10);
+  double bound = 9 * log(10);
     
   uint64_t prime_count;
   std::cout << "How many primes to use? " ;
