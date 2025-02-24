@@ -173,13 +173,15 @@ void Preproduct::complete_tabulation( std::string cars_file )
         mpz_root( bound, BoverP, 3);
         uint64_t bound1 = mpz_get_ui( bound );
         
-        for( uint64_t q = r.nextprime(); q < bound1; q = r.nextprime() )
+        uint64_t q = r.nextprime();
+        while( q < bound1 )
         {
             if( is_admissible_modchecks( q ) )
             {
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
+            q = r.nextprime();
         }
         
         // this is the start of caes 3
@@ -188,13 +190,15 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             mpz_sqrt( bound, BoverP );
             uint64_t bound2 = mpz_get_ui( bound );
-            for( uint64_t q = r.nextprime(); q < bound2; q = r.nextprime() )
+            
+            while( q < bound2 )
             {
                 if( is_admissible_modchecks( q ) )
                 {
                     Pq.appending( *this, q ) ;
                     Pq.complete_tabulation( cars_file );
                 }
+                q = r.nextprime();
             }
         }
         
