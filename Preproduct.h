@@ -75,7 +75,7 @@ public:
     void complete_tabulation( std::string cars_file );
     
     // This does *not* create a Preproduct structure
-    bool appending_is_CN( std::vector< uint64_t >&  primes_to_append );
+    bool appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file  );
 
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
     // does a sieve on k values and removes candidates where
@@ -87,7 +87,7 @@ public:
     
     // For some preproducts, we will still only need to find exactly one prime
     // Implements the modified trial division of Serction 5.3 ANTS 2024 paper
-    void completing_with_exactly_one_prime( );
+    void completing_with_exactly_one_prime( std::string cars_file );
     
     // check that L exactly divides P - 1
     // we might not need this

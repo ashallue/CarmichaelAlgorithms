@@ -166,7 +166,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         mpz_set_ui( bound, X);
         mpz_mul_ui( bound, bound, P_primes.back() );
         if( P_primes.size() > 2 && mpz_cmp( P, bound ) > 0 )
-            completing_with_exactly_one_prime();
+            completing_with_exactly_one_prime( cars_file );
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
@@ -202,7 +202,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
                 if( is_admissible_modchecks( q ) )
                 {
                     Pq.appending( *this, q ) ;
-                    Pq.completing_with_exactly_one_prime();
+                    Pq.completing_with_exactly_one_prime( cars_file );
                 }
                 q = r.nextprime();
             }
@@ -328,8 +328,17 @@ void Preproduct::CN_search( std::string cars_file )
 /* Depends on primes_to_append being a vector of true primes.
     
 */
-bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
+bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file )
 {
+    // file object for storing the carmichael numbers
+    FILE* cars_output;
+    //char filename[100];
+    //cars_file.copy(filename, cars_file.length());
+    const char* filename;
+    filename = cars_file.c_str();
+    
+    cars_output = fopen (filename,"a");
+    
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -347,9 +356,18 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append )
 
     mpz_sub_ui( P_temp, P_temp, 1);
     bool return_val =  mpz_divisible_p( P_temp, L_temp );
+    mpz_add_ui( P_temp, P_temp, 1);
+    
+    if( return_val )
+    {
+        gmp_fprintf(cars_output, "%Zd\n", P_temp );
+    }
 
     mpz_clear( P_temp );
     mpz_clear( L_temp );
+    
+    // close file
+    fclose (cars_output);
 
     return return_val;
 }
@@ -367,7 +385,7 @@ bool Preproduct::is_CN( )
 
 // see section 5.3 of ANTS 2024 work and the corresponding implementation:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
-void Preproduct::completing_with_exactly_one_prime()
+void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 {
     std::vector <uint64_t> the_prime_factor;
     uint64_t prime_factor;
@@ -421,7 +439,7 @@ void Preproduct::completing_with_exactly_one_prime()
                 {
                     the_prime_factor.clear();
                     the_prime_factor.push_back( prime_factor );
-                    appending_is_CN( the_prime_factor );
+                    appending_is_CN( the_prime_factor , cars_file );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -450,7 +468,7 @@ void Preproduct::completing_with_exactly_one_prime()
                 {
                     the_prime_factor.clear();
                     the_prime_factor.push_back( prime_factor );
-                    appending_is_CN( the_prime_factor );
+                    appending_is_CN( the_prime_factor , cars_file );
                 }
             }
             mpz_add( r_star, r_star, L );
@@ -478,7 +496,7 @@ void Preproduct::completing_with_exactly_one_prime()
                     {
                         the_prime_factor.clear();
                         the_prime_factor.push_back( prime_factor );
-                        appending_is_CN( the_prime_factor );
+                        appending_is_CN( the_prime_factor , cars_file );
                     }
                 }
             }
@@ -504,15 +522,6 @@ void Preproduct::completing_with_exactly_one_prime()
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
 {
-    // file object for storing the carmichael numbers
-    FILE* cars_output;
-    //char filename[100];
-    //cars_file.copy(filename, cars_file.length());
-    const char* filename;
-    filename = cars_file.c_str();
-    
-    cars_output = fopen (filename,"a");
-    
     std::queue<uint64_t> R_composite_factors;
     
     uint64_t r64_factor =  mpz_get_ui( R );
@@ -532,8 +541,6 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
     mpz_sub_ui( fermat_result, fermat_result, 1 );
     uint16_t pow_of_2 = (uint16_t) mpz_scan1( fermat_result, 0 );
     mpz_fdiv_q_2exp( odd_part, fermat_result, pow_of_2 );
-    
-    
     
     uint16_t start_size;            // counter to empty queue
     uint16_t i = 0;                 // counter for powers of 2
@@ -590,26 +597,9 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
         // could grab the minimum of R_prime_factors but we are sorting for the output to be correct
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
 
-        if( R_prime_factors[0] > append_bound && appending_is_CN( R_prime_factors ) )
+        if( R_prime_factors[0] > append_bound )
         {
-            /*
-            std::cout<< "          THIS IS A CARMICHAEL NUMBER     " << std::endl;
-            gmp_printf ("%Zd = ", n );
-            // use iterators !
-            for( int i = 0; i < P_primes.size() ; i++ )
-                std::cout << " " << P_primes[ i ] ;
-            for( int i = 0; i < R_prime_factors.size(); i ++ )
-                std::cout << " " << R_prime_factors[i];
-            std::cout << std::endl;
-            */
-
-            // output to a file
-            gmp_fprintf(cars_output, "%Zd\n", n);
-
-            // testing
-            if ( mpz_cmp_ui(n, 1105) == 0 ){
-                std::cout << "1105 printed to file\n";
-            }
+            appending_is_CN( R_prime_factors , cars_file);
         }
     }
         
@@ -617,9 +607,6 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_
     mpz_clear( gcd_result );
     mpz_clear( base );
     mpz_clear( odd_part );
-
-    // close file
-    fclose (cars_output);
     
     return is_fermat_psp;
 }
