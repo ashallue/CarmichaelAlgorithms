@@ -77,7 +77,6 @@ int main()
     mpz_t small_prime;
     mpz_init( small_prime );
     uint16_t prime_index = 0;
-    std::cout << "we sieved by " ;
     while( prime_index < bitset_size )
     {
         if( small_primes[ prime_index ] )
@@ -120,28 +119,29 @@ int main()
     // compare to v1
     mpz_mul( n, P, r_star);
     uint32_t k = 0;
-    uint32_t count = 0;
+    uint32_t count1 = 0;
+    uint32_t count2 = 0;
+    uint32_t count3 = 0;
     while( mpz_cmp( n , bound ) < 0 )
     {
+        count1++;
         if( spoke_sieve[k] == 0 )
         {
-            count++;
+            count2++;
             mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
             if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
             {
                 mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
-                    std::cout << "n = " ;
-                    gmp_printf( "%Zd", n);
-                    std::cout << " is a base-2 and base-3 Fermat psp." << std::endl;
+                    count3++;
                 }
             }
         }
         k++;
         mpz_add( n, n, PL);
     }
-    
+    t2 = high_resolution_clock::now();
           
     mpz_clear( cmp_bound );
     mpz_clear( P );
