@@ -103,7 +103,7 @@ public:
     // in the above link they claim a "typical" number is detected as compoiste with probaility  > 3/4
     // but that for CN the probability is 7/8
     // I do not know where the 7/8 comes from
-    bool CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file );
+    bool CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file );
 
 };
 

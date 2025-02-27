@@ -103,8 +103,8 @@ bool test_factor(){
                 //gmp_printf ("r = %Zd ", r );  std::cout << "\n";
                 
                 // factor
-                r_primes.clear();
-                bool is_factored = PPP.CN_factorization(n, r, r_primes, cars_file);
+                
+                bool is_factored = PPP.CN_factorization(n, r, cars_file);
 
                 /* testing
                 if( small_primes[i1] == 11 && small_primes[i2] == 13 && small_primes[i3] == 41 ){

@@ -256,9 +256,6 @@ void Preproduct::CN_search( std::string cars_file )
     uint64_t cmp_bound64 = mpz_get_ui( R );     // done using R as a temp variable
     boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
     spoke_sieve.reset();
-       
-    // store the prime factors of r
-    std::vector<uint64_t> r_primes;
     
     // sieve
     uint16_t prime_index = 0;
@@ -303,8 +300,7 @@ void Preproduct::CN_search( std::string cars_file )
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
                     mpz_divexact( R, n, P);
-                    r_primes.clear();
-                    CN_factorization( n, R, r_primes, cars_file  );
+                    CN_factorization( n, R, cars_file  );
                     // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                 }
             }
@@ -520,9 +516,10 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 //  1) break earlier with append bound
 //  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
-bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::vector<uint64_t>& R_prime_factors, std::string cars_file )
+bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
 {
     std::queue<uint64_t> R_composite_factors;
+    std::vector<uint64_t> R_prime_factors;
     
     uint64_t r64_factor =  mpz_get_ui( R );
     mpz_probab_prime_p( R, 0 ) == 0 ? R_composite_factors.push( r64_factor ) : R_prime_factors.push_back( r64_factor );
