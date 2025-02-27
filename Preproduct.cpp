@@ -150,7 +150,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
-        const uint64_t X = 110'000'000;
+        const uint64_t X = 120'000'000;
 
         mpz_t BoverP;
         mpz_t bound;
@@ -160,9 +160,12 @@ void Preproduct::complete_tabulation( std::string cars_file )
                 
         // this is case 1
         // this is only invoked if P > X * P_primes.back()
+        // the count of prime factors in P needs to be greater than 1
+        // if X > B^(1/3), then the count needs to be greater than 2
+        // because all CN with exactly three prime factors has already been found
         mpz_set_ui( bound, X);
         mpz_mul_ui( bound, bound, P_primes.back() );
-        if( mpz_cmp( P, bound ) > 0 )
+        if( P_primes.size() > 2 && mpz_cmp( P, bound ) > 0 )
             completing_with_exactly_one_prime();
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
@@ -186,7 +189,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
         
         // this is the start of caes 3
         // first we check that it needs to be done
-        if( mpz_cmp_ui( P, X ) > 0 )
+        // see comments on case 1 regarding P_primes.size()
+        // since this will be invoked on a preproduct Pq
+        // the inequality on prime counts lowered by 1
+        if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         {
             mpz_sqrt( bound, BoverP );
             uint64_t bound2 = mpz_get_ui( bound );
