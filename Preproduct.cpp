@@ -118,6 +118,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
     
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
+    // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
     
     // rule to be set later
     // We show that if PL^2 > B then rule should be true
@@ -150,8 +151,9 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
-        const uint64_t X = 120'000'000;
-
+        //const uint64_t X = 120'000'000;
+        const uint64_t X = 1;
+        
         mpz_t BoverP;
         mpz_t bound;
         mpz_init( bound );
@@ -170,7 +172,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
-        Rollsieve r( append_bound );
+        Rollsieve r( append_bound + 1 );
        
         // this is the start of case 2
         mpz_root( bound, BoverP, 3);
@@ -354,8 +356,10 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
     bool return_val =  mpz_divisible_p( P_temp, L_temp );
     mpz_add_ui( P_temp, P_temp, 1);
     
-    if( return_val )
+    if( return_val && P_temp < BOUND )
     {
+        if(mpz_cmp_ui(P_temp, 63973) == 0){
+        }
         gmp_fprintf(cars_output, "%Zd\n", P_temp );
     }
 

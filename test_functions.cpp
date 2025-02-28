@@ -143,7 +143,8 @@ bool test_factor(){
 }
 
 // function that tabulates all Carmichaels up to a given bound.  Only large case, no small case
-// need to read in jobs from output_jobs.txt, create a preproduct object for each one, call CN search, assemble the output
+// need to read in jobs from output_jobs.txt, create a preproduct object for each one, call search function, assemble the output
+// Currently the method variable would be CN_search or CN_search_no_wheel
 void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file){
     //setup jobs as an input file, setup file for writing carmichael numbers as output
     std::ofstream output;
@@ -170,7 +171,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
             preprod.initializing( P, L, prime_lower );
 
             // search for all carmichael numbers that complete that preproduct
-            preprod.CN_search( cars_file );
+            preprod.complete_tabulation( cars_file );
         }else{
             // time to deal with the (1, 1, p) job.  We replace with (p, p-1, p) for all 
             // primes p satisfying prime_lower < p < bound^(1/3)
@@ -191,19 +192,15 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
                 // create preproduct object and run job
                 Preproduct preprod = Preproduct();
                 preprod.initializing( P, L, prime_lower );
-                preprod.CN_search( cars_file );
+                preprod.complete_tabulation( cars_file );
                 
                 // next prime
                 prime = prime_gen.nextprime();
             }
         }
-    }
-
-    
-    
+    } 
     //output.close();
     jobs_input.close();
-
 }
 
 // main for testing
