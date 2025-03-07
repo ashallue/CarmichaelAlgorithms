@@ -13,6 +13,8 @@
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
+// preprocessing flags: either run for production or run for testing.  Don't set both to true
+#define TEST
 
 Preproduct::Preproduct()
 {
@@ -115,10 +117,21 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 void Preproduct::complete_tabulation( std::string cars_file )
 {
+
+    #ifdef TEST
+        std::cout << "testing complete_tabulation\n";
+    #endif
+    #ifndef TEST
+        std::cout << "production run\n";
+    #endif
     
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
+    if( P_primes.size() > 2 ) 
+    {   std::vector< uint64_t> empty;
+        appending_is_CN( empty, cars_file);
+    }
     
     // rule to be set later
     // We show that if PL^2 > B then rule should be true
@@ -356,7 +369,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
     bool return_val =  mpz_divisible_p( P_temp, L_temp );
     mpz_add_ui( P_temp, P_temp, 1);
     
-    if( return_val && P_temp < BOUND )
+    if( return_val && mpz_cmp( P_temp, BOUND ) < 0 )
     {
         if(mpz_cmp_ui(P_temp, 63973) == 0){
         }
