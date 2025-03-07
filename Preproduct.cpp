@@ -117,12 +117,12 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 void Preproduct::complete_tabulation( std::string cars_file )
 {
-
     #ifdef TEST
-        std::cout << "testing complete_tabulation\n";
-    #endif
-    #ifndef TEST
-        std::cout << "production run\n";
+        // looking for cars that are duplicates
+        if(mpz_cmp_ui(P, 41041) == 0)
+        {
+            std::cout << "Calling complete_tabulation with P = 41041\n ";
+        }
     #endif
     
     // Unanswered question that we need to answer before production:
@@ -164,8 +164,14 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // This creates 2 special cases for the above cases:
         //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
         //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
-        //const uint64_t X = 120'000'000;
-        const uint64_t X = 1;
+
+        // X set to 120m for production run, because of existing tabulation of the small case
+        // X set to 1 for testing, because testing focused on the large case
+        #ifndef TEST
+            const uint64_t X = 120'000'000;
+        #else
+            const uint64_t X = 1;
+        #endif
         
         mpz_t BoverP;
         mpz_t bound;
@@ -207,7 +213,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // see comments on case 1 regarding P_primes.size()
         // since this will be invoked on a preproduct Pq
         // the inequality on prime counts lowered by 1
+        #ifndef TEST
+        if( P_primes.size() > 2 && mpz_cmp_ui( P, X ) > 0 )
+        #else
         if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
+        #endif
         {
             mpz_sqrt( bound, BoverP );
             uint64_t bound2 = mpz_get_ui( bound );
@@ -364,15 +374,24 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         uint64_t temp = app_prime - 1;
         mpz_lcm_ui( L_temp, L_temp, temp );
     }
-
+    
     mpz_sub_ui( P_temp, P_temp, 1);
     bool return_val =  mpz_divisible_p( P_temp, L_temp );
     mpz_add_ui( P_temp, P_temp, 1);
-    
+
+    // if return_val, then L | n-1, making n Carmichael.  Write n to file
+    // we also check a boundedness condition to ensure n is within upper bound
     if( return_val && mpz_cmp( P_temp, BOUND ) < 0 )
     {
-        if(mpz_cmp_ui(P_temp, 63973) == 0){
-        }
+        #ifdef TEST
+            // looking for cars that are duplicates
+            if(mpz_cmp_ui(P_temp, 41041) == 0)
+            {
+                std::cout << "41041 found with preproduct: ";
+                gmp_printf("%Zd\n", P);
+            }
+        #endif
+        
         gmp_fprintf(cars_output, "%Zd\n", P_temp );
     }
 
@@ -400,6 +419,14 @@ bool Preproduct::is_CN( )
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 {
+    #ifdef TEST
+        // looking for cars that are duplicates
+        if(mpz_cmp_ui(P, 41041) == 0)
+        {
+            std::cout << "P = 41041 in completing_with_exactly_one_prime: ";
+        }
+    #endif
+    
     std::vector <uint64_t> the_prime_factor;
     uint64_t prime_factor;
     
@@ -509,6 +536,16 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                     {
                         the_prime_factor.clear();
                         the_prime_factor.push_back( prime_factor );
+
+                        #ifdef TEST
+                            // looking for cars that are duplicates
+                            if(mpz_cmp_ui(P, 41041) == 0)
+                            {
+                                std::cout << "P = 41041, completing with exactly one prime ";
+                                gmp_printf("%Zd\n", prime_factor);
+                            }
+                        #endif
+                        
                         appending_is_CN( the_prime_factor , cars_file );
                     }
                 }
