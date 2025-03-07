@@ -186,8 +186,15 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // because all CN with exactly three prime factors has already been found
         mpz_set_ui( bound, X);
         mpz_mul_ui( bound, bound, P_primes.back() );
-        if( P_primes.size() > 2 && mpz_cmp( P, bound ) > 0 )
+
+        #ifdef TEST
+            if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
+        #else
+            if( P_primes.size() > 2 && mpz_cmp_ui( P, X ) > 0 )
+        #endif
+        {
             completing_with_exactly_one_prime( cars_file );
+        }
         
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
@@ -213,10 +220,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // see comments on case 1 regarding P_primes.size()
         // since this will be invoked on a preproduct Pq
         // the inequality on prime counts lowered by 1
-        #ifndef TEST
-        if( P_primes.size() > 2 && mpz_cmp_ui( P, X ) > 0 )
+        #ifdef TEST
+            if( P_primes.size() >= 1 && mpz_cmp_ui( P, X ) > 0 )
         #else
-        if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() >= 2 && mpz_cmp_ui( P, X ) > 0 )
         #endif
         {
             mpz_sqrt( bound, BoverP );
