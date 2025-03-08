@@ -441,41 +441,45 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     std::vector <uint64_t> the_prime_factor;
     uint64_t prime_factor;
     
-    // construct rstar
+    // construct rstar = P^{-1} mod L.  We are constructing carmichael n = Pr
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert( r_star, P, L);
     
-    // construct g, the scaling factor
+    // construct g = gcd(P^{-1} mod L - 1, L),  the scaling factor
     mpz_t g;
     mpz_init( g );
     mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
     mpz_gcd( g, g, L );    // g = gcd ( r^{\star} - 1, L )
     
-    // construct script_P
+    // construct script_P = (P - 1)/g.  
+    // Note that r-1 = r*-1 mod L and r-1 | P-1 by assumption, so P-1 is div by g
     mpz_t script_P;
     mpz_init_set( script_P, P );
     mpz_sub_ui( script_P, script_P, 1 );
     mpz_divexact( script_P, script_P, g);
         
-    // set div_bound1
-    // script_R + k*script_L < sqrt( script_P )  implies
-    // g*(script_R + k2 script_L) + 1 < g*sqrt( script_P ) + 1  implies
-    // r + K*L < g*sqrt( script_P ) + 1
+    // set div_bound1.  This is sec 5.3.1 of the Advances paper
+    // script_R + k*script_L < sqrt( script_P )  iff
+    // g*(script_R + k script_L) + 1 < g*sqrt( script_P ) + 1  iff
+    // r + K*L < g*sqrt( script_P ) + 1  [Andrew] I think this should say r* + kL < g*sqrt (script_P ) + 1
     mpz_t div_bound1;
     mpz_init_set( div_bound1, script_P );
     mpz_mul( div_bound1, div_bound1, g );
     mpz_mul( div_bound1, div_bound1, g );
-    mpz_sqrt( div_bound1, div_bound1 );
+    mpz_sqrt( div_bound1, div_bound1 );     // [Andrew] does this round down in a way we don't want? sqrt does truncate
     mpz_add_ui( div_bound1, div_bound1, 1);
     
     // set div_bound2
-    // P( r + k*L ) <  B
-    // r + k*L < B/P
+    // P( r* + k*L ) <  B
+    // r* + k*L < B/P
     mpz_t div_bound2;
     mpz_init_set( div_bound2, BOUND );
-    mpz_cdiv_q( div_bound2, div_bound2, P);
-    
+    mpz_cdiv_q( div_bound2, div_bound2, P);  // [Andrew] again, rounding down with strict inequality might be bad.  Case 1 has non-strict inequality at least.
+
+    // returns true if div_bound1 > div_bound2.
+    // This corresponds to the beginning of section 5.2 from Advances
+    // check arithmetic progression r* + kL up to B/P
     if( mpz_cmp( div_bound1, div_bound2 ) > 0 )
     {
         // div_bound2 = B/P is the relevant bound
@@ -483,6 +487,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         // this path is essentially CN_search but with no sieving and no CN_factorization needed
         while( mpz_cmp( r_star, div_bound2) <= 0 )
         {
+            // primality check on r* + kL
             if( mpz_probab_prime_p( r_star, 0) != 0 )
             {
                 prime_factor = mpz_get_ui( r_star );
@@ -498,12 +503,15 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                             std::cout << "P = 481, case 1\n";
                         }
                     #endif
+                    // call helper function to check if Pr is Carmichael.  That function will write to file
                     appending_is_CN( the_prime_factor , cars_file );
                 }
             }
+            // next iteration: add L
             mpz_add( r_star, r_star, L );
         }
     }
+    // In this case div_bound1 is smaller, so we search for r* + kL < g*sqrt (script_P) + 1
     else
     {
         // we need script_L
@@ -511,15 +519,30 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         mpz_init( script_L );
         mpz_divexact( script_L, L, g );
 
-        // we need to use r_star again
-        mpz_t r_star2;
-        mpz_init( r_star2 );
-        mpz_invert( r_star2, r_star, script_L );
-        mpz_mul( r_star2, r_star2, script_P );
-        mpz_mod( r_star2, r_star2, script_L );
-        
+        // we need to use r_star again [Andrew] - I don't get this
+        // prev code was r2 = ( inv128( r1, L1) * scriptP ) % L1 where r1 = (Pqinv - 1)/g
+        // Here this becomes r1 = (r* - 1)/g, r2 = (r1^{-1} mod scriptL) * scriptP mod scriptL
+        mpz_t r1;
+        mpz_init( r1 );
+        mpz_t r2;
+        mpz_init( r2 );
+
+        // setting r1 to correct val
+        mpz_set( r1, r_star );
+        mpz_sub_ui( r1, r1, 1);
+        mpz_divexact( r1, r1, g);
+
+        // setting r2 to correct val
+        mpz_set( r2, r1 );
+        mpz_invert( r2, r2, script_L );
+        mpz_mul( r2, r2, script_P );
+        mpz_mod( r2, r2, script_L );
+
+        // Following section 5.3.1 of Advances, scriptR + k scriptL equiv to arithmetic progression r* + kL
+        // div_bound1 reflects the transformation: multiply by g and add 1.
         while( mpz_cmp( r_star, div_bound1) <= 0 )
         {
+            // primality check.
             if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
                 prime_factor = mpz_get_ui( r_star );
@@ -535,17 +558,20 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                             std::cout << "P = 481, case 2\n";
                         }
                     #endif
+                     // call helper function to check if Pr is Carmichael.  That function will write to file
                     appending_is_CN( the_prime_factor , cars_file );
                 }
             }
+            // next iteration
             mpz_add( r_star, r_star, L );
         }
         
         // can do a computation to find a possilbe k > 0 so and set
-        // r_star2 = r_star2 + k*script_L
+        // r2 = r2 + k*script_L
         // see this done in the previous version:
         // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L479-L484
-        
+
+        // resetting div_bound1 to now hold floor sqrt script_P
         mpz_sqrt( div_bound1, script_P );
 
         #ifdef TEST
@@ -554,19 +580,20 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
             gmp_printf("div_bound1 = %Zd, script_P = %Zd\n", div_bound1, script_P);
         }
         #endif
-        while( mpz_cmp( r_star2, div_bound1) <= 0 )
+        // check arith progression r2 + k*scriptL < sqrt(script_P)
+        while( mpz_cmp( r2, div_bound1) <= 0 )
         {
             #ifdef TEST
             if (mpz_cmp_ui(P, 481) == 0)
             {
-                std::cout << "rstar2 = ";
-                gmp_printf("%Zd\n", r_star2 );
+                std::cout << "r2 = ";
+                gmp_printf("%Zd\n", r2 );
             }
             #endif
-            if( mpz_divisible_p( script_P, r_star2 ) )
+            if( mpz_divisible_p( script_P, r2 ) )
             {
-                // we are done with r_star, using it as storage for R
-                mpz_divexact( r_star, script_P, r_star2);
+                // we are done with r_star, using it as storage for R.  Possible prime is r2*g + 1
+                mpz_divexact( r_star, script_P, r2);
                 mpz_mul( r_star, r_star, g);
                 mpz_add_ui( r_star, r_star, 1 );
                 if( mpz_probab_prime_p( r_star,  0 ) > 0 )
@@ -589,10 +616,12 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                     }
                 }
             }
-            mpz_add( r_star2, r_star2, script_L );
+            // add script_L to continue the progression
+            mpz_add( r2, r2, script_L );
         }
-        
-        mpz_clear( r_star2 );
+
+        mpz_clear( r1 );
+        mpz_clear( r2 );
         mpz_clear( script_L );
     }
     
