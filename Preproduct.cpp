@@ -40,7 +40,7 @@ Preproduct::~Preproduct()
 // 1) does not check that init_preproduct is cylic 
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
 // intended use is initializing from precomputation which only generates valid inputs
-// uses trial division because the intended use case is relatively small initializing preproducts
+// factors P using trial division because the intended use case is relatively small initializing preproducts
 // could consider another version that passes array/vector with primes
 // could also consider faster factorization algorithms
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
@@ -119,9 +119,9 @@ void Preproduct::complete_tabulation( std::string cars_file )
 {
     #ifdef TEST
         // looking for cars that are duplicates
-        if(mpz_cmp_ui(P, 41041) == 0)
+        if(mpz_cmp_ui(P, 1) == 0)
         {
-            std::cout << "Calling complete_tabulation with P = 41041\n ";
+            std::cout << "Calling complete_tabulation with P = 1\n ";
         }
     #endif
     
@@ -150,10 +150,18 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
+        #ifdef TEST
+        std::cout << "rule is true\n";
+        #endif   
+        
         CN_search( cars_file );
     }
     else
     {
+        #ifdef TEST
+        std::cout << "rule is false\n";
+        #endif
+        
         // in the below, let p be the largest prime dividing P
         // by taking this route, we need to do up to three things:
         // 1 - find the single prime q so that Pq is a CN
@@ -185,8 +193,15 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // if X > B^(1/3), then the count needs to be greater than 2
         // because all CN with exactly three prime factors has already been found
         mpz_set_ui( bound, X);
-        mpz_mul_ui( bound, bound, P_primes.back() );
 
+        // only multiply if there is a prime to multiply by
+        if(P_primes.size() > 0)
+        {
+            mpz_mul_ui( bound, bound, P_primes.back() );
+        }
+
+        // for testing complete with one prime if preproduct has 2 or more primes
+        // for production, the 3-carmichael case entirely small, so large case restricted to 4 prime factors or more
         #ifdef TEST
             if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         #else
@@ -199,6 +214,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
+        
+        #ifdef TEST
+        std::cout << "Initialized Rollsieve\n";
+        #endif
        
         // this is the start of case 2
         mpz_root( bound, BoverP, 3);
@@ -209,6 +228,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             if( is_admissible_modchecks( q ) )
             {
+                #ifdef TEST
+                std::cout << "appending " << q << " and recursing\n";
+                #endif
+                
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
@@ -233,6 +256,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
             {
                 if( is_admissible_modchecks( q ) )
                 {
+                    #ifdef TEST
+                    std::cout << "appending " << q << " and completing with one prime\n";
+                    #endif
+                    
                     Pq.appending( *this, q ) ;
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }

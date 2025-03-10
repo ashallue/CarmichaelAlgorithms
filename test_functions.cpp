@@ -203,6 +203,35 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
     jobs_input.close();
 }
 
+// function that prints wall time for one particular job
+void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_file){
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+
+    //setup jobs as an input file, setup file for writing carmichael numbers as output
+    std::ofstream output;
+    output.open(cars_file, std::ios_base::app);
+    std::ifstream jobs_input;
+    jobs_input.open(cars_file);
+    
+    auto t1 = high_resolution_clock::now();
+
+    // create preproduct object and run job
+    Preproduct preprod = Preproduct();
+    preprod.initializing( P, L, prime_lower );
+
+    preprod.complete_tabulation( cars_file );
+    
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    std::cout << ms_double.count() << "ms\n";
+
+    //output.close();
+    jobs_input.close();
+}
+
 // main for testing
 int main(){
     mpz_t n;
@@ -214,11 +243,13 @@ int main(){
 
     std::cout << "result of test_factor " << t1 << "\n";
 
-        
+    std::cout << "starting timing test for job (1, 1, t)\n";
+    job_timing(1, 1, 10, "single_job.txt");
+    /* 
     std::cout << "\nTabulating up to 10^9\n";
     uint64_t upper = 1000000000;
     tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
-
+    */
     //Preproduct preprod = Preproduct();
     //preprod.initializing( 1, 1, 97 );
 
