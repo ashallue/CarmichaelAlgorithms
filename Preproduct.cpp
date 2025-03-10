@@ -531,12 +531,12 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         mpz_t r2;
         mpz_init( r2 );
 
-        // setting r2 to correct to r1
+        // r2 is going to hold r1 = (r* - 1)/g
         mpz_set( r2, r_star );
         mpz_sub_ui( r2, r2, 1);
         mpz_divexact( r2, r2, g);
 
-        // setting r2 to correct val
+        // r1 computed, now set r2 = script_P*(r1)^{-1} mod script_L
         mpz_invert( r2, r2, script_L );
         mpz_mul( r2, r2, script_P );
         mpz_mod( r2, r2, script_L );
@@ -584,7 +584,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         }
         #endif
         // check arith progression r2 + k*scriptL < sqrt(script_P)
-        while( mpz_cmp( r2, div_bound1) <= 0 )
+        while( mpz_cmp( r2, div_bound1) < 0 )
         {
             #ifdef TEST
             if (mpz_cmp_ui(P, 481) == 0)
