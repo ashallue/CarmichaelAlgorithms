@@ -221,9 +221,9 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // since this will be invoked on a preproduct Pq
         // the inequality on prime counts lowered by 1
         #ifdef TEST
-            if( P_primes.size() > 2 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 0 && mpz_cmp_ui( P, X ) > 0 )
         #else
-            if( P_primes.size() > 3 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         #endif
         {
             mpz_sqrt( bound, BoverP );
