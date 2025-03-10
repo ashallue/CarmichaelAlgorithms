@@ -14,7 +14,7 @@
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
 // preprocessing flags: either run for production or run for testing.  Don't set both to true
-#define TEST
+//#define TEST
 
 Preproduct::Preproduct()
 {
@@ -22,11 +22,14 @@ Preproduct::Preproduct()
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
 
-    // bound for full computation
-    //mpz_pow_ui( BOUND, BOUND, 24 );
-
-    // bound for testing
-    mpz_pow_ui( BOUND, BOUND, 9 );
+    #if TEST
+        // bound for testing
+        mpz_pow_ui( BOUND, BOUND, 9 );
+    #else
+        // bound for full computation
+        mpz_pow_ui( BOUND, BOUND, 24 );
+    #endif
+    
 }
 
 Preproduct::~Preproduct()
@@ -150,17 +153,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        #ifdef TEST
-        std::cout << "rule is true\n";
-        #endif   
-        
         CN_search( cars_file );
     }
     else
     {
-        #ifdef TEST
-        std::cout << "rule is false\n";
-        #endif
         
         // in the below, let p be the largest prime dividing P
         // by taking this route, we need to do up to three things:
@@ -214,10 +210,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
-        
-        #ifdef TEST
-        std::cout << "Initialized Rollsieve\n";
-        #endif
        
         // this is the start of case 2
         mpz_root( bound, BoverP, 3);
@@ -228,10 +220,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             if( is_admissible_modchecks( q ) )
             {
-                #ifdef TEST
-                std::cout << "appending " << q << " and recursing\n";
-                #endif
-                
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
@@ -255,11 +243,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
             while( q < bound2 )
             {
                 if( is_admissible_modchecks( q ) )
-                {
-                    #ifdef TEST
-                    std::cout << "appending " << q << " and completing with one prime\n";
-                    #endif
-                    
+                {         
                     Pq.appending( *this, q ) ;
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }
