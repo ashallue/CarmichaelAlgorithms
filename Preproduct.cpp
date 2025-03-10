@@ -232,9 +232,9 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // since this will be invoked on a preproduct Pq
         // the inequality on prime counts lowered by 1
         #ifdef TEST
-            if( P_primes.size() >= 1 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 0 && mpz_cmp_ui( P, X ) > 0 )
         #else
-            if( P_primes.size() >= 2 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         #endif
         {
             mpz_sqrt( bound, BoverP );
@@ -452,12 +452,12 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     std::vector <uint64_t> the_prime_factor;
     uint64_t prime_factor;
     
-    // construct rstar = P^{-1} mod L.  We are constructing carmichael n = Pr
+    // construct r* = P^{-1} mod L, the least positive residue
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert( r_star, P, L);
     
-    // construct g = gcd(P^{-1} mod L - 1, L),  the scaling factor
+    // construct g = gcd( r* - 1, L),  the scaling factor
     mpz_t g;
     mpz_init( g );
     mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
@@ -472,13 +472,17 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         
     // set div_bound1.  This is sec 5.3.1 of the Advances paper
     // script_R + k*script_L < sqrt( script_P )  iff
-    // g*(script_R + k script_L) + 1 < g*sqrt( script_P ) + 1  iff
-    // r + K*L < g*sqrt( script_P ) + 1  [Andrew] I think this should say r* + kL < g*sqrt (script_P ) + 1
+    // g*(script_R + k*script_L) + 1 < g*sqrt( script_P ) + 1  iff
+    // r* + k*L < g*sqrt( script_P ) + 1
     mpz_t div_bound1;
     mpz_init_set( div_bound1, script_P );
     mpz_mul( div_bound1, div_bound1, g );
     mpz_mul( div_bound1, div_bound1, g );
-    mpz_sqrt( div_bound1, div_bound1 );     // [Andrew] does this round down in a way we don't want? sqrt does truncate
+    mpz_sqrt( div_bound1, div_bound1 );
+    // [Andrew]     Does this round down in a way we don't want? sqrt does truncate
+    // [Jonathan]   It is fine to truncate.
+    //              We use less than or equal to account for script_P being a perfect square
+    //              otherwise this is not a big deal
     mpz_add_ui( div_bound1, div_bound1, 1);
     
     // set div_bound2
@@ -486,7 +490,9 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     // r* + k*L < B/P
     mpz_t div_bound2;
     mpz_init_set( div_bound2, BOUND );
-    mpz_cdiv_q( div_bound2, div_bound2, P);  // [Andrew] again, rounding down with strict inequality might be bad.  Case 1 has non-strict inequality at least.
+    // [Andrew] again, rounding down with strict inequality might be bad.  Case 1 has non-strict inequality at least.
+    // [Jonathan]  cdiv is the ceiling division.  This does not round down.
+    mpz_cdiv_q( div_bound2, div_bound2, P);
 
     // returns true if div_bound1 > div_bound2.
     // This corresponds to the beginning of section 5.2 from Advances
@@ -533,18 +539,15 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         // we need to use r_star again [Andrew] - I don't get this
         // prev code was r2 = ( inv128( r1, L1) * scriptP ) % L1 where r1 = (Pqinv - 1)/g
         // Here this becomes r1 = (r* - 1)/g, r2 = (r1^{-1} mod scriptL) * scriptP mod scriptL
-        mpz_t r1;
-        mpz_init( r1 );
         mpz_t r2;
         mpz_init( r2 );
 
-        // setting r1 to correct val
-        mpz_set( r1, r_star );
-        mpz_sub_ui( r1, r1, 1);
-        mpz_divexact( r1, r1, g);
+        // r2 is going to hold r1 = (r* - 1)/g
+        mpz_set( r2, r_star );
+        mpz_sub_ui( r2, r2, 1);
+        mpz_divexact( r2, r2, g);
 
-        // setting r2 to correct val
-        mpz_set( r2, r1 );
+        // r1 computed, now set r2 = script_P*(r1)^{-1} mod script_L
         mpz_invert( r2, r2, script_L );
         mpz_mul( r2, r2, script_P );
         mpz_mod( r2, r2, script_L );
@@ -592,7 +595,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         }
         #endif
         // check arith progression r2 + k*scriptL < sqrt(script_P)
-        while( mpz_cmp( r2, div_bound1) <= 0 )
+        while( mpz_cmp( r2, div_bound1) < 0 )
         {
             #ifdef TEST
             if (mpz_cmp_ui(P, 481) == 0)
@@ -631,7 +634,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
             mpz_add( r2, r2, script_L );
         }
 
-        mpz_clear( r1 );
         mpz_clear( r2 );
         mpz_clear( script_L );
     }
