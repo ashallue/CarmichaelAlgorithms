@@ -22,9 +22,9 @@ Preproduct::Preproduct()
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
 
-    #if TEST
+    #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 9 );
+        mpz_pow_ui( BOUND, BOUND, 15 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -153,6 +153,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
+        std::cout << "calling CN_search\n";
         CN_search( cars_file );
     }
     else
@@ -212,14 +213,21 @@ void Preproduct::complete_tabulation( std::string cars_file )
         Rollsieve r( append_bound + 1 );
        
         // this is the start of case 2
-        mpz_root( bound, BoverP, 3);
+        mpz_root( bound, BoverP, 3);  // [Andrew] this truncates.  We should be adding 1, or taking q <= bound1
         uint64_t bound1 = mpz_get_ui( bound );
+
+        //testing 
+        std::cout << "bound1 = " << bound1 << "\n";
         
         uint64_t q = r.nextprime();
         while( q < bound1 )
         {
+            
             if( is_admissible_modchecks( q ) )
             {
+                //testing
+                std::cout << "else clause, appending q = " << q << " with bound1 = " << bound1 << " then recursing" << "\n";
+                
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
@@ -239,11 +247,18 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             mpz_sqrt( bound, BoverP );
             uint64_t bound2 = mpz_get_ui( bound );
+
+            //testing 
+            std::cout << "bound1 = " << bound1 << "\n";
             
             while( q < bound2 )
             {
                 if( is_admissible_modchecks( q ) )
                 {         
+                    //testing
+                    std::cout << "else clause, appending q = " << q << " then completing with one prime" << "\n";
+        
+                    
                     Pq.appending( *this, q ) ;
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }

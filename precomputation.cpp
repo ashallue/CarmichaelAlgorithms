@@ -26,9 +26,6 @@ int main()
 
     // intended bound for the computation is 10^24
     // bounds testing is done with logarithms
-    // double bound = 24*log(10);
-
-    // bound for a test run
     double bound = 24 * log(10);
     
     while( !old_jobs.empty() )
