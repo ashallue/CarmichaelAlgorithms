@@ -128,6 +128,26 @@ void Preproduct::complete_tabulation( std::string cars_file )
         }
     #endif
     
+    /*
+    
+     if( P_primes.size() == 0 ) // so the empty product
+     {
+        Rollsieve r( append_bound + 1 );
+        uint64_t q = r.nextprime();
+        while( q < 1'000'000 )  // represents B^{1/4}
+        {
+            Pq.appending( *this, q ) ;
+            Pq.complete_tabulation( cars_file );
+        }
+        
+     }
+     else
+     {
+     pul all old code in here
+     }
+    */
+    
+    
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
@@ -147,8 +167,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
     mpz_init_set(  to_recurse_or_not_to_recurse, P);
     mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
     mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
-    // a factor of 20 thrown in to favor CN_search:
-    mpz_mul_ui(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, 20);
     bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
    
     if( rule )
@@ -179,8 +197,8 @@ void Preproduct::complete_tabulation( std::string cars_file )
         #endif
         
         mpz_t BoverP;
-        mpz_t bound;
-        mpz_init( bound );
+        mpz_t case_bound;
+        mpz_init( case_bound );
         mpz_init( BoverP);
         mpz_cdiv_q( BoverP, BOUND, P );
                 
@@ -189,20 +207,20 @@ void Preproduct::complete_tabulation( std::string cars_file )
         // the count of prime factors in P needs to be greater than 1
         // if X > B^(1/3), then the count needs to be greater than 2
         // because all CN with exactly three prime factors has already been found
-        mpz_set_ui( bound, X);
+        mpz_set_ui( case_bound, X);
 
         // only multiply if there is a prime to multiply by
-        if(P_primes.size() > 0)
+        if( P_primes.size() > 0 )
         {
-            mpz_mul_ui( bound, bound, P_primes.back() );
+            mpz_mul_ui( case_bound, case_bound, P_primes.back() );
         }
 
         // for testing complete with one prime if preproduct has 2 or more primes
         // for production, the 3-carmichael case entirely small, so large case restricted to 4 prime factors or more
         #ifdef TEST
-            if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 1 && mpz_cmp( P, case_bound ) > 0 )
         #else
-            if( P_primes.size() > 2 && mpz_cmp_ui( P, X ) > 0 )
+            if( P_primes.size() > 2 && mpz_cmp( P, case_bound ) > 0 )
         #endif
         {
             completing_with_exactly_one_prime( cars_file );
@@ -213,14 +231,12 @@ void Preproduct::complete_tabulation( std::string cars_file )
         Rollsieve r( append_bound + 1 );
        
         // this is the start of case 2
-        mpz_root( bound, BoverP, 3);  // [Andrew] this truncates.  We should be adding 1, or taking q <= bound1
-        uint64_t bound1 = mpz_get_ui( bound );
 
-        //testing 
-        std::cout << "bound1 = " << bound1 << "\n";
+        mpz_root( case_bound, BoverP, 3);
+        uint64_t case2_bound = mpz_get_ui( case_bound );
         
         uint64_t q = r.nextprime();
-        while( q < bound1 )
+        while( q < case2_bound )
         {
             
             if( is_admissible_modchecks( q ) )
@@ -245,13 +261,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
             if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         #endif
         {
-            mpz_sqrt( bound, BoverP );
-            uint64_t bound2 = mpz_get_ui( bound );
-
-            //testing 
-            std::cout << "bound1 = " << bound1 << "\n";
+            mpz_sqrt( case_bound, BoverP );
+            uint64_t case3_bound = mpz_get_ui( case_bound );
             
-            while( q < bound2 )
+            while( q < case3_bound )
             {
                 if( is_admissible_modchecks( q ) )
                 {         
@@ -267,7 +280,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         }
         
         mpz_clear( BoverP );
-        mpz_clear( bound );
+        mpz_clear( case_bound );
     }
     
     mpz_clear( to_recurse_or_not_to_recurse );
