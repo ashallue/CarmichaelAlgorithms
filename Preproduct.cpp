@@ -147,8 +147,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
     mpz_init_set(  to_recurse_or_not_to_recurse, P);
     mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
     mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
-    // a factor of 20 thrown in to favor CN_search:
-    mpz_mul_ui(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, 20);
     bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
    
     if( rule )
