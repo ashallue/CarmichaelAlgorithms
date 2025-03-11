@@ -128,6 +128,26 @@ void Preproduct::complete_tabulation( std::string cars_file )
         }
     #endif
     
+    /*
+    
+     if( P_primes.size() == 0 ) // so the empty product
+     {
+        Rollsieve r( append_bound + 1 );
+        uint64_t q = r.nextprime();
+        while( q < 1'000'000 )  // represents B^{1/4}
+        {
+            Pq.appending( *this, q ) ;
+            Pq.complete_tabulation( cars_file );
+        }
+        
+     }
+     else
+     {
+     pul all old code in here
+     }
+    */
+    
+    
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
