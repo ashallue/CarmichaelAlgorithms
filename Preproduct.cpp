@@ -255,7 +255,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
                     
                     Pq.appending( *this, q ) ;
                     std::vector< uint64_t> empty;
-                    appending_is_CN( empty, cars_file);
+                    Pq.appending_is_CN( empty, cars_file);
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }
                 q = r.nextprime();
