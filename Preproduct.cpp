@@ -222,8 +222,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
             
             if( is_admissible_modchecks( q ) )
             {
-                //testing
+                // testing
                 std::cout << "else clause, appending q = " << q << " with bound1 = " << case2_bound << " then recursing" << "\n";
+                
+                std::vector< uint64_t> empty;
+                appending_is_CN( empty, cars_file);
                 
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
@@ -249,7 +252,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
             {
                 if( is_admissible_modchecks( q ) )
                 {         
-                    //testing
+                    // testing
                     std::cout << "else clause, appending q = " << q << " then completing with one prime" << "\n";
         
                     
