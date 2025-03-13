@@ -225,9 +225,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
                 // testing
                 std::cout << "else clause, appending q = " << q << " with bound1 = " << case2_bound << " then recursing" << "\n";
                 
-                std::vector< uint64_t> empty;
-                appending_is_CN( empty, cars_file);
-                
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
@@ -257,6 +254,8 @@ void Preproduct::complete_tabulation( std::string cars_file )
         
                     
                     Pq.appending( *this, q ) ;
+                    std::vector< uint64_t> empty;
+                    appending_is_CN( empty, cars_file);
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }
                 q = r.nextprime();
