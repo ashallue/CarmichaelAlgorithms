@@ -118,6 +118,8 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+
+
 void Preproduct::complete_tabulation( std::string cars_file )
 {
     #ifdef TEST
@@ -251,11 +253,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
                 {         
                     // testing
                     std::cout << "else clause, appending q = " << q << " then completing with one prime" << "\n";
-        
-                    
                     Pq.appending( *this, q ) ;
-                    std::vector< uint64_t> empty;
-                    Pq.appending_is_CN( empty, cars_file);
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }
                 q = r.nextprime();
