@@ -330,7 +330,18 @@ void Preproduct::CN_search( std::string cars_file )
     
     // sieve
     uint16_t prime_index = 0;
-    while( prime_index < bitset_size )
+    
+    // if cmp_bound64 is really small, we do not want to sieve by primes larger than cmp_bound
+    // there are two bound:  bitset_size and cmp_bound64
+    // we need to "convert" cmp_bound64 implies index location (cmp_bound64 - 3)/2
+    
+    int16_t prime_index_bound = bitset_size;
+    if( cmp_bound64 < bitset_size*2 + 3 )
+    {
+        prime_index_bound = std::min( (int) prime_index_bound, (((int16_t) cmp_bound64) - 3 )/2 );
+    }
+    
+    while( prime_index < prime_index_bound )
     {
         if( small_primes[ prime_index ] )
         {
