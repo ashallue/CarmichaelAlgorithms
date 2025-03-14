@@ -118,6 +118,8 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+
+
 void Preproduct::complete_tabulation( std::string cars_file )
 {
     #ifdef TEST
@@ -228,8 +230,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         {
             
             if( is_admissible_modchecks( q ) )
-            {
-                
+            {   
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
             }
