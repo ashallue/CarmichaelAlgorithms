@@ -200,12 +200,15 @@ void Preproduct::complete_tabulation( std::string cars_file )
 
         // for testing complete with one prime if preproduct has 2 or more primes
         // for production, the 3-carmichael case entirely small, so large case restricted to 4 prime factors or more
+
         #ifdef TEST
             if( P_primes.size() > 1 && mpz_cmp( P, case_bound ) > 0 )
         #else
             if( P_primes.size() > 2 && mpz_cmp( P, case_bound ) > 0 )
         #endif
+
         {
+            std::cout << "I'm here and case 1 got called." << std::endl;
             completing_with_exactly_one_prime( cars_file );
         }
         
@@ -604,7 +607,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         }
         #endif
         // check arith progression r2 + k*scriptL < sqrt(script_P)
-        while( mpz_cmp( r2, div_bound1) < 0 )
+        while( mpz_cmp( r2, div_bound1) <=  0 )
         {
             #ifdef TEST
             if (mpz_cmp_ui(P, 481) == 0)
