@@ -207,15 +207,13 @@ void Preproduct::complete_tabulation( std::string cars_file )
 
         // for testing complete with one prime if preproduct has 2 or more primes
         // for production, the 3-carmichael case entirely small, so large case restricted to 4 prime factors or more
+
         #ifdef TEST
             if( P_primes.size() > 1 && mpz_cmp( P, case_bound ) > 0 )
         #else
             if( P_primes.size() > 2 && mpz_cmp( P, case_bound ) > 0 )
         #endif
         {
-            #ifdef TEST
-            if(mpz_cmp_ui(P, 79003) == 0) std::cout << "P = 79003, case 1\n";
-            #endif
             completing_with_exactly_one_prime( cars_file );
         }
         
@@ -320,13 +318,14 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_t small_prime;
     mpz_init( small_prime );
     
+    // maybe consider doing this with an actual prime sieve?
     // position i has the truth value of the statement "(2i + 3) is prime"
-    const uint32_t bitset_size = 512;
-    std::bitset<bitset_size> small_primes{"00110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
+    const uint32_t bitset_size = 510;
+    std::bitset<bitset_size> small_primes{"110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
     
     mpz_t R;
     mpz_init( R );                              // using R as a temp variable here
-    mpz_cdiv_q( R, BOUND, PL);
+    mpz_cdiv_q( R, BOUND, PL);                  // ceiling divide, so this should always be at least 1
     
     uint64_t cmp_bound64 = mpz_get_ui( R );     // done using R as a temp variable
     boost::dynamic_bitset<> spoke_sieve( cmp_bound64 );
@@ -334,7 +333,18 @@ void Preproduct::CN_search( std::string cars_file )
     
     // sieve
     uint16_t prime_index = 0;
-    while( prime_index < bitset_size )
+    
+    // if cmp_bound64 is really small, we do not want to sieve by primes larger than cmp_bound
+    // there are two bound:  bitset_size and cmp_bound64
+    // we need to "convert" cmp_bound64 implies index location (cmp_bound64 - 3)/2
+    
+    int16_t prime_index_bound = bitset_size;
+    if( cmp_bound64 < bitset_size*2 + 3 )
+    {
+        prime_index_bound = std::min( (int) prime_index_bound, (((int16_t) cmp_bound64) - 3 )/2 );
+    }
+    
+    while( prime_index < prime_index_bound )
     {
         if( small_primes[ prime_index ] )
         {
@@ -634,7 +644,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         }
         #endif
         // check arith progression r2 + k*scriptL < sqrt(script_P)
-        while( mpz_cmp( r2, div_bound1) < 0 )
+        while( mpz_cmp( r2, div_bound1) <=  0 )
         {
             #ifdef TEST
             if (mpz_cmp_ui(P, 79003) == 0)

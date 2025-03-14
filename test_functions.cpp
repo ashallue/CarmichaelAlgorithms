@@ -246,6 +246,7 @@ int main(){
     
     std::cout << "starting timing test for job (3, 2, 3)\n";
     job_timing(199, 198, 199, "single_job.txt");
+
     
     /* 
     std::cout << "\nTabulating up to 10^15\n";
