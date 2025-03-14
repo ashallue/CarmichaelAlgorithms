@@ -13,8 +13,8 @@
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
-// preprocessing flags: either run for production or run for testing.  Don't set both to true
-//#define TEST
+// preprocessing flag.  If enabled, bounds and some other assumptions will change for testing purposes
+#define TEST
 
 Preproduct::Preproduct()
 {
@@ -128,25 +128,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
         }
     #endif
     
-    /*
-    
-     if( P_primes.size() == 0 ) // so the empty product
-     {
-        Rollsieve r( append_bound + 1 );
-        uint64_t q = r.nextprime();
-        while( q < 1'000'000 )  // represents B^{1/4}
-        {
-            Pq.appending( *this, q ) ;
-            Pq.complete_tabulation( cars_file );
-        }
-        
-     }
-     else
-     {
-     pul all old code in here
-     }
-    */
-    
     
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
@@ -171,11 +152,18 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        std::cout << "calling CN_search\n";
+        #ifdef TEST
+            if(mpz_cmp_ui(P, 79003) == 0) std::cout << "P = 79003, calling CN_search\n";
+        #endif
+        
         CN_search( cars_file );
     }
     else
     {
+        #ifdef TEST
+            if(mpz_cmp_ui(P, 79003) == 0) std::cout << "P = 79003, recursing\n";
+        #endif
+        
         
         // in the below, let p be the largest prime dividing P
         // by taking this route, we need to do up to three things:
@@ -230,10 +218,10 @@ void Preproduct::complete_tabulation( std::string cars_file )
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
        
-        // this is the start of case 2
-
+        // this is the start of case 2.  case2_bound stores (B/P)^{1/3}
         mpz_root( case_bound, BoverP, 3);
         uint64_t case2_bound = mpz_get_ui( case_bound );
+        
         
         uint64_t q = r.nextprime();
         while( q < case2_bound )
@@ -241,8 +229,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
             
             if( is_admissible_modchecks( q ) )
             {
-                //testing
-                std::cout << "else clause, appending q = " << q << " with bound1 = " << bound1 << " then recursing" << "\n";
                 
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
@@ -258,9 +244,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
         #ifdef TEST
             if( P_primes.size() > 0 && mpz_cmp_ui( P, X ) > 0 )
         #else
+                
             if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
         #endif
         {
+            
             mpz_sqrt( case_bound, BoverP );
             uint64_t case3_bound = mpz_get_ui( case_bound );
             
@@ -268,11 +256,18 @@ void Preproduct::complete_tabulation( std::string cars_file )
             {
                 if( is_admissible_modchecks( q ) )
                 {         
-                    //testing
-                    std::cout << "else clause, appending q = " << q << " then completing with one prime" << "\n";
-        
-                    
+                    #ifdef TEST
+                    if(mpz_cmp_ui(P, 79003) == 0 && q < 5000) std::cout << "P = 79003, case 3, q = " << q << "\n";
+                    #endif
+
+                    // append q to the current object
                     Pq.appending( *this, q ) ;
+
+                    // if Pq itself is Carmichael, write it to file
+                    std::vector< uint64_t> empty;
+                    appending_is_CN( empty, cars_file);
+
+                    // then attempt to complete with one more prime past Pq
                     Pq.completing_with_exactly_one_prime( cars_file );
                 }
                 q = r.nextprime();
@@ -285,6 +280,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
     
     mpz_clear( to_recurse_or_not_to_recurse );
 }
+
 
 
 // Do not call this method on a preproduct of the form (1, 1, b)
