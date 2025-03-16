@@ -68,12 +68,16 @@ public:
     // done with no gcd check - checks if input is not 1 mod p for all p | P
     bool is_admissible_modchecks( uint64_t prime_to_append );
     
+    
+    void CN_multiples_of_P( std::string cars_file );
+    
     // uses a rule to decide whether to call CN_search or
     // initialize an incremental sieve and do prime-by-prime appending
     // for primes q in (append_bound, (B/P)^(1/3) ) we recursively call this on preproduct Pq
     // for primes q in ((B/P)^(1/3) , (B/P)^(1/2) ) we do the factorization on Pq-1
     void complete_tabulation( std::string cars_file );
     
+           
     // This does *not* create a Preproduct structure
     bool appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file  );
 
