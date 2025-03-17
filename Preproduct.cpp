@@ -166,7 +166,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
             if( is_admissible_modchecks( q ) )
             {
                 Pq.appending( *this, q ) ;
-                Pq.complete_tabulation( cars_file );
+                Pq.CN_multiples_of_P( cars_file );
             }
             q = r.nextprime();
         }
