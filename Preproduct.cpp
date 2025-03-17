@@ -121,7 +121,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 void Preproduct::CN_multiples_of_P( std::string cars_file )
 {
-     
     mpz_t early_abort;
     mpz_init_set(  early_abort, P);
     mpz_mul(  early_abort,  early_abort, L);
@@ -134,33 +133,30 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     else
     {
- 
-        // in the below, let p be the largest prime dividing P
         // by taking this route, we need to do up to three things:
-        // 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
-        //      3 or more primes can still be appended
-        // 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
-        //      extactly two prime may be appended
-        // 1 - if P > X*p, then find the single prime q so that Pq is a CN
-        //      exactly one prime may be appended
+        // case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
+        //          3 or more primes can still be appended
+        // case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+        //          extactly two prime may be appended
+        // case 1 - if P > X*p, then find the single prime q so that Pq is a CN
+        //          exactly one prime may be appended
 
-        const uint64_t X = 120'000'000;
+        const uint64_t X = 125'000'000;
         
         mpz_t BoverP;
         mpz_t case_bound;
         mpz_init( case_bound );
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
-       
-        // this is the start of case 3.  case3_bound stores (B/P)^{1/3}
-        mpz_root( case_bound, BoverP, 3);
-        uint64_t case3_bound = mpz_get_ui( case_bound );
-        
+
         Preproduct Pq;
-        
         Rollsieve r( append_bound + 1 );
         uint64_t q = r.nextprime();
         
+        // bound for case 3
+        mpz_root( case_bound, BoverP, 3);
+        uint64_t case3_bound = mpz_get_ui( case_bound );
+        // start of case 3
         while( q < case3_bound )
         {
             if( is_admissible_modchecks( q ) )
@@ -170,7 +166,6 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
             }
             q = r.nextprime();
         }
-        
         // start of case 2 and case 1
         if( mpz_cmp_ui( P, X ) > 0 )
         {
@@ -187,7 +182,6 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
                 }
                 q = r.nextprime();
             }
-            
             // bound for case 1
             mpz_set_ui( case_bound, X );
             mpz_mul_ui( case_bound, case_bound, P_primes.back() );
@@ -196,13 +190,10 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
             {
                 completing_with_exactly_one_prime( cars_file );
             }
-            
         }
-        
         mpz_clear( BoverP );
         mpz_clear( case_bound );
     }
-    
     mpz_clear( early_abort );
 }
 
