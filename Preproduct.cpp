@@ -118,29 +118,28 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
-
+// Uses two approachs to find CN as multiples of P
+// 1 - lambda-completion in the first branch
+// 2 - prime by prime completion in the second branch (this has three subcases):
+//      case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is still small enough to recurse
+//               3 or more primes can still be appended to P
+//      case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+//               extactly two primes append to P
+//      case 1 - if P > X*p, then find the single prime q so that Pq is a CN
+//               exactly one prime to append to P
 void Preproduct::CN_multiples_of_P( std::string cars_file )
 {
     mpz_t early_abort;
     mpz_init_set(  early_abort, P);
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
-    bool rule = ( mpz_cmp( early_abort , BOUND ) >= 0 );
-   
-    if( rule )
+
+    if( mpz_cmp( early_abort , BOUND ) >= 0 )
     {
         CN_search( cars_file );
     }
     else
     {
-        // by taking this route, we need to do up to three things:
-        // case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
-        //          3 or more primes can still be appended
-        // case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
-        //          extactly two prime may be appended
-        // case 1 - if P > X*p, then find the single prime q so that Pq is a CN
-        //          exactly one prime may be appended
-
         const uint64_t X = 125'000'000;
         
         mpz_t BoverP;
