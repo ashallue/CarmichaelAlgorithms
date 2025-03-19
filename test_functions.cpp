@@ -222,7 +222,7 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
     Preproduct preprod = Preproduct();
     preprod.initializing( P, L, prime_lower );
 
-    preprod.complete_tabulation( cars_file );
+    preprod.CN_multiples_of_P( cars_file );
     
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
@@ -234,6 +234,7 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 
 // main for testing
 int main(){
+    /*
     mpz_t n;
     mpz_init(n);
     mpz_set_ui(n, 41041);
@@ -242,10 +243,14 @@ int main(){
     bool t1 = test_factor();
 
     std::cout << "result of test_factor " << t1 << "\n";
-
+     */
     
-    std::cout << "starting timing test for job (3, 2, 3)\n";
-    job_timing(199, 198, 199, "single_job.txt");
+    uint64_t P = 37 ;
+    uint64_t L = 36 ;
+    uint64_t AB = 2702;
+    
+    std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
+    job_timing(P, L, AB, "single_job.txt");
 
     
     /* 

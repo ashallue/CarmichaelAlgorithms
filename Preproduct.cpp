@@ -140,7 +140,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     else
     {
-        const uint64_t X = 125'000'000;
+        const uint64_t X = 100'000;
         
         mpz_t BoverP;
         mpz_t case_bound;
