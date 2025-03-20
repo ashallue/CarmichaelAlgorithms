@@ -245,13 +245,44 @@ int main(){
     std::cout << "result of test_factor " << t1 << "\n";
      */
     
-    uint64_t P = 37 ;
-    uint64_t L = 36 ;
-    uint64_t AB = 2702;
+   
+    uint64_t work_count = 0;
+    const uint16_t my_proc_number = 3;
+    const uint16_t total_procs = 25'000;
+    
+    uint64_t P;
+    uint64_t L;
+    uint64_t AB;
+    
+    Rollsieve r(41'666'667);
+    uint64_t q = r.nextprime();
+
+    while( q < 69'336'127 )
+    {
+        if( 1 != q % 3 )
+        {
+            work_count++;
+            if( my_proc_number == work_count % total_procs )
+            {
+                P = 3*q;
+                L = q-1;
+                AB = q;
+                std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
+                job_timing(P, L, AB, "single_job.txt");
+            }
+        }
+        q = r.nextprime();
+    }
+    
+     
+    /*
+    uint64_t P = 3 ;
+    uint64_t L = 2 ;
+    uint64_t AB = 41'666'667;
     
     std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
     job_timing(P, L, AB, "single_job.txt");
-
+    */
     
     /* 
     std::cout << "\nTabulating up to 10^15\n";
@@ -280,5 +311,9 @@ int main(){
    }
    fclose (pFile);
     */
+    
+
+
+
 
 }
