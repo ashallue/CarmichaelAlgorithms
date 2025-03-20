@@ -529,7 +529,10 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
             }
         #endif
         
-        gmp_fprintf(cars_output, "%Zd\n", P_temp );
+        gmp_fprintf(cars_output, "%Zd", P_temp );
+        for( auto p : P_primes ) { fprintf (cars_output, " %lu", p); }
+        for( auto p : primes_to_append ) { fprintf (cars_output, " %lu", p); }
+        fprintf (cars_output, "\n");
     }
 
     mpz_clear( P_temp );
