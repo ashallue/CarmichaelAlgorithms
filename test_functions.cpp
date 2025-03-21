@@ -222,7 +222,7 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
     Preproduct preprod = Preproduct();
     preprod.initializing( P, L, prime_lower );
 
-    preprod.complete_tabulation( cars_file );
+    preprod.CN_multiples_of_P( cars_file );
     
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
@@ -234,18 +234,44 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 
 // main for testing
 int main(){
-    mpz_t n;
-    mpz_init(n);
-    mpz_set_ui(n, 41041);
-    std::cout << "comparison: " << (mpz_cmp_ui(n, 41041) == 0) << "\n";
     
-    bool t1 = test_factor();
+   
+    uint64_t work_count = 0;
+    const uint16_t my_proc_number = 3;
+    const uint16_t total_procs = 25'000;
+    
+    uint64_t P;
+    uint64_t L;
+    uint64_t AB;
+    
+    Rollsieve r(41'666'667);
+    uint64_t q = r.nextprime();
 
-    std::cout << "result of test_factor " << t1 << "\n";
-
+    while( q < 69'336'127 )
+    {
+        if( 1 != q % 3 )
+        {
+            work_count++;
+            if( my_proc_number == work_count % total_procs )
+            {
+                P = 3*q;
+                L = q-1;
+                AB = q;
+                std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
+                job_timing(P, L, AB, "single_job.txt");
+            }
+        }
+        q = r.nextprime();
+    }
+    
+     
     /*
-    std::cout << "starting timing test for job (3, 2, 3)\n";
-    job_timing(133205761, 240, 241, "single_job.txt");
+    uint64_t P = 3 ;
+    uint64_t L = 2 ;
+    uint64_t AB = 41'666'667;
+    
+    std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
+    job_timing(P, L, AB, "single_job.txt");
     */
     
      
@@ -275,5 +301,9 @@ int main(){
    }
    fclose (pFile);
     */
+    
+
+
+
 
 }

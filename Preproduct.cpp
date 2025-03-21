@@ -118,6 +118,83 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+// Uses two approachs to find CN as multiples of P
+// 1 - lambda-completion in the first branch
+// 2 - prime by prime completion in the second branch (this has three subcases):
+//      case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is still small enough to recurse
+//               3 or more primes can still be appended to P
+//      case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+//               extactly two primes append to P
+//      case 1 - if P > X*p, then find the single prime q so that Pq is a CN
+//               exactly one prime to append to P
+void Preproduct::CN_multiples_of_P( std::string cars_file )
+{
+    mpz_t early_abort;
+    mpz_init_set(  early_abort, P);
+    mpz_mul(  early_abort,  early_abort, L);
+    mpz_mul(  early_abort,  early_abort, L);
+
+    if( mpz_cmp( early_abort , BOUND ) >= 0 )
+    {
+        CN_search( cars_file );
+    }
+    else
+    {
+        const uint64_t X = 100'000;
+        
+        mpz_t BoverP;
+        mpz_t case_bound;
+        mpz_init( case_bound );
+        mpz_init( BoverP );
+        mpz_cdiv_q( BoverP, BOUND, P );
+
+        Preproduct Pq;
+        Rollsieve r( append_bound + 1 );
+        uint64_t q = r.nextprime();
+        
+        // bound for case 3
+        mpz_root( case_bound, BoverP, 3);
+        uint64_t case3_bound = mpz_get_ui( case_bound );
+        // start of case 3
+        while( q < case3_bound )
+        {
+            if( is_admissible_modchecks( q ) )
+            {
+                Pq.appending( *this, q ) ;
+                Pq.CN_multiples_of_P( cars_file );
+            }
+            q = r.nextprime();
+        }
+        // start of case 2 and case 1
+        if( mpz_cmp_ui( P, X ) > 0 )
+        {
+            // bound for case 2
+            mpz_sqrt( case_bound, BoverP );
+            uint64_t case2_bound = mpz_get_ui( case_bound );
+            // case 2 begins
+            while( q < case2_bound )
+            {
+                if( is_admissible_modchecks( q ) )
+                {
+                    Pq.appending( *this, q ) ;
+                    Pq.completing_with_exactly_one_prime( cars_file );
+                }
+                q = r.nextprime();
+            }
+            // bound for case 1
+            mpz_set_ui( case_bound, X );
+            mpz_mul_ui( case_bound, case_bound, P_primes.back() );
+            // case 1
+            if( mpz_cmp( P, case_bound ) > 0 )
+            {
+                completing_with_exactly_one_prime( cars_file );
+            }
+        }
+        mpz_clear( BoverP );
+        mpz_clear( case_bound );
+    }
+    mpz_clear( early_abort );
+}
 
 
 void Preproduct::complete_tabulation( std::string cars_file )
@@ -421,8 +498,20 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
     // if return_val, then L | n-1, making n Carmichael.  Write n to file
     // we also check a boundedness condition to ensure n is within upper bound
     if( return_val && mpz_cmp( P_temp, BOUND ) < 0 )
-    {   
-        gmp_fprintf(cars_output, "%Zd\n", P_temp );
+    {
+        #ifdef TEST
+            // looking for cars that are duplicates
+            if(mpz_cmp_ui(P_temp, 41041) == 0)
+            {
+                std::cout << "41041 found with preproduct: ";
+                gmp_printf("%Zd\n", P);
+            }
+        #endif
+        
+        gmp_fprintf(cars_output, "%Zd", P_temp );
+        for( auto p : P_primes ) { fprintf (cars_output, " %lu", p); }
+        for( auto p : primes_to_append ) { fprintf (cars_output, " %lu", p); }
+        fprintf (cars_output, "\n");
     }
 
     mpz_clear( P_temp );
