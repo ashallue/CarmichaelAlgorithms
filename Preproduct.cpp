@@ -122,15 +122,7 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 void Preproduct::complete_tabulation( std::string cars_file )
 {
-    #ifdef TEST
-        // looking for cars that are duplicates
-        if(mpz_cmp_ui(P, 1) == 0)
-        {
-            std::cout << "Calling complete_tabulation with P = 1\n ";
-        }
-    #endif
-    
-    
+       
     // Unanswered question that we need to answer before production:
     // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
     // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
@@ -154,18 +146,11 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        #ifdef TEST
-            if(mpz_cmp_ui(P, 79003) == 0) std::cout << "P = 79003, calling CN_search\n";
-        #endif
         
         CN_search( cars_file );
     }
     else
     {
-        #ifdef TEST
-            if(mpz_cmp_ui(P, 79003) == 0) std::cout << "P = 79003, recursing\n";
-        #endif
-        
         
         // in the below, let p be the largest prime dividing P
         // by taking this route, we need to do up to three things:
@@ -183,7 +168,7 @@ void Preproduct::complete_tabulation( std::string cars_file )
         #ifndef TEST
             const uint64_t X = 120'000'000;
         #else
-            const uint64_t X = 1;
+            const uint64_t X = 100000;
         #endif
         
         mpz_t BoverP;
@@ -232,9 +217,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
             
             if( is_admissible_modchecks( q ) )
             {   
-                #ifdef TEST
-                //if(mpz_cmp_ui(P, 79003) == 0 && q < 1000) std::cout << "P = 79003, case 2, q = " << q << "\n";
-                #endif
                 
                 Pq.appending( *this, q ) ;
                 Pq.complete_tabulation( cars_file );
@@ -262,16 +244,13 @@ void Preproduct::complete_tabulation( std::string cars_file )
             {
                 if( is_admissible_modchecks( q ) )
                 {         
-                    #ifdef TEST
-                    //if(mpz_cmp_ui(P, 79003) == 0 && q < 5000) std::cout << "P = 79003, case 3, q = " << q << "\n";
-                    #endif
 
                     // append q to the current object
                     Pq.appending( *this, q ) ;
 
                     // if Pq itself is Carmichael, write it to file
                     std::vector< uint64_t> empty;
-                    appending_is_CN( empty, cars_file);
+                    Pq.appending_is_CN( empty, cars_file);
 
                     // then attempt to complete with one more prime past Pq
                     Pq.completing_with_exactly_one_prime( cars_file );
@@ -442,16 +421,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
     // if return_val, then L | n-1, making n Carmichael.  Write n to file
     // we also check a boundedness condition to ensure n is within upper bound
     if( return_val && mpz_cmp( P_temp, BOUND ) < 0 )
-    {
-        #ifdef TEST
-            // looking for cars that are duplicates
-            if(mpz_cmp_ui(P_temp, 41041) == 0)
-            {
-                std::cout << "41041 found with preproduct: ";
-                gmp_printf("%Zd\n", P);
-            }
-        #endif
-        
+    {   
         gmp_fprintf(cars_output, "%Zd\n", P_temp );
     }
 
@@ -479,10 +449,6 @@ bool Preproduct::is_CN( )
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 {
-    #ifdef TEST
-    if(mpz_cmp_ui(P, 79003) == 0) std::cout << "completing 79003\n";
-    #endif
-    
     std::vector <uint64_t> the_prime_factor;
     uint64_t prime_factor;
     
@@ -524,8 +490,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     // r* + k*L < B/P
     mpz_t div_bound2;
     mpz_init_set( div_bound2, BOUND );
-    // [Andrew] again, rounding down with strict inequality might be bad.  Case 1 has non-strict inequality at least.
-    // [Jonathan]  cdiv is the ceiling division.  This does not round down.
     mpz_cdiv_q( div_bound2, div_bound2, P);
 
     // returns true if div_bound1 > div_bound2.
@@ -547,13 +511,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                     the_prime_factor.clear();
                     the_prime_factor.push_back( prime_factor );
 
-                    #ifdef TEST
-                        // looking for missing cars
-                        if(mpz_cmp_ui(P, 79003) == 0)
-                        {
-                            std::cout << "P = 79003, case 1\n";
-                        }
-                    #endif
                     // call helper function to check if Pr is Carmichael.  That function will write to file
                     appending_is_CN( the_prime_factor , cars_file );
                 }
@@ -586,24 +543,11 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         mpz_mul( r2, r2, script_P );
         mpz_mod( r2, r2, script_L );
 
-        #ifdef TEST
-        if (mpz_cmp_ui(P, 79003) == 0)
-        {
-            gmp_printf("Initial div_bound1 = %Zd, script_P = %Zd, g = %Zd\n", div_bound1, script_P, g);
-        }
-        #endif
         
         // Following section 5.3.1 of Advances, scriptR + k scriptL equiv to arithmetic progression r* + kL
         // div_bound1 reflects the transformation: multiply by g and add 1.
         while( mpz_cmp( r_star, div_bound1) <= 0 )
         {
-            #ifdef TEST
-            if (mpz_cmp_ui(P, 79003) == 0)
-            {
-                std::cout << "r_star = ";
-                gmp_printf("%Zd\n", r_star );
-            }
-            #endif
             
             // primality check.
             if( mpz_probab_prime_p( r_star, 0) > 0 )
@@ -614,13 +558,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                     the_prime_factor.clear();
                     the_prime_factor.push_back( prime_factor );
 
-                    #ifdef TEST
-                        // looking for cars that are duplicates
-                        if(mpz_cmp_ui(P, 79003) == 0)
-                        {
-                            std::cout << "P = 79003, case 2\n";
-                        }
-                    #endif
                      // call helper function to check if Pr is Carmichael.  That function will write to file
                     appending_is_CN( the_prime_factor , cars_file );
                 }
@@ -638,7 +575,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         mpz_sqrt( div_bound1, script_P );
 
         #ifdef TEST
-        if (mpz_cmp_ui(P, 79003) == 0)
+        if (mpz_cmp_ui(P, 1) == 0)
         {
             gmp_printf("sqrt(script_P) div_bound1 = %Zd, script_P = %Zd, g = %Zd\n", div_bound1, script_P, g);
         }
@@ -646,13 +583,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         // check arith progression r2 + k*scriptL < sqrt(script_P)
         while( mpz_cmp( r2, div_bound1) <=  0 )
         {
-            #ifdef TEST
-            if (mpz_cmp_ui(P, 79003) == 0)
-            {
-                std::cout << "r2 = ";
-                gmp_printf("%Zd\n", r2 );
-            }
-            #endif
             if( mpz_divisible_p( script_P, r2 ) )
             {
                 // we are done with r_star, using it as storage for R.  Possible prime is r2*g + 1
@@ -662,27 +592,11 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
                 if( mpz_probab_prime_p( r_star,  0 ) > 0 )
                 {
                     prime_factor = mpz_get_ui( r_star );
-
-                    #ifdef TEST
-                        // looking for cars that are duplicates
-                        if(mpz_cmp_ui(P, 79003) == 0)
-                        {
-                            std::cout << "prime = " << prime_factor << "\n";
-                        }
-                    #endif
             
                     if( prime_factor > append_bound )
                     {
                         the_prime_factor.clear();
                         the_prime_factor.push_back( prime_factor );
-
-                        #ifdef TEST
-                            // looking for cars that are duplicates
-                            if(mpz_cmp_ui(P, 79003) == 0)
-                            {
-                                std::cout << "P = 79003, case 3, prime = " << prime_factor << "\n";
-                            }
-                        #endif
                         
                         appending_is_CN( the_prime_factor , cars_file );
                     }

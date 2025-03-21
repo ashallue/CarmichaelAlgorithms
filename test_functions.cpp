@@ -243,16 +243,16 @@ int main(){
 
     std::cout << "result of test_factor " << t1 << "\n";
 
-    
+    /*
     std::cout << "starting timing test for job (3, 2, 3)\n";
-    job_timing(199, 198, 199, "single_job.txt");
-
+    job_timing(133205761, 240, 241, "single_job.txt");
+    */
     
-    /* 
+     
     std::cout << "\nTabulating up to 10^15\n";
     uint64_t upper = 1000000000000000;
     tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
-    */
+    
     //Preproduct preprod = Preproduct();
     //preprod.initializing( 1, 1, 97 );
 
