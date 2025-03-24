@@ -24,7 +24,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 15 );
+        mpz_pow_ui( BOUND, BOUND, 24 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -140,7 +140,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     else
     {
-        const uint64_t X = 100'000;
+        const uint64_t X = 125'000'000;
         
         mpz_t BoverP;
         mpz_t case_bound;
@@ -467,15 +467,6 @@ void Preproduct::CN_search( std::string cars_file )
 */
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file )
 {
-    // file object for storing the carmichael numbers
-    FILE* cars_output;
-    //char filename[100];
-    //cars_file.copy(filename, cars_file.length());
-    const char* filename;
-    filename = cars_file.c_str();
-    
-    cars_output = fopen (filename,"a");
-    
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -499,6 +490,12 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
     // we also check a boundedness condition to ensure n is within upper bound
     if( return_val && mpz_cmp( P_temp, BOUND ) < 0 )
     {
+        // file object for storing the carmichael numbers
+        FILE* cars_output;
+        const char* filename;
+        filename = cars_file.c_str();
+        cars_output = fopen (filename,"a");
+        
         #ifdef TEST
             // looking for cars that are duplicates
             if(mpz_cmp_ui(P_temp, 41041) == 0)
@@ -512,14 +509,13 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         for( auto p : P_primes ) { fprintf (cars_output, " %lu", p); }
         for( auto p : primes_to_append ) { fprintf (cars_output, " %lu", p); }
         fprintf (cars_output, "\n");
+        
+        // close file
+        fclose (cars_output);
     }
 
     mpz_clear( P_temp );
     mpz_clear( L_temp );
-    
-    // close file
-    fclose (cars_output);
-
     return return_val;
 }
 

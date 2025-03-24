@@ -274,11 +274,14 @@ int main(){
     job_timing(P, L, AB, "single_job.txt");
     */
     
-     
+     /*
     std::cout << "\nTabulating up to 10^15\n";
     uint64_t upper = 1000000000000000;
     tabulate_test(upper, "output_jobs.txt", "small_tabulation.txt");
+    */
     
+      
+      
     //Preproduct preprod = Preproduct();
     //preprod.initializing( 1, 1, 97 );
 
