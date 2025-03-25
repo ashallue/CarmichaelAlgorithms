@@ -41,6 +41,7 @@ ashallue@hyperion:~/tabulate_car/datafiles_22$ awk 'NF == 4 && $2 == 7' cars_tab
 
 #include "test_functions.h"
 #include <stdio.h>
+#include <numeric>
 
 // call CN_factorization on all squarefree multiples of 7 with 4 prime factors
 bool test_factor(){
@@ -226,7 +227,7 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
     
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << ms_double.count() << std::endl;
 
     //output.close();
     jobs_input.close();
@@ -234,37 +235,48 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 
 // main for testing
 int main(){
-    
    
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+   
+    auto t1 = high_resolution_clock::now();
+    
     uint64_t work_count = 0;
     const uint16_t my_proc_number = 3;
     const uint16_t total_procs = 25'000;
     
-    uint64_t P;
-    uint64_t L;
-    uint64_t AB;
     
-    Rollsieve r(41'666'667);
+    Rollsieve r( (125'000'000/65) );
     uint64_t q = r.nextprime();
 
-    while( q < 69'336'127 )
+    Preproduct SMALL = Preproduct();
+    
+    SMALL.initializing( 65, 12, 125'000'000/65 );
+    
+    Preproduct Pq = Preproduct();
+    
+    while( q < 24871132 )
     {
-        if( 1 != q % 3 )
+        if( SMALL.is_admissible_modchecks( q )  )
         {
             work_count++;
             if( my_proc_number == work_count % total_procs )
             {
-                P = 3*q;
-                L = q-1;
-                AB = q;
-                std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
-                job_timing(P, L, AB, "single_job.txt");
+                Pq.appending( SMALL, q );
+                Pq.CN_multiples_of_P( "new_CNs.txt" );
             }
         }
         q = r.nextprime();
     }
     
-     
+    
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    std::cout << ms_double.count() << std::endl;
+    
+    
     /*
     uint64_t P = 3 ;
     uint64_t L = 2 ;

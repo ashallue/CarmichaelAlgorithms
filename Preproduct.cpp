@@ -133,20 +133,19 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_init_set(  early_abort, P);
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
-
-    if( mpz_cmp( early_abort , BOUND ) >= 0 )
+    
+    if( mpz_cmp( early_abort, BOUND ) >= 0  && false )
     {
         CN_search( cars_file );
     }
     else
     {
         const uint64_t X = 125'000'000;
-        
         mpz_t BoverP;
-        mpz_t case_bound;
-        mpz_init( case_bound );
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
+        mpz_t case_bound;
+        mpz_init( case_bound );
 
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
@@ -223,7 +222,6 @@ void Preproduct::complete_tabulation( std::string cars_file )
    
     if( rule )
     {
-        
         CN_search( cars_file );
     }
     else
