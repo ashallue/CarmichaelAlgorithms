@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
                 work_count = work_count % proc;
                 if( work_count == my_rank )
                 {
-                    Pq.appending( SMALL, q );
+                    Pq.appending( small_P, q );
                     Pq.CN_multiples_of_P( file_name );
                 }
             }
