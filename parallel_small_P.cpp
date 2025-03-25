@@ -6,6 +6,8 @@
 #include <vector>
 #include "mpi.h"
 
+// compiled with: 
+// mpic++ -o parallel parallel_small_P.cpp Preproduct.o rollsieve.o -lgmp -O3
 
 int main(int argc, char * argv[])
 {
