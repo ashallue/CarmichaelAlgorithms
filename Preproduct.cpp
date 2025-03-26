@@ -1,6 +1,7 @@
 #include "Preproduct.h"
 #include "rollsieve.h"
 #include <algorithm>
+#include <bitset>
 #include <iostream>
 #include <numeric>
 #include <queue>
@@ -24,7 +25,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 15 );
+        mpz_pow_ui( BOUND, BOUND, 24 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -134,13 +135,13 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
     
-    if( mpz_cmp( early_abort, BOUND ) >= 0 && true )
+    if( mpz_cmp( early_abort, BOUND ) >= 0 && false )
     {
         CN_search( cars_file );
     }
     else
     {
-        const uint64_t X = 100'000;
+        const uint64_t X = 125'000'000;
         mpz_t BoverP;
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
