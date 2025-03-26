@@ -236,6 +236,8 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 // main for testing
 int main(){
    
+    /*
+    
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
@@ -248,16 +250,16 @@ int main(){
     const uint16_t total_procs = 25'000;
     
     
-    Rollsieve r( (125'000'000/65) );
+    Rollsieve r( (125'000'000/109) );
     uint64_t q = r.nextprime();
 
     Preproduct SMALL = Preproduct();
     
-    SMALL.initializing( 65, 12, 125'000'000/65 );
+    SMALL.initializing( 109, 108, 125'000'000/109 );
     
     Preproduct Pq = Preproduct();
     
-    while( q < 24871132 )
+    while( q < 20934272 )
     {
         if( SMALL.is_admissible_modchecks( q )  )
         {
@@ -275,16 +277,20 @@ int main(){
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
     std::cout << ms_double.count() << std::endl;
+    */
     
     
-    /*
-    uint64_t P = 3 ;
-    uint64_t L = 2 ;
-    uint64_t AB = 41'666'667;
+    uint64_t P = 101 ;
+    uint64_t L = 100 ;
+    uint64_t AB = 1000;
     
     std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
     job_timing(P, L, AB, "single_job.txt");
-    */
+    
+    Preproduct PP = Preproduct();
+    PP.initializing( 103, 102, 100'000/103 );
+
+    PP.CN_multiples_of_P( "CN_divis_103.txt" );
     
      /*
     std::cout << "\nTabulating up to 10^15\n";
