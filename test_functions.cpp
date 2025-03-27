@@ -236,7 +236,7 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 // main for testing
 int main(){
    
-    /*
+    
     
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -244,42 +244,55 @@ int main(){
     using std::chrono::milliseconds;
    
     auto t1 = high_resolution_clock::now();
-    
-    uint64_t work_count = 0;
-    const uint16_t my_proc_number = 3;
-    const uint16_t total_procs = 25'000;
-    
-    
-    Rollsieve r( (125'000'000/109) );
-    uint64_t q = r.nextprime();
-
-    Preproduct SMALL = Preproduct();
-    
-    SMALL.initializing( 109, 108, 125'000'000/109 );
-    
-    Preproduct Pq = Preproduct();
-    
-    while( q < 20934272 )
-    {
-        if( SMALL.is_admissible_modchecks( q )  )
-        {
-            work_count++;
-            if( my_proc_number == work_count % total_procs )
-            {
-                Pq.appending( SMALL, q );
-                Pq.CN_multiples_of_P( "new_CNs.txt" );
-            }
-        }
-        q = r.nextprime();
-    }
-    
-    
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
-    std::cout << ms_double.count() << std::endl;
-    */
+    
+    uint64_t work_count = 0;
+    const uint32_t my_rank = 3;
+    const uint32_t proc = 50'000;
+       
+    std::vector< uint64_t > P = { 241, 247, 249, 251, 255, 257, 259, 263, 265, 267, 269, 271, 277, 281, 283, 287, 293, 295, 299, 303 };
+    std::vector< uint64_t > L =  { 240, 36,  82, 250,  16, 256,  36, 262,  52,  88, 268, 270, 276, 280, 282, 120, 292, 116, 132, 100  };
+    std::vector< uint64_t > AB =  {518672, 506072, 502008, 498007, 490196, 486381, 482625, 475285, 471698, 468164, 464684, 461254, 451263, 444839, 441696, 435540, 426621, 423728, 418060, 412541  };
+    std::vector< uint64_t > ub =  {16069204, 15938021, 15895234, 15852903, 15769575, 15728561, 15687971, 15608031, 15568667, 15529696, 15491113, 15452910, 15340521, 15267383, 15231332, 15160240, 15056043, 15021941, 14954652, 14888553};
+        
+    
+    for( int i = 0; i < 20; i++)
+    {
+        t1 = high_resolution_clock::now();
+       
+        Rollsieve r( AB[i] );
+        uint64_t q = r.nextprime();
+        Preproduct small_P = Preproduct();
+        small_P.initializing( P[i], L[i], AB[i] );
+        Preproduct Pq = Preproduct();
+       
+        while( q < ub[i] )
+        {
+            if( small_P.is_admissible_modchecks( q ) )
+            {
+                work_count++;
+                work_count = work_count % proc;
+                if( work_count == my_rank )
+                {
+                    Pq.appending( small_P, q );
+                    Pq.CN_multiples_of_P( "new_CNs_block_timing.txt" );
+                }
+            }
+            q = r.nextprime();
+        }
+        
+        t2 = high_resolution_clock::now();
+        ms_double = t2 - t1;
+        std::cout << P[i] << std::endl;
+        std::cout << ms_double.count() << std::endl;
+   }
     
     
+ 
+    
+    
+   /*
     uint64_t P = 101 ;
     uint64_t L = 100 ;
     uint64_t AB = 1000;
@@ -287,10 +300,22 @@ int main(){
     std::cout << "starting timing test for job (" << P << ", " << L << ", " << AB << ")\n";
     job_timing(P, L, AB, "single_job.txt");
     
+    */
+    /*
     Preproduct PP = Preproduct();
-    PP.initializing( 103, 102, 100'000/103 );
+    PP.initializing( 41, 40, 100'000/41 );
 
-    PP.CN_multiples_of_P( "CN_divis_103.txt" );
+    PP.CN_multiples_of_P( "CN_divis_7.txt" );
+    PP.initializing( 43, 42, 100'000/43 );
+
+    PP.CN_multiples_of_P( "CN_divis_7.txt" );
+    PP.initializing( 47, 46, 100'000/47 );
+
+    PP.CN_multiples_of_P( "CN_divis_7.txt" );
+    PP.initializing( 51, 16, 100'000/51 );
+
+    PP.CN_multiples_of_P( "CN_divis_7.txt" );
+    */
     
      /*
     std::cout << "\nTabulating up to 10^15\n";
