@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);    // Find my rank
     MPI_Comm_size(MPI_COMM_WORLD, &proc);       // Find out the number of processes!
 
-    std::string file_name = "phi_very_small_" + std::to_string(my_rank) + ".txt";
+    std::string file_name = "phi119_very_small_" + std::to_string(my_rank) + ".txt";
 
     uint16_t work_count = 0;
     
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
      std::vector< uint64_t > ub = {16069204, 15938021, 15895234, 15852903, 15769575, 15728561, 15687971, 15608031, 15568667, 15529696, 15491113, 15452910, 15340521, 15267383, 15231332, 15160240, 15056043, 15021941, 14954652, 14888553 };
      */
     
-    for( int i = 0; i < 1; i++)
+    for( int i = 1; i < 2; i++)
     {
         Rollsieve r( AB[i] );
         uint64_t q = r.nextprime();
