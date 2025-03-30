@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);    // Find my rank
     MPI_Comm_size(MPI_COMM_WORLD, &proc);       // Find out the number of processes!
 
-    std::string file_name = "phi179_185_very_small_" + std::to_string(my_rank) + ".txt";
+    std::string file_name = "node4_187_very_small_" + std::to_string(my_rank) + ".txt";
 
     uint16_t work_count = 0;
     
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
      std::vector< uint64_t > ub = { 14823608, 14759781, 14728277, 14666066, 14635351, 14604893, 14574686, 14485542, 14456308, 14398540, 14369999, 14341684, 14313590, 14258057, 14230611, 14203376, 14149523, 14070253, 13992729, 13967265 };
      */
     
-    for( int i = 0; i < 3; i++)
+    for( int i = 3; i < 4; i++)
     {
         Rollsieve r( AB[i] );
         uint64_t q = r.nextprime();
@@ -85,11 +85,12 @@ std::vector< uint64_t > L =  {       44,       48,       40,      126,      130,
 std::vector< uint64_t > AB = {  1086956,  1050420,  1016260,   984251,   954198,   939849,   912408,   899280,   886524,   874125,   862068,   838926,   827814,   796178,   786163,   776397,   766871,   748502,   722543,   706214 };
 std::vector< uint64_t > ub = { 20563676, 20330640, 20107820, 19894459, 19689874, 19590679, 19398129, 19304643, 19212933, 19122941, 19034612, 18862733, 18779083, 18536745, 18458695, 18381943, 18306451, 18159109, 17946703, 17810480 };
 
-old bigdawg did 1 < P < 60      (started 3-25,
-new bigdawg did 60 < P < 114    (started 3-26, finished 3-28)
-xeon phi P = 115            (started 3-27: 20 hours )
-xeon phi P = 119            (started 3-28: 22 hours )
-new bigdawg 120 < P < 178       (started 8:21am 3-29 )
-xeon phi  178 < P < 186          (started 8:24am 3-29)
+old bigdawg 1 < P < 60      started 3-25,
+new bigdawg 60 < P < 114    started 3-26, finished 3-28
+xeon phi    P = 115         started 3-27: 20 hours
+xeon phi    P = 119         started 3-28: 22 hours
+new bigdawg 120 < P < 178   started 8:21am 3-29:
+xeon phi    178 < P < 186   started 8:24am 3-29:
+nbd node-4  P = 187         started 2:27pm 3-30:
  
  */
