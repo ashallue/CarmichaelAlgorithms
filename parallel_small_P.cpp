@@ -19,7 +19,7 @@ int main(int argc, char * argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);    // Find my rank
     MPI_Comm_size(MPI_COMM_WORLD, &proc);       // Find out the number of processes!
 
-    std::string file_name = "node4_187_very_small_" + std::to_string(my_rank) + ".txt";
+    std::string file_name = "phi_191_very_small_" + std::to_string(my_rank) + ".txt";
 
     uint16_t work_count = 0;
     
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
      std::vector< uint64_t > ub = { 14823608, 14759781, 14728277, 14666066, 14635351, 14604893, 14574686, 14485542, 14456308, 14398540, 14369999, 14341684, 14313590, 14258057, 14230611, 14203376, 14149523, 14070253, 13992729, 13967265 };
      */
     
-    for( int i = 3; i < 4; i++)
+    for( int i = 4; i < 5; i+= 5)
     {
         Rollsieve r( AB[i] );
         uint64_t q = r.nextprime();
@@ -89,8 +89,10 @@ old bigdawg 1 < P < 60      started 3-25,
 new bigdawg 60 < P < 114    started 3-26, finished 3-28
 xeon phi    P = 115         started 3-27: 20 hours
 xeon phi    P = 119         started 3-28: 22 hours
-new bigdawg 120 < P < 178   started 8:21am 3-29:
+new bigdawg 120 < P < 178   started 8:21am 3-29: approx 24 hours
 xeon phi    178 < P < 186   started 8:24am 3-29:
-nbd node-4  P = 187         started 2:27pm 3-30:
- 
+nbd node-4  P = 187         started 2:27pm 3-30: approx 8 hours
+xeon phi    P = 191         started
+nbd         192 < P < 240   started 7:40am 3-31:
+
  */
