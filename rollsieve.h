@@ -67,11 +67,13 @@ class Rollsieve
     std::vector<Factorlist2> T;
     uint32_t delta;
 
-    uint64_t n, s;
+    uint64_t n;
     uint32_t pos, r;
 
     public:
 
+    uint64_t s;
+    
     Rollsieve(uint64_t start);
 
     inline uint64_t getn() { return n; }

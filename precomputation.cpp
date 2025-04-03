@@ -10,65 +10,73 @@
 // if the bound or elimination rule is changed drastically
 // the use of uint64_t to store preproducts will fail
 
+
+
 int main()
 {
- 
-    uint64_t start = 3;
-    Rollsieve incremental_sieve( start );
+    uint64_t P = 100001; // initialize at an odd number
+    Rollsieve incremental_sieve( P );
+    std::vector< uint64_t > P_fac ;
     
-    uint32_t p = incremental_sieve.nextprime();
-    // p has the value 3 right now
+    bool is_admissible;
     
-    std::vector< std::array<uint64_t, 3> > new_jobs, old_jobs, output_jobs;
-      
-    old_jobs.push_back({1, 1, 1});
-
-
-    // intended bound for the computation is 10^24
-    // bounds testing is done with logarithms
-    double bound = 24 * log(10);
-    
-    while( !old_jobs.empty() )
+    while( P < 100401 )
     {
-        while( !old_jobs.empty() )
-        {
-            uint64_t P = old_jobs.back()[0];
-            uint64_t L = old_jobs.back()[1];
-            uint64_t b = old_jobs.back()[2];
-            old_jobs.pop_back();
+        is_admissible = false;
+        
+        incremental_sieve.next();
+        incremental_sieve.next();
 
-            if( ( log( P ) + 3*log( L ) + (4)*log( p ) > bound ) || ( log( P ) + 7*log( p ) > bound ) )
+        P = incremental_sieve.getn();
+        incremental_sieve.getlist( P_fac );
+        
+        if( P_fac.size() == 1 )
+        {
+            if( P_fac[0] == P && P != incremental_sieve.s )
             {
-              output_jobs.push_back( { P, L, b }  );
+                is_admissible = true;
             }
-            else // so current_preproduct is small enough to create more jobs
+        }
+        else
+        {
+            uint64_t sq_free = 1;
+            for( auto p : P_fac )
             {
-                new_jobs.push_back( { P, L, p } );
-              
-                // admissibility check to create new preproduct
-                if( std::gcd( P, p-1 ) == 1 )
+                sq_free *= p;
+            }
+            // only check on sqaure-free numbers
+            if( sq_free == P )
+            {
+                // set is_admissible to true and see if we should undo that with congruence checks
+                is_admissible = true;
+                std::sort( P_fac.begin(), P_fac.end() );
+                uint16_t p_count = P_fac.size();
+                uint16_t i = 0;
+                uint16_t j = 1;
+                while( is_admissible && i < (p_count - 1) )
                 {
-                    new_jobs.push_back( { P*p, L*( (p-1) / std::gcd( L, p-1 ) ), p });
+                    while( is_admissible && j < p_count )
+                    {
+                        is_admissible = ( is_admissible && ( 1 != P_fac[j] % P_fac[i] ) );
+                        j++;
+                    }
+                    i++;
+                    j = i+1;
                 }
             }
         }
-        p = incremental_sieve.nextprime();
-        old_jobs = new_jobs;
-        new_jobs.clear();
+        
+        if( is_admissible )
+        {
+            std::cout << P << " =  " ;
+            uint64_t L = 1;
+            for( auto p : P_fac )
+            {
+                std::cout << p << " ";
+                L = std::lcm( L , p - 1 );
+            }
+            std::cout << ", " << L << ", " << std::max( 125'000'000/P, P_fac.back()) <<  std::endl;
+        }
     }
-
-
-
-  std::ofstream output_file("output_jobs.txt");
-  for( int i = 0; i < output_jobs.size(); i++ )
-  {
-    for( int j = 0; j < 3; j++)
-    {
-       output_file << output_jobs[i][j] << " ";
-    }
-      output_file << std::endl;
-  }
-  output_file.close();
-
 
 }
