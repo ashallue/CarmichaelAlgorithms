@@ -67,8 +67,8 @@ class Rollsieve
     std::vector<Factorlist2> T;
     uint32_t delta;
 
-    uint64_t n;
-    uint32_t pos, r;
+    uint64_t n, r;
+    uint32_t pos;
 
     public:
 
