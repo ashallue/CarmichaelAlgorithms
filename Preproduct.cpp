@@ -135,7 +135,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
     
-    if( mpz_cmp( early_abort, BOUND ) >= 0 && false )
+    if( mpz_cmp( early_abort, BOUND ) >= 0 && true )
     {
         CN_search( cars_file );
     }
