@@ -172,7 +172,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
             preprod.initializing( P, L, prime_lower );
 
             // search for all carmichael numbers that complete that preproduct
-            preprod.complete_tabulation( cars_file );
+            preprod.CN_multiples_of_P( cars_file );
         }else{
             // time to deal with the (1, 1, p) job.  We replace with (p, p-1, p) for all 
             // primes p satisfying prime_lower < p < bound^(1/3)
@@ -193,7 +193,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
                 // create preproduct object and run job
                 Preproduct preprod = Preproduct();
                 preprod.initializing( P, L, prime_lower );
-                preprod.complete_tabulation( cars_file );
+                preprod.CN_multiples_of_P( cars_file );
                 
                 // next prime
                 prime = prime_gen.nextprime();
