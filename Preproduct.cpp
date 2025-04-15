@@ -196,7 +196,6 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_clear( early_abort );
 }
 
-
 // Do not call this method on a preproduct of the form (1, 1, b)
 // Calling this method on (1, 1, b) results in a lienar search up to B
 // and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
@@ -284,11 +283,12 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
     
-    if( mpz_cmp_ui( r_star , 1 ) == 0 ) //skip ahead one if r_star == 1
+    if( mpz_cmp_ui( r_star , append_bound ) <= 0 ) //skip ahead one if r_star == 1
     {
         k++;
         mpz_add( n, n, PL);
     }
+    
     
     while( mpz_cmp( n , BOUND ) < 0 )
     {
