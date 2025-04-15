@@ -276,20 +276,17 @@ void Preproduct::CN_search( std::string cars_file )
             }
         }
         prime_index++;
-    }
-    // sieving now done
-    
-    
+    }    // sieving now done
+       
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
-    
-    if( mpz_cmp_ui( r_star , append_bound ) <= 0 ) //skip ahead one if r_star == 1
+    // skip iteration ahead if r_star <= append_bound
+    if( mpz_cmp_ui( r_star , append_bound ) <= 0 )
     {
         k++;
         mpz_add( n, n, PL);
     }
-    
-    
+
     while( mpz_cmp( n , BOUND ) < 0 )
     {
         if( spoke_sieve[k] == 0 )
