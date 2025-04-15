@@ -141,7 +141,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     else
     {
-        const uint64_t X = 125'000'000;
+        const uint64_t X = 1'000'000;
         mpz_t BoverP;
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
@@ -398,7 +398,7 @@ void Preproduct::CN_search( std::string cars_file )
     {
         prime_index_bound = std::min( (int) prime_index_bound, (((int16_t) cmp_bound64) - 3 )/2 );
     }
-    
+        
     while( prime_index < prime_index_bound )
     {
         if( small_primes[ prime_index ] )
@@ -427,8 +427,16 @@ void Preproduct::CN_search( std::string cars_file )
     }
     // sieving now done
     
+    
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
+    
+    if( mpz_cmp_ui( r_star , 1 ) == 0 ) //skip ahead one if r_star == 1
+    {
+        k++;
+        mpz_add( n, n, PL);
+    }
+    
     while( mpz_cmp( n , BOUND ) < 0 )
     {
         if( spoke_sieve[k] == 0 )
@@ -441,7 +449,7 @@ void Preproduct::CN_search( std::string cars_file )
                 {
                     mpz_divexact( R, n, P);
                     CN_factorization( n, R, cars_file  );
-                    // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                    //gmp_printf( "n = %Zd, P = %Zd, r_star = %Zd, PL = %Zd \n", n, P, r_star, PL);
                 }
             }
         }
@@ -707,6 +715,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 //  1) break earlier with append bound
 //  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
+// do not pass R = 1
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
 {
     std::queue<uint64_t> R_composite_factors;
