@@ -209,153 +209,6 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
 }
 
 
-void Preproduct::complete_tabulation( std::string cars_file )
-{
-       
-    // Unanswered question that we need to answer before production:
-    // Do we need to consider if P is, itself, a CN in this?  If so, where is that done?  right here?
-    // Answer: yes. Call appending_is_CN with an empty vector. Check that P.p_primes.size() > 2
-    if( P_primes.size() > 2 ) 
-    {   std::vector< uint64_t> empty;
-        appending_is_CN( empty, cars_file);
-    }
-    
-    // rule to be set later
-    // We show that if PL^2 > B then rule should be true
-    // however, assumes the cost of the else block is porportional to the cost of generating the primes
-    // this is almost certain too small of an estimate.
-    // something like PL^3 > B might be justified
-    // some analytic work required but not needed for correctness
-    
-    mpz_t to_recurse_or_not_to_recurse;
-    mpz_init_set(  to_recurse_or_not_to_recurse, P);
-    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
-    mpz_mul(  to_recurse_or_not_to_recurse,  to_recurse_or_not_to_recurse, L);
-    bool rule = ( mpz_cmp( to_recurse_or_not_to_recurse , BOUND ) >= 0 );
-   
-    if( rule )
-    {
-        CN_search( cars_file );
-    }
-    else
-    {
-        
-        // in the below, let p be the largest prime dividing P
-        // by taking this route, we need to do up to three things:
-        // 1 - find the single prime q so that Pq is a CN
-        // 2 - for q in ( append_bound, (B/P)^(1/3) ), Pq is small enough to recurse on the preproduct Pq
-        // 3 - for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
-
-        // tabulation assumes all CN of the form P*q*r with P < X have already been found
-        // This creates 2 special cases for the above cases:
-        //      A - if P < X, then only need case 2 - (case 1 and case 3 involve appending exactly 1 or exactly 2 primes)
-        //      B - if P/p < X, then we only need case 2 and case 3 (if a single prime is found then (P/p)*p*q is a CN and P/p < X , so it is duplicated)
-
-        // X set to 120m for production run, because of existing tabulation of the small case
-        // X set to 1 for testing, because testing focused on the large case
-        #ifndef TEST
-            const uint64_t X = 120'000'000;
-        #else
-            const uint64_t X = 1000000;
-        #endif
-        
-        mpz_t BoverP;
-        mpz_t case_bound;
-        mpz_init( case_bound );
-        mpz_init( BoverP);
-        mpz_cdiv_q( BoverP, BOUND, P );
-                
-        // this is case 1
-        // this is only invoked if P > X * P_primes.back()
-        // the count of prime factors in P needs to be greater than 1
-        // if X > B^(1/3), then the count needs to be greater than 2
-        // because all CN with exactly three prime factors has already been found
-        mpz_set_ui( case_bound, X);
-
-        // only multiply if there is a prime to multiply by
-        if( P_primes.size() > 0 )
-        {
-            mpz_mul_ui( case_bound, case_bound, P_primes.back() );
-        }
-
-        // for testing complete with one prime if preproduct has 2 or more primes
-        // for production, the 3-carmichael case entirely small, so large case restricted to 4 prime factors or more
-
-        #ifdef TEST
-            if( P_primes.size() > 1 && mpz_cmp( P, case_bound ) > 0 )
-        #else
-            if( P_primes.size() > 2 && mpz_cmp( P, case_bound ) > 0 )
-        #endif
-        {
-            completing_with_exactly_one_prime( cars_file );
-        }
-        
-        // this is the start of cases 2 and 3: they share the incremental sieve and form a preproduct Pq
-        Preproduct Pq;
-        Rollsieve r( append_bound + 1 );
-       
-        // this is the start of case 2.  case2_bound stores (B/P)^{1/3}
-        mpz_root( case_bound, BoverP, 3);
-        uint64_t case2_bound = mpz_get_ui( case_bound );
-        
-        
-        uint64_t q = r.nextprime();
-        while( q < case2_bound )
-        {
-            
-            if( is_admissible_modchecks( q ) )
-            {   
-                
-                Pq.appending( *this, q ) ;
-                Pq.complete_tabulation( cars_file );
-            }
-            q = r.nextprime();
-        }
-        
-        // this is the start of caes 3
-        // first we check that it needs to be done
-        // see comments on case 1 regarding P_primes.size()
-        // since this will be invoked on a preproduct Pq
-        // the inequality on prime counts lowered by 1
-        #ifdef TEST
-            if( P_primes.size() > 0 && mpz_cmp_ui( P, X ) > 0 )
-        #else
-                
-            if( P_primes.size() > 1 && mpz_cmp_ui( P, X ) > 0 )
-        #endif
-        {
-            
-            mpz_sqrt( case_bound, BoverP );
-            uint64_t case3_bound = mpz_get_ui( case_bound );
-            
-            while( q < case3_bound )
-            {
-                if( is_admissible_modchecks( q ) )
-                {         
-
-                    // append q to the current object
-                    Pq.appending( *this, q ) ;
-
-                    // if Pq itself is Carmichael, write it to file
-                    std::vector< uint64_t> empty;
-                    Pq.appending_is_CN( empty, cars_file);
-
-                    // then attempt to complete with one more prime past Pq
-                    Pq.completing_with_exactly_one_prime( cars_file );
-                }
-                q = r.nextprime();
-            }
-        }
-        
-        mpz_clear( BoverP );
-        mpz_clear( case_bound );
-    }
-    
-    mpz_clear( to_recurse_or_not_to_recurse );
-}
-
-
-
 // Do not call this method on a preproduct of the form (1, 1, b)
 // Calling this method on (1, 1, b) results in a lienar search up to B
 // and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
@@ -410,7 +263,7 @@ void Preproduct::CN_search( std::string cars_file )
     {
         prime_index_bound = std::min( (int) prime_index_bound, (((int16_t) cmp_bound64) - 3 )/2 );
     }
-    
+        
     while( prime_index < prime_index_bound )
     {
         if( small_primes[ prime_index ] )
@@ -436,12 +289,18 @@ void Preproduct::CN_search( std::string cars_file )
             }
         }
         prime_index++;
-    }
-    // sieving now done
-    
+    }    // sieving now done
+       
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
-    
+
+    // skip iteration ahead if r_star <= append_bound
+    if( mpz_cmp_ui( r_star , append_bound ) <= 0 )
+    {
+        k++;
+        mpz_add( n, n, PL);
+    }
+
     while( mpz_cmp( n , BOUND ) < 0 )
     {
         
@@ -458,6 +317,7 @@ void Preproduct::CN_search( std::string cars_file )
                     CN_factorization( n, R, cars_file  );
                     
                     // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
+                    //gmp_printf( "n = %Zd, P = %Zd, r_star = %Zd, PL = %Zd \n", n, P, r_star, PL);
                 }
             }
         }
@@ -727,6 +587,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 //  1) break earlier with append bound
 //  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
+// do not pass R = 1
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
 {
     std::queue<uint64_t> R_composite_factors;
