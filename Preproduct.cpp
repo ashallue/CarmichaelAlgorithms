@@ -25,7 +25,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 24 );
+        mpz_pow_ui( BOUND, BOUND, 18 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -130,6 +130,13 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 //               exactly one prime to append to P
 void Preproduct::CN_multiples_of_P( std::string cars_file )
 {
+    #ifdef TEST
+        //gmp_printf("CN multiples,  P = %Zd, L = %Zd\n", P, L);
+        //if(mpz_cmp_ui(P, 1050914869) == 0){
+        //    std::cout << "else clause\n";
+        //}
+    #endif
+    
     mpz_t early_abort;
     mpz_init_set(  early_abort, P);
     mpz_mul(  early_abort,  early_abort, L);
@@ -140,8 +147,13 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
         CN_search( cars_file );
     }
     else
-    {
-        const uint64_t X = 125'000'000;
+    {  
+        #ifndef TEST
+            const uint64_t X = 125'000'000;
+        #else
+            const uint64_t X = 1'000'000;
+        #endif
+        
         mpz_t BoverP;
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
@@ -195,6 +207,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     mpz_clear( early_abort );
 }
+
 
 // Do not call this method on a preproduct of the form (1, 1, b)
 // Calling this method on (1, 1, b) results in a lienar search up to B
@@ -280,6 +293,7 @@ void Preproduct::CN_search( std::string cars_file )
        
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
+
     // skip iteration ahead if r_star <= append_bound
     if( mpz_cmp_ui( r_star , append_bound ) <= 0 )
     {
@@ -289,6 +303,7 @@ void Preproduct::CN_search( std::string cars_file )
 
     while( mpz_cmp( n , BOUND ) < 0 )
     {
+        
         if( spoke_sieve[k] == 0 )
         {
             mpz_powm( fermat_result,  base2,  n, n);        // 2^n mod n
@@ -297,8 +312,11 @@ void Preproduct::CN_search( std::string cars_file )
                 mpz_powm( fermat_result,  base3,  n, n);    // 3^n mod n
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
+                    
                     mpz_divexact( R, n, P);
                     CN_factorization( n, R, cars_file  );
+                    
+                    // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                     //gmp_printf( "n = %Zd, P = %Zd, r_star = %Zd, PL = %Zd \n", n, P, r_star, PL);
                 }
             }
@@ -306,6 +324,7 @@ void Preproduct::CN_search( std::string cars_file )
         k++;
         mpz_add( n, n, PL);
     }
+
     
     mpz_clear( R );
     mpz_clear( small_prime );
@@ -324,6 +343,7 @@ void Preproduct::CN_search( std::string cars_file )
 */
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file )
 {
+    
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -363,10 +383,12 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         #endif
         
         gmp_fprintf(cars_output, "%Zd", P_temp );
+        
         for( auto p : P_primes ) { fprintf (cars_output, " %lu", p); }
         for( auto p : primes_to_append ) { fprintf (cars_output, " %lu", p); }
-        fprintf (cars_output, "\n");
         
+        fprintf (cars_output, "\n");
+
         // close file
         fclose (cars_output);
     }
@@ -596,6 +618,7 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
     // this while loops iterates over Fermat bases, starts with 2 and then odd integers
     mpz_powm( fermat_result, base, odd_part, n);
     mpz_set_ui( base, 1);
+    
     while( !R_composite_factors.empty() && is_fermat_psp )
     {
         i = 0;    //counter for powers of 2
@@ -643,12 +666,13 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
     {
         // could grab the minimum of R_prime_factors but we are sorting for the output to be correct
         std::sort ( R_prime_factors.begin(), R_prime_factors.end() );
-
+        
         if( R_prime_factors[0] > append_bound )
         {
             appending_is_CN( R_prime_factors , cars_file);
         }
     }
+
         
     mpz_clear( fermat_result );
     mpz_clear( gcd_result );

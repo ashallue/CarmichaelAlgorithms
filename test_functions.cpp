@@ -162,6 +162,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
     
     // test that I can read and process a job triple
     while(jobs_input >> P >> L >> prime_lower){
+        output.flush();                    
         std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
 
         // ignore the (1, 1, p) job, we'll deal with it in a separate loop
@@ -170,7 +171,9 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
             // create preproduct object
             Preproduct preprod = Preproduct();
             preprod.initializing( P, L, prime_lower );
-
+            //std::cout << "Preprod initialized";
+            //gmp_printf(" P = %Zd, L = %Zd\n", preprod.P, preprod.L);
+       
             // search for all carmichael numbers that complete that preproduct
             preprod.CN_multiples_of_P( cars_file );
         }else{
@@ -234,9 +237,35 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 }
 
 // main for testing
-int main(){
-   
+int main(int argc, char* argv[]){
+    std::cout << "num args = " << argc << "\n";
+    std::cout << "0th arg is " << argv[0] << "\n";
+
+    std::string filename;
+    int job_num;
+    if(argc >= 3){
+        filename = argv[1];
+        job_num = atoi(argv[2]);
+        std::cout << " " << filename << "and job_num = " << job_num << "\n";
+    }else{
+        filename = "default.txt";
+        job_num = 0;
+    }
     
+    // this is for the 10^18 job
+    uint64_t B = 1'000'000'000'000'000'000;
+    std::string outfile = "cars" + std::to_string(job_num);
+    tabulate_test(B, filename, outfile);
+
+    /*
+    uint64_t P = 999919;
+    uint64_t L = 55440;
+    uint64_t prime_lower = 1009;
+    Preproduct preprod;
+    preprod.initializing(P, L, prime_lower);
+    std::cout << "done initializing\n";
+    */
+    /*
     
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
@@ -321,8 +350,7 @@ int main(){
         std::cout << P[i] << std::endl;
         std::cout << ms_double.count() << std::endl;
    }
-    
-     */
+    */
  
  
     uint64_t P = 121330189 ;
@@ -372,9 +400,7 @@ int main(){
      std::cout << P << std::endl;
      std::cout << ms_double.count() << std::endl;
      
-     
-  
-    
+
     uint64_t P = 187488027001 ;
     uint64_t L = 81000 ;
     uint64_t AB = 811 ;
@@ -392,8 +418,7 @@ int main(){
     ms_double = t2 - t1;
     std::cout << P << std::endl;
     std::cout << ms_double.count() << std::endl;
-    
-     */
+
     
     
     /*
