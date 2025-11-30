@@ -244,6 +244,11 @@ int main(int argc, char* argv[]){
     std::cout << "num args = " << argc << "\n";
     std::cout << "0th arg is " << argv[0] << "\n";
 
+    // doing timings on small bounds, so let's just do a single job
+    std::string file = "cars10to14.txt";
+    job_timing(1, 1, 2, file);
+    
+    /*
     // whoops, this isn't what I want here, will need to be fixed
     int total_jobs;
     int job_num;
@@ -266,7 +271,7 @@ int main(int argc, char* argv[]){
 
     auto timing = duration_cast<seconds>(t2 - t1);
     std::cout << "Timing in seconds for " << filename << ": " << timing.count() << "\n";
-
+    */
 
     
     /*
@@ -364,7 +369,7 @@ int main(int argc, char* argv[]){
    }
     */
  
- 
+   /*
     uint64_t P = 121330189 ;
     uint64_t L = 2432700 ;
     uint64_t AB = 109 ;
@@ -381,7 +386,7 @@ int main(int argc, char* argv[]){
     ms_double = t2 - t1;
     std::cout << P << std::endl;
     std::cout << ms_double.count() << std::endl;
-     
+     */
     /*
     
      uint64_t P = 231181291 ;

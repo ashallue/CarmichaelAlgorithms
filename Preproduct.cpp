@@ -25,7 +25,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 18 );
+        mpz_pow_ui( BOUND, BOUND, 14 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
