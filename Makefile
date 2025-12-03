@@ -5,10 +5,10 @@ CXX = g++
 CXXFLAGS = -O3 -lgmp
 
 # Target executables
-TARGETS = CN_search precomputation tab_job test
+TARGETS = CN_search precomputation tab_job test small_tab
 
 # Source files
-SRCS = rollsieve.cpp CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp
+SRCS = rollsieve.cpp CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp small_tabulation.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
@@ -32,8 +32,12 @@ tab_job: tab_job.o Preproduct.o rollsieve.o
 test: test_functions.o Preproduct.o rollsieve.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
+# Rule for compiling small serial tabulation
+small_tab:	small_tabulation.o Preproduct.o rollsieve.o
+	$(CXX) $^ -o $@ $(CXXFLAGS)
+
 # Generic rule for compiling .cpp to .o
-%.o: %.cpp
+%.o:%.cpp
 	$(CXX) -c $< -o $@
 
 # Clean up object files and executables
