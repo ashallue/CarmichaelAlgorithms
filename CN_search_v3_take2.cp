@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <queue>
 #include <vector>
+#include <bitset>
 #include <boost/dynamic_bitset.hpp>
 
 int main()
@@ -131,11 +132,7 @@ int main()
             mpz_powm( fermat_result,  base2,  n, n); // 2^n mod n
             if( mpz_cmp( fermat_result, base2 ) == 0 )  // check if 2 = 2^n mod n
             {
-                mpz_powm( fermat_result,  base3,  n, n); // 3^n mod n
-                if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
-                {
                     count3++;
-                }
             }
         }
         k++;
@@ -156,5 +153,5 @@ int main()
 
     t2 = high_resolution_clock::now();
     ms_double = t2 - t1;
-    std::cout << "the " << count << " modular exponentiations took " << ms_double.count() << "ms\n";
+    std::cout << "the " << count1 << " " << count2 << " " << count3 << " modular exponentiations took " << ms_double.count() << "ms\n";
 }

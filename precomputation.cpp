@@ -14,17 +14,20 @@
 
 int main()
 {
-    uint64_t P = 999'901; // initialize at an odd number
+    uint64_t P = 89839; // initialize at an odd number
     Rollsieve incremental_sieve( P );
     std::vector< uint64_t > P_fac ;
     
     __int128 B = 1'000'000'000'000;
     B = B * B;
+    const uint64_t X = 125'000'000;
+    
     uint64_t num_jobs =1;
     
     bool is_admissible;
+
     
-    while( P < 1'001'000 )
+    while( P < 95000 )
     {
         is_admissible = false;
         
@@ -80,18 +83,22 @@ int main()
             if( bounds_admiss )
             {
                 num_jobs++;
-                
-                std::cout << P << " =  " ;
-                uint64_t L = 1;
-                for( auto p : P_fac )
+            
+                if( 1 == num_jobs % 560 )
                 {
-                    std::cout << p << " ";
-                    L = std::lcm( L , p - 1 );
+                    std::cout << P ;
+                    uint64_t L = 1;
+                    for( auto p : P_fac )
+                    {
+                        // std::cout << p << " ";
+                        L = std::lcm( L , p - 1 );
+                    }
+                    std::cout << ", " << L << ", " << std::max( X/P, P_fac.back()) <<  std::endl;
                 }
-                std::cout << ", " << L << ", " << std::max( 125'000'000/P, P_fac.back()) <<  std::endl;
-                 
+
             }
         }
     }
     std::cout << " You have " << num_jobs << " admissible preproducts to consider." << std::endl;
+
 }

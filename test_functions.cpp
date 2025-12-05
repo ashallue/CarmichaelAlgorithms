@@ -238,6 +238,9 @@ void job_timing(uint64_t P, uint64_t L, uint64_t prime_lower, std::string cars_f
 
 // main for testing
 int main(int argc, char* argv[]){
+    
+    /*
+    
     std::cout << "num args = " << argc << "\n";
     std::cout << "0th arg is " << argv[0] << "\n";
 
@@ -257,7 +260,7 @@ int main(int argc, char* argv[]){
     std::string outfile = "cars" + std::to_string(job_num);
     tabulate_test(B, filename, outfile);
 
-    /*
+ 
     uint64_t P = 999919;
     uint64_t L = 55440;
     uint64_t prime_lower = 1009;
@@ -352,16 +355,30 @@ int main(int argc, char* argv[]){
    }
     */
  
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+   
+    auto t1 = high_resolution_clock::now();
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    
  
-    uint64_t P = 121330189 ;
-    uint64_t L = 2432700 ;
-    uint64_t AB = 109 ;
+    uint64_t P = 6573457 ;
+    uint64_t L = 4680 ;
+    uint64_t AB = 521 ;
     
     t1 = high_resolution_clock::now();
-   
+
+    std::cout << " i am here" << std::endl;
     Preproduct small_P = Preproduct();
     small_P.initializing( P, L, AB );
-    small_P.CN_multiples_of_P( "integer_example.txt" );
+    std::cout << " I have initialized" << std::endl;
+    gmp_printf( "bound is = %Zd", small_P.BOUND );
+    std::cout << "preproduct is " << P << std::endl;
+    
+    small_P.CN_multiples_of_P( "error_checking.txt" );
         
     Preproduct Pq = Preproduct();
        
