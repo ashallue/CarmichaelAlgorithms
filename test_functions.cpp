@@ -42,6 +42,9 @@ ashallue@hyperion:~/tabulate_car/datafiles_22$ awk 'NF == 4 && $2 == 7' cars_tab
 #include "test_functions.h"
 #include <stdio.h>
 #include <numeric>
+#include <chrono>
+
+using namespace std::chrono;
 
 // call CN_factorization on all squarefree multiples of 7 with 4 prime factors
 bool test_factor(){
@@ -163,7 +166,7 @@ void tabulate_test(uint64_t bound, std::string jobs_file, std::string cars_file)
     // test that I can read and process a job triple
     while(jobs_input >> P >> L >> prime_lower){
         output.flush();                    
-        std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
+        //std::cout << "line read: " << P << " " << L << " " << prime_lower << "\n";
 
         // ignore the (1, 1, p) job, we'll deal with it in a separate loop
         if(P != 1){
@@ -244,12 +247,18 @@ int main(int argc, char* argv[]){
     std::cout << "num args = " << argc << "\n";
     std::cout << "0th arg is " << argv[0] << "\n";
 
-    std::string filename;
+    // doing timings on small bounds, so let's just do a single job
+    std::string file = "cars10to14.txt";
+    job_timing(1, 1, 2, file);
+    
+    /*
+    // whoops, this isn't what I want here, will need to be fixed
+    int total_jobs;
     int job_num;
     if(argc >= 3){
-        filename = argv[1];
-        job_num = atoi(argv[2]);
-        std::cout << " " << filename << "and job_num = " << job_num << "\n";
+        job_num = atoi(argv[1]);
+        total_jobs = atoi(argv[2]);
+        std::cout << job_num << " of a total of " << total_jobs
     }else{
         filename = "default.txt";
         job_num = 0;
@@ -258,9 +267,19 @@ int main(int argc, char* argv[]){
     // this is for the 10^18 job
     uint64_t B = 1'000'000'000'000'000'000;
     std::string outfile = "cars" + std::to_string(job_num);
-    tabulate_test(B, filename, outfile);
 
- 
+
+    auto t1 = high_resolution_clock::now();
+    tabulate_test(B, filename, outfile);
+    auto t2 = high_resolution_clock::now();
+
+    auto timing = duration_cast<seconds>(t2 - t1);
+    std::cout << "Timing in seconds for " << filename << ": " << timing.count() << "\n";
+    */
+
+    
+    /*
+
     uint64_t P = 999919;
     uint64_t L = 55440;
     uint64_t prime_lower = 1009;
@@ -368,6 +387,12 @@ int main(int argc, char* argv[]){
     uint64_t P = 6573457 ;
     uint64_t L = 4680 ;
     uint64_t AB = 521 ;
+
+   /*
+    uint64_t P = 121330189 ;
+    uint64_t L = 2432700 ;
+    uint64_t AB = 109 ;
+
     
     t1 = high_resolution_clock::now();
 
@@ -386,7 +411,7 @@ int main(int argc, char* argv[]){
     ms_double = t2 - t1;
     std::cout << P << std::endl;
     std::cout << ms_double.count() << std::endl;
-     
+     */
     /*
     
      uint64_t P = 231181291 ;
