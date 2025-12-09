@@ -25,7 +25,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 15 );
+        mpz_pow_ui( BOUND, BOUND, 14 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -151,7 +151,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
         #ifndef TEST
             const uint64_t X = 125'000'000;
         #else
-            const uint64_t X = 100000;
+            const uint64_t X = 46416;
         #endif
         
         mpz_t BoverP;

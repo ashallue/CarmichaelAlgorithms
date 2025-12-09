@@ -36,7 +36,7 @@ int main(int argc, char * argv[])
     Rollsieve incremental_sieve( P );
     std::vector< uint64_t > P_fac ;
     
-    __int128 B = pow(10, 15);
+    __int128 B = pow(10, B_pow);
     uint64_t X;
     double one_third = 1.0 / 3;
     X = ceil(pow(B, one_third));
@@ -44,6 +44,7 @@ int main(int argc, char * argv[])
     uint64_t num_jobs =1;
     
     bool is_admissible;
+    uint64_t count_admissible = 0;
     
     Preproduct large_P = Preproduct();
 
@@ -115,6 +116,8 @@ int main(int argc, char * argv[])
                 //if( ( my_rank + ( node_num * 112 ) ) == ( num_jobs % 560 ) )
                 //{
                  //   std::cout << P ;
+                    count_admissible++;
+                
                     uint64_t L = 1;
                     for( auto p : P_fac )
                     {
@@ -132,5 +135,6 @@ int main(int argc, char * argv[])
 
     auto duration_large = duration_cast<seconds>(end_large - start_large);
     std::cout << "Timing for large preproduct case with new code base, is: " << duration_large.count() << "\n\n";
+    std::cout << "Count of bounds admissible preproducts: " << count_admissible << "\n";
     return 0;
 }

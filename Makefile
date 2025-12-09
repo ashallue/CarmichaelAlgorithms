@@ -2,7 +2,7 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3 -lgmp
+CXXFLAGS = -O3 -lgmp -pg
 
 # Target executables
 TARGETS = CN_search precomputation tab_job test small_tab
