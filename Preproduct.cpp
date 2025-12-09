@@ -15,7 +15,7 @@
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
 // preprocessing flag.  If enabled, bounds and some other assumptions will change for testing purposes
-#define TEST
+// #define TEST
 
 Preproduct::Preproduct()
 {
@@ -142,7 +142,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
     
-    if( mpz_cmp( early_abort, BOUND ) >= 0 && true )
+    if( mpz_cmp( early_abort, BOUND ) >= 0 && false )
     {
         CN_search( cars_file );
     }
@@ -420,20 +420,20 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     mpz_t r_star;
     mpz_init( r_star );
     mpz_invert( r_star, P, L);
-    
+       
     // construct g = gcd( r* - 1, L),  the scaling factor
     mpz_t g;
     mpz_init( g );
     mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
     mpz_gcd( g, g, L );    // g = gcd ( r^{\star} - 1, L )
     
-    // construct script_P = (P - 1)/g.  
+    // construct script_P = (P - 1)/g.
     // Note that r-1 = r*-1 mod L and r-1 | P-1 by assumption, so P-1 is div by g
     mpz_t script_P;
     mpz_init_set( script_P, P );
     mpz_sub_ui( script_P, script_P, 1 );
     mpz_divexact( script_P, script_P, g);
-        
+           
     // set div_bound1.  This is sec 5.3.1 of the Advances paper
     // script_R + k*script_L < sqrt( script_P )  iff
     // g*(script_R + k*script_L) + 1 < g*sqrt( script_P ) + 1  iff
@@ -455,12 +455,13 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     mpz_t div_bound2;
     mpz_init_set( div_bound2, BOUND );
     mpz_cdiv_q( div_bound2, div_bound2, P);
-
+    
     // returns true if div_bound1 > div_bound2.
     // This corresponds to the beginning of section 5.2 from Advances
     // check arithmetic progression r* + kL up to B/P
     if( mpz_cmp( div_bound1, div_bound2 ) > 0 )
     {
+        
         // div_bound2 = B/P is the relevant bound
         // we do not need to look for the large divisor (see 5.3.2 Case 2)
         // this path is essentially CN_search but with no sieving and no CN_factorization needed
@@ -486,10 +487,14 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     // In this case div_bound1 is smaller, so we search for r* + kL < g*sqrt (script_P) + 1
     else
     {
+
+        
         // we need script_L
         mpz_t script_L;
         mpz_init( script_L );
         mpz_divexact( script_L, L, g );
+        
+
 
         // we need to use r_star again
         // prev code was r2 = ( inv128( r1, L1) * scriptP ) % L1 where r1 = (Pqinv - 1)/g

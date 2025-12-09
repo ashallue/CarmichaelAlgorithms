@@ -2,7 +2,8 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3 -lgmp -pg
+CXXFLAGS = -O3 -lgmp
+#MPI = mpic++
 
 # Target executables
 TARGETS = CN_search precomputation tab_job test small_tab
@@ -35,6 +36,7 @@ test: test_functions.o Preproduct.o rollsieve.o
 # Rule for compiling small serial tabulation
 small_tab:	small_tabulation.o Preproduct.o rollsieve.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
+
 
 # Generic rule for compiling .cpp to .o
 %.o:%.cpp

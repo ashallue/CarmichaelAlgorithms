@@ -26,12 +26,12 @@ int main()
   using std::chrono::duration;
   using std::chrono::milliseconds;
 
-  auto t1 = high_resolution_clock::now();
+
 
   // set search bound, set as 10^24
   mpz_t bound;
   mpz_init_set_ui( bound, 10 );
-  mpz_pow_ui( bound, bound, 24 );
+  mpz_pow_ui( bound, bound, 25 );
 
   // set preproduct
   mpz_t P;
@@ -64,7 +64,9 @@ int main()
   // having computed r_star, we now use uint64_t for this quantity
   uint64_t r_star64;
   mpz_export( &r_star64, 0, 1, sizeof(uint64_t), 0, 0, r_star);
-
+    std::cout << "r_star = " << r_star64 << std::endl;
+    
+    
   // This is the start of n = Pr^* + kPL w/ k = 0
   mpz_t n;
   mpz_init(n);
@@ -101,81 +103,31 @@ int main()
 
   uint64_t temp;
 
-  while( mpz_cmp( n , bound ) < 0 )
-  {
-    R_composite_factors.push( r_star64 );
-    R_prime_factors.clear();
-
-    int i = 0; //counter for fermat_bases
-
-    do
+    uint32_t f_psp = 0;
+    uint32_t mod_exp_count = 0;
+    
+    mpz_set_ui( base, 2 );
+    
+    auto t1 = high_resolution_clock::now();
+    
+    while( mpz_cmp( n , bound ) < 0 )
     {
-      // set up strong base:  truncated divsion by 2^e means the exponent holds (n-1)/(2^e)
-      mpz_tdiv_q_2exp( strong_exp, n, exp_on_2 );
-      mpz_set_ui( base, fermat_bases[i] );
-      mpz_powm( result1,  base,  strong_exp, n); // b^( (n-1)/(2^e) )
-      mpz_powm_ui( result2,  result1, pow_of_2, n); // b^( (n-1)/(2^e)) )^(2^e) = b^(n-1)
+        mod_exp_count++;
+        mpz_powm( result1,  base,  n, n);
 
-      is_fermat_psp = ( mpz_cmp_si( result2, 1 ) == 0 );
-
-      // this conditional is not expected to be entered
-      // so the do-while loop is not expected to be invoked
-      // most numbers are not Fermat pseudoprimes
-      if( is_fermat_psp )
-      {
-        int start_size = R_composite_factors.size();
-        // use a for loop to go through all factors that are currently in the queue
-        for( int j = 0; j < start_size; j++ )
+        if( mpz_cmp_ui( result1, 2 ) == 0 )
         {
-          // get element out of queue and put into mpz_t
-          // first time through, this is just r_factor will have the value of r_star
-          temp = R_composite_factors.front();
-          R_composite_factors.pop();
-          mpz_import (r_factor, 1, 1, sizeof(uint64_t), 0, 0, &temp );
-
-          // check gcd before prime testing
-          // result1 holds the algebraic factor assoicated with b^((n-1)/(2^e)) + 1
-          mpz_add_ui( result1, result1, 1);
-          mpz_gcd( gcd_result, result1, r_factor);
-
-          // check that gcd_result has a nontrivial divisor of r_factor
-          if( mpz_cmp(gcd_result, r_factor) < 0 && mpz_cmp_ui(gcd_result, 1) > 0 )
-          {
-            // will need to add a check about a lower bound on these divisors
-            mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-            ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-            mpz_divexact(gcd_result, r_factor, gcd_result );
-            mpz_export( &temp, 0, 1, sizeof(uint64_t), 0, 0, gcd_result);
-            ( mpz_probab_prime_p( gcd_result, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-          }
-          else // r_factor was not factored, so it is prime or composite
-          {
-            ( mpz_probab_prime_p( r_factor, 0 ) == 0 ) ? R_composite_factors.push( temp ) : R_prime_factors.push_back( temp );
-          }
+            f_psp++;
         }
-        // if R_composite is empty, check n is CN *here*
-          std::cout << "n = " ;
-          gmp_printf( "%Zd", n);
-          std::cout << " and R = " << r_star64 << " has " << R_composite_factors.size() << " composite factors and " << R_prime_factors.size() << " prime factors." << std::endl;
-        std::cout << "and is a base-" << fermat_bases[i] << " Fermat psp." << std::endl;
-      }
 
-      // get next Fermat base
-      i++;
-      // do it again if
-      // the number is a Fermat psp and
-      // R_composite queue is not empty
+        mpz_add( n, n, PL);
     }
-    while( is_fermat_psp && !R_composite_factors.empty() && i < NUM_BASES );
+    auto t2 = high_resolution_clock::now();
+    std::cout << "I found checked " << mod_exp_count << " numbers and found " << f_psp << " base-2 Fermat psps." << std::endl;
 
-    // empty queue
-    while( !R_composite_factors.empty() ){ R_composite_factors.pop(); }
-
-    // move to next candidate in arithmetic progression for n and R
-    mpz_add( n, n, PL);
-    r_star64 += L64;
-  }
-
+    duration<double, std::milli> ms_double = t2 - t1;
+    std::cout << " it took " << ms_double.count() << "ms\n";
+    
   mpz_clear( P );
   mpz_clear( L );
   mpz_clear( r_star );
@@ -189,9 +141,7 @@ int main()
   mpz_clear( result2 );
   mpz_clear( bound );
 
-  auto t2 = high_resolution_clock::now();
-  duration<double, std::milli> ms_double = t2 - t1;
-  std::cout << ms_double.count() << "ms\n";
+
 
 
 
