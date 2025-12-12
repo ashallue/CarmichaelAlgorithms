@@ -11,7 +11,6 @@ TARGETS = CN_search precomputation tab_job test small_tab
 # Source files
 SRCS = rollsieve.cpp CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp small_tabulation.cpp
 
-
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
