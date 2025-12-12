@@ -383,10 +383,18 @@ int main(int argc, char* argv[]){
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms_double = t2 - t1;
     
- 
-    uint64_t P = 6573457 ;
-    uint64_t L = 4680 ;
-    uint64_t AB = 521 ;
+
+    uint64_t P = 260015  ;
+    uint64_t L = 1584 ;
+    uint64_t AB = 24 ;
+    
+   // P = 509889415  ;
+    //L = 20592 ;
+    //AB = 54 ;
+    
+    Preproduct small_P = Preproduct();
+    small_P.initializing( P, L, AB );
+    small_P.CN_search( "please_find_it.txt" );
 
    /*
     uint64_t P = 121330189 ;

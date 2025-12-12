@@ -25,12 +25,11 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 15 );
+        mpz_pow_ui( BOUND, BOUND, 17 );
     #else
         // bound for full computation
-        mpz_pow_ui( BOUND, BOUND, 24 );
+        mpz_pow_ui( BOUND, BOUND, 17 );
     #endif
-    
 }
 
 Preproduct::~Preproduct()
@@ -50,10 +49,10 @@ Preproduct::~Preproduct()
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     uint64_t temp;
-        
+
     //set info for P:
     mpz_set_ui( P, init_preproduct );
-    
+
     // clear vector and fill
     P_primes.clear();
     if( init_preproduct != 1 )
@@ -74,10 +73,10 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
             P_primes.push_back( init_preproduct );
         }
     }
-    
+
     //set info for L:
     mpz_set_ui( L, init_LofP );
-    
+
     // set append_bound
     append_bound = init_append_bound;
 
@@ -90,7 +89,7 @@ void Preproduct::appending(Preproduct& PP, uint64_t prime )
     // compute new P value:
     mpz_set( P, PP.P );
     mpz_mul_ui( P, P, prime );
-    
+
     // set the vector
     P_primes.clear();
     P_primes = PP.P_primes;
@@ -107,7 +106,7 @@ void Preproduct::appending(Preproduct& PP, uint64_t prime )
 bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 {
     bool return_val = true;
-    
+
     // can be done with std::all_of or std::any_of or std::none_of
     uint16_t i = 0;
     while( return_val && i < P_primes.size() )
@@ -115,7 +114,7 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
         return_val = return_val && (1 != ( prime_to_append % P_primes[i] ) );
         i++;
     }
- 
+
     return return_val;
 }
 
@@ -136,24 +135,26 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
         //    std::cout << "else clause\n";
         //}
     #endif
-    
+
+	std::cout << "I've been called" << std::endl;
+
     mpz_t early_abort;
     mpz_init_set(  early_abort, P);
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
-    
-    if( mpz_cmp( early_abort, BOUND ) >= 0 && false )
+
+    if( mpz_cmp( early_abort, BOUND ) >= 0 && true )
     {
         CN_search( cars_file );
     }
     else
-    {  
+    {
         #ifndef TEST
-            const uint64_t X = 125'000'000;
+            const uint64_t X = 464158;
         #else
-            const uint64_t X = 100000;
+            const uint64_t X = 464158;
         #endif
-        
+
         mpz_t BoverP;
         mpz_init( BoverP );
         mpz_cdiv_q( BoverP, BOUND, P );
@@ -163,7 +164,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
         Preproduct Pq;
         Rollsieve r( append_bound + 1 );
         uint64_t q = r.nextprime();
-        
+
         // bound for case 3
         mpz_root( case_bound, BoverP, 3);
         uint64_t case3_bound = mpz_get_ui( case_bound );
@@ -290,7 +291,7 @@ void Preproduct::CN_search( std::string cars_file )
         }
         prime_index++;
     }    // sieving now done
-       
+
     mpz_mul( n, P, r_star);     // n is now iniitalized as P * r_star + 0*PL
     uint32_t k = 0;             // and so k has the value 0
 
@@ -303,7 +304,6 @@ void Preproduct::CN_search( std::string cars_file )
 
     while( mpz_cmp( n , BOUND ) < 0 )
     {
-        
         if( spoke_sieve[k] == 0 )
         {
             mpz_powm( fermat_result,  base2,  n, n);        // 2^n mod n
@@ -312,10 +312,9 @@ void Preproduct::CN_search( std::string cars_file )
                 mpz_powm( fermat_result,  base3,  n, n);    // 3^n mod n
                 if( mpz_cmp( fermat_result, base3 ) == 0 )  // check if 3 = 3^n mod n
                 {
-                    
                     mpz_divexact( R, n, P);
                     CN_factorization( n, R, cars_file  );
-                    
+
                     // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
                     //gmp_printf( "n = %Zd, P = %Zd, r_star = %Zd, PL = %Zd \n", n, P, r_star, PL);
                 }
@@ -325,7 +324,6 @@ void Preproduct::CN_search( std::string cars_file )
         mpz_add( n, n, PL);
     }
 
-    
     mpz_clear( R );
     mpz_clear( small_prime );
     mpz_clear( r_star );
@@ -338,12 +336,10 @@ void Preproduct::CN_search( std::string cars_file )
 }
 
 
-/* Depends on primes_to_append being a vector of true primes.
-    
-*/
+// Depends on primes_to_append being a vector of true primes.
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file )
 {
-    
+
     mpz_t P_temp;
     mpz_t L_temp;
 
@@ -358,7 +354,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         uint64_t temp = app_prime - 1;
         mpz_lcm_ui( L_temp, L_temp, temp );
     }
-    
+
     mpz_sub_ui( P_temp, P_temp, 1);
     bool return_val =  mpz_divisible_p( P_temp, L_temp );
     mpz_add_ui( P_temp, P_temp, 1);
@@ -372,7 +368,7 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         const char* filename;
         filename = cars_file.c_str();
         cars_output = fopen (filename,"a");
-        
+
         #ifdef TEST
             // looking for cars that are duplicates
             if(mpz_cmp_ui(P_temp, 41041) == 0)
@@ -381,12 +377,12 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
                 gmp_printf("%Zd\n", P);
             }
         #endif
-        
+
         gmp_fprintf(cars_output, "%Zd", P_temp );
-        
+
         for( auto p : P_primes ) { fprintf (cars_output, " %lu", p); }
         for( auto p : primes_to_append ) { fprintf (cars_output, " %lu", p); }
-        
+
         fprintf (cars_output, "\n");
 
         // close file
