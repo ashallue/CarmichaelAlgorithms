@@ -1,3 +1,8 @@
+//  This file was responsible for tabulating n = PR with omega(P) > 2 and P > 91548
+//  It was ran on 5 112-core processors and had a separate compiler per machine
+//  line 32 was assigned {0, ... 4} depending on the node.  
+//  Hard-coded constants for 112 and 5*112 = 560 are found below.
+
 #include "Preproduct.h"
 #include "rollsieve.h"
 #include <iostream>
