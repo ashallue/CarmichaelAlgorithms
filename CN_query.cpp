@@ -1,4 +1,15 @@
+//  We have work to do here....
+
+// Answers the query "Is n a Carmichael number?" in 
+// in deterministic polynomial time.
+// See Algorithm 1 and Theorem 9 of draft
+// Relies on GMP's B-PSW "primality" test
+// A "no" answer most likely returns a Fermat b that witnessed in is composite
+// A "yes" answer returns the complete prime factorization for verification with Korselt's
+//        A "no" answer can be found with Korselt's criterion, too.  
+
 // compiled with  g++ CN_search.cpp -lgmp -O3
+
 
 #include <gmp.h>
 #include <iostream>
