@@ -1,3 +1,10 @@
+//  This file was responsible for tabulating n = PR with omega(P) > 2 and P < 91548
+//  Lines 33-35 have hard-coded values assocaited with P, lambda(P), append_bound, and the first upper bound
+//  These inputs were generated with a magma script that can be found below  
+//  the parallelization is by P*q1, P*q2 ,... where every process shares the same P 
+//      but selectively calls CN_multiples only on it's class of preproducts.  
+//  For P < 200 we did not use lambda-sieving 
+
 #include "Preproduct.h"
 #include "rollsieve.h"
 #include <iostream>
