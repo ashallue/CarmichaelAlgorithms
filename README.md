@@ -5,7 +5,7 @@ New project in 2025: algorithms for Carmichael numbers:
     - The tabulation found here is hard-coded to B = 10^24 and makes several assumptions about the state of inputs
       
       
-The prior work had some practical and theoretic problems (see [the paper](https://link.springer.com/article/10.1007/s40993-024-00598-3) and [the GitHub repo](https://github.com/ashallue/tabulate_car/tree/master)):
+The prior work had some practical problem (see [the paper](https://link.springer.com/article/10.1007/s40993-024-00598-3) and [the GitHub repo](https://github.com/ashallue/tabulate_car/tree/master)):
   - Too many preproducts were created.
     - The joint work sahred between each process limited the effectiveness of parallelization (see Amdahl's Law). 
     - What should have been lower-order computations (preproduct generation, cyclic checks) became the bottleneck
