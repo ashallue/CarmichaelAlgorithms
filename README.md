@@ -7,7 +7,7 @@ New project in 2025: algorithms for Carmichael numbers:
       
 The prior work had some practical problems (see [the paper](https://link.springer.com/article/10.1007/s40993-024-00598-3) and [the GitHub repo](https://github.com/ashallue/tabulate_car/tree/master)):
   - Too many preproducts were created.
-    - The joint work sahred between each process limited the effectiveness of parallelization (see Amdahl's Law). 
+    - The joint work shared between each process limited the effectiveness of parallelization (see Amdahl's Law). 
     - What should have been lower-order computations (preproduct generation, cyclic checks) became the bottleneck
   - The multiple tabulation regimes (one for each count of distinct prime factors) created a complex code-base.
     - In theory, recursion could have simplified the code base but timing test shows significant slowdown and it was harder to parallelize.
