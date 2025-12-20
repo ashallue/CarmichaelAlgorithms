@@ -6,7 +6,7 @@
 // A "yes" answer returns the complete prime factorization for verification with Korselt's
 //        A "no" answer can be found with Korselt's criterion, too.  
 
-
+#include <cstdint>
 #include <gmp.h>
 #include <gmpxx.h>
 #include <iostream>
@@ -100,7 +100,7 @@ int main()
 			// Invoke Korselt now:
 			mpz_class L = 1;
 			mpz_class L_of_p;
-			std::cout << n << " = 1 " 
+			std::cout << n << " = 1 " ;
 			for( auto p : primes )
 			{
 				std::cout << " * "  << p ;
