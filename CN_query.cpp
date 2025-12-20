@@ -65,9 +65,9 @@ int main()
 				mpz_powm_ui( fermat_result.get_mpz_t(), fermat_result.get_mpz_t(), 2, n.get_mpz_t() );
 			}
 			// fr now holds b^(n-1) mod n.
-			
 			fermat_result = fermat_result * fermat_base % n;
-			is_fermat_psp = ( fermat_result	== 	fermat_base );
+			// fr now holds b^n mod n and we test is b^n = b mod n
+			is_fermat_psp = ( fermat_result	== fermat_base );
 
 			if( is_fermat_psp )
 			{
@@ -91,6 +91,21 @@ int main()
 				}
 			}
 			// we have completed a round of fermat testing and factoring
+			std::cout << "n is a base "<< fermat_base << " pseudoprime and the current factorization status is: " << std::endl;
+			std::cout << "known prime factors: " ;
+			for( auto p : primes )
+			{
+				std::cout << " "  << p ;
+			}
+			std::cout << std::endl;
+			std::cout << "known composite factors: " ;
+			for( auto m : next_composites )
+			{
+				std::cout << " "  << m ;
+			}
+			std::cout << std::endl;
+
+			// set up for next time through:
 			current_composites.clear();
 			std::swap( next_composites, current_composites );
         }
