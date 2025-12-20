@@ -54,6 +54,7 @@ int main()
 			mpz_class fermat_result;
 			// compute fr = b^(odd_part) mod n
 			mpz_powm( fermat_result.get_mpz_t(), fermat_base.get_mpz_t(), odd_part.get_mpz_t(), n.get_mpz_t() );
+			fermat_base_powers.clear();
 			for( uint64_t i = 0; i < pow_of_2; i++ )
 			{
 				fermat_base_powers.push_back( fermat_result );
