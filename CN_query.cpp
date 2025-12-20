@@ -42,7 +42,7 @@ int main()
         // count powers of 2 dividing n-1:
         uint64_t pow_of_2 = (uint64_t) mpz_scan1( odd_part.get_mpz_t() , 0);
         // remove these powers of 2 to get the odd part:
-        mpz_cdiv_q_2exp( odd_part.get_mpz_t(), n.get_mpz_t(), pow_of_2 );
+        mpz_tdiv_q_2exp( odd_part.get_mpz_t(), n.get_mpz_t(), pow_of_2 );
 
 		std::cout << odd_part << std::endl;
 		
