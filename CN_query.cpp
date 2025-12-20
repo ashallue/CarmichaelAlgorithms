@@ -20,6 +20,51 @@
 
     int main()
     {
+
+    std::string string_number;
+    std::cout << "This relies on GMP's B-PSW primality test and will answer the query:" << std::endl;
+    std::cout << "Is n a Carmichael number?" << std::endl;
+    std::cout << "Enter n: ";
+    std::cin >> string_number; // Reads only the first word
+        
+	mpz_class n;
+	n = string_number;
+
+    if( mpz_probable_prime( n.get_mpz_t(), 10 ) > 0 )
+    {
+        std::cout << "GMP detects that n is a (probable) prime." << std::endl;
+    }
+    else
+    {
+        std::vector< mpz_class > current_composites;
+        std::vector< mpz_class > next_composites;
+        std::vector< mpz_class > primes;
+        std::vector< mpz_class > fermat_base_powers;
+        
+        current_composite.push( n );
+        
+        mpz_class odd_part;
+        odd_part = n - 1;
+        // count powers of 2 dividing n-1:
+        uint64_t pow_of_2 = (uint64_t) mpz_scan1( odd_part.get_mpz_t() , 0);
+        // remove these powers of 2 to get the odd part:
+        mpz_cdiv_q_2exp( odd_part.get_mpz_t(), n.get_mpz_t(), pow_of_2 );
+        
+        bool is_fermat_psp = true;
+        
+        mpz_class fermat_base = 1;
+        
+        while( !current_composites.empty() && is_fermat_psp )
+        {
+            
+        }
+    }
+    
+
+    
+    
+
+        
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
     using std::chrono::duration;
