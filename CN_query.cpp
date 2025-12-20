@@ -69,7 +69,7 @@ int main()
 			{
 				for( auto m : current_composites )
 				{
-					for( auto X : fermat_result )
+					for( auto X : fermat_base_powers )
 					{
 						mpz_class g, temp;
 						temp = X + 1;
