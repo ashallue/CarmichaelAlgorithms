@@ -89,21 +89,22 @@ int main()
 						 mpz_probab_prime_p( m.get_mpz_t(), 10 ) == 0 ? next_composites.push_back( m ) : primes.push_back( m );
 					}
 				}
+				// we have completed a round of fermat testing and factoring
+				std::cout << "n is a base "<< fermat_base << " pseudoprime and the current factorization status is: " << std::endl;
+				std::cout << "known prime factors: " ;
+				for( auto p : primes )
+				{
+					std::cout << " "  << p ;
+				}
+				std::cout << std::endl;
+				std::cout << "known composite factors: " ;
+				for( auto m : next_composites )
+				{	
+					std::cout << " "  << m ;
+				}
+				std::cout << std::endl;
 			}
-			// we have completed a round of fermat testing and factoring
-			std::cout << "n is a base "<< fermat_base << " pseudoprime and the current factorization status is: " << std::endl;
-			std::cout << "known prime factors: " ;
-			for( auto p : primes )
-			{
-				std::cout << " "  << p ;
-			}
-			std::cout << std::endl;
-			std::cout << "known composite factors: " ;
-			for( auto m : next_composites )
-			{
-				std::cout << " "  << m ;
-			}
-			std::cout << std::endl;
+
 
 			// set up for next time through:
 			current_composites.clear();
