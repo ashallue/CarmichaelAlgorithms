@@ -91,7 +91,7 @@ int main()
 			std::swap( next_composites, current_composites );
         }
 		// We have exited the while loop.  So is_fermat_psp is false or current_composites is empty
-		if( is_fermat_psp )
+		if( !is_fermat_psp )
 		{
 			 std::cout << "the Fermat test detected your number is composite (and so, not a Carmichael number) with the base" << fermat_base << std::endl;
 		}
