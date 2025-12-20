@@ -24,7 +24,7 @@ int main()
 	mpz_class n;
 	n = string_number;
 	
-    if( mpz_probable_prime( n.get_mpz_t(), 10 ) > 0 )
+    if( mpz_probab_prime_p( n.get_mpz_t(), 10 ) > 0 )
     {
         std::cout << "GMP detects that n is a (probable) prime." << std::endl;
     }
