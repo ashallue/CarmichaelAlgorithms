@@ -59,7 +59,7 @@ int main()
 			{
 				fermat_base_powers.push_back( fermat_result );
 				// compute fr = fr^2 mod n, this is b^(2^i * odd_part ) mod n
-				mpz_powm( fermat_result.get_mpz_t(), fermat_result.get_mpz_t(), 2, n.get_mpz_t() );
+				mpz_powm_ui( fermat_result.get_mpz_t(), fermat_result.get_mpz_t(), 2, n.get_mpz_t() );
 			}
 			// fr now holds b^(n-1) mod n.
 			fermat_result = fermat_result * fermat_base % n;
@@ -105,7 +105,7 @@ int main()
 			{
 				std::cout << " * "  << p ;
 				L_of_p = p - 1;
-				mpz_lcm( L.get_mpz_t(), L.get_mpz_t(), L_of_p.get_mpz_t() )
+				mpz_lcm( L.get_mpz_t(), L.get_mpz_t(), L_of_p.get_mpz_t() );
 			}
 			std::endl;
 			std::cout << "lambda( " << n << " ) = " << L << std::endl;
