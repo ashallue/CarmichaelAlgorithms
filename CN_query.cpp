@@ -29,7 +29,7 @@ int main()
 	
     if( mpz_probab_prime_p( n.get_mpz_t(), 10 ) > 0 )
     {
-        std::cout << "GMP detects that n is a (probable) prime." << std::endl;
+        std::cout << "GMP detects that n is a (probable) prime and therefore is not a Carmichael number." << std::endl;
     }
     else
     {
