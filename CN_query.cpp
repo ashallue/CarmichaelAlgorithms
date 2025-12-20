@@ -2,7 +2,7 @@
 // in deterministic polynomial time.
 // See Algorithm 1 and Theorem 9 of draft
 // Relies on GMP's B-PSW "primality" test
-// A "no" answer most likely returns a Fermat b that witnessed in is composite
+// A "no" answer most likely returns a Fermat b that witnessed n is composite
 // A "yes" answer returns the complete prime factorization for verification with Korselt's
 //        A "no" answer can be found with Korselt's criterion, too.  
 
@@ -22,7 +22,7 @@ int main()
     std::cout << "This relies on GMP's B-PSW primality test and will answer the query:" << std::endl;
     std::cout << "Is n a Carmichael number?" << std::endl;
     std::cout << "Enter n: ";
-    std::cin >> string_number; // Reads only the first word
+    std::cin >> string_number; 
 	        
 	mpz_class n;
 	n = string_number;
