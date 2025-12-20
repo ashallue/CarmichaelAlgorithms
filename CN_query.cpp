@@ -6,6 +6,9 @@
 // A "yes" answer returns the complete prime factorization for verification with Korselt's
 //        A "no" answer can be found with Korselt's criterion, too.  
 
+// compiled with 
+// g++ CN_query.cpp -lgmpxx -lgmp
+
 #include <cstdint>
 #include <gmp.h>
 #include <gmpxx.h>
