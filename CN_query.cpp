@@ -35,7 +35,7 @@ int main()
         std::vector< mpz_class > primes;
         std::vector< mpz_class > fermat_base_powers;
 		        
-        current_composite.push( n );
+        current_composites.push_back( n );
         
         mpz_class odd_part;
         odd_part = n - 1;
