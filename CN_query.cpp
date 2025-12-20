@@ -107,7 +107,7 @@ int main()
 				L_of_p = p - 1;
 				mpz_lcm( L.get_mpz_t(), L.get_mpz_t(), L_of_p.get_mpz_t() );
 			}
-			std::cpout << std::endl;
+			std::cout << std::endl;
 			std::cout << "lambda( " << n << " ) = " << L << std::endl;
 			L_of_p = ( n - 1 ) % L;
 			std::cout << " (n-1) mod lambda(n) = " << L_of_p << std::endl;
