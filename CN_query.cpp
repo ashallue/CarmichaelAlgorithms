@@ -93,18 +93,34 @@ int main()
 		// We have exited the while loop.  So is_fermat_psp is false or current_composites is empty
 		if( is_fermat_psp )
 		{
-			//output not a CN and is witnessed by the base fermat_base
+			 std::cout << "the Fermat test detected your number is composite (and so, not a Carmichael number) with the base" << fermat_base << std::endl;
 		}
 		else
 		{
 			// Invoke Korselt now:
+			mpz_class L = 1;
+			mpz_class L_of_p;
+			std::cout << n << " = 1 " 
 			for( auto p : primes )
 			{
-				//compute lambda( n ) here
+				std::cout << " * "  << p ;
+				L_of_p = p - 1;
+				mpz_lcm( L.get_mpz_t(), L.get_mpz_t(), L_of_p.get_mpz_t() )
 			}
-			// return (n-1) mod lambda(n) 
-			// if the result is 0 - tell user n is a CN
-			// if the result is not 0, this is proof n is not a CN
+			std::endl;
+			std::cout << "lambda( " << n << " ) = " << L << std::endl;
+			L_of_p = ( n - 1 ) % L;
+			std::cout << " (n-1) mod lambda(n) = " << L_of_p << std::endl;
+			
+			if( 0 == L_of_p )
+			{
+				std::cout << "n is a Carmichael number" << std::endl;
+			}
+			else
+			{
+				std::cout << "n is not a Carmichael number" << std::endl;
+			}
+				
 		}
 		
     }
