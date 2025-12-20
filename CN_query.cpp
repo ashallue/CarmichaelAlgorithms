@@ -43,7 +43,9 @@ int main()
         uint64_t pow_of_2 = (uint64_t) mpz_scan1( odd_part.get_mpz_t() , 0);
         // remove these powers of 2 to get the odd part:
         mpz_cdiv_q_2exp( odd_part.get_mpz_t(), n.get_mpz_t(), pow_of_2 );
-        
+
+		std::cout << odd_part << std::endl;
+		
         bool is_fermat_psp = true;
         
         mpz_class fermat_base = 1;
@@ -58,11 +60,14 @@ int main()
 			for( uint64_t i = 0; i < pow_of_2; i++ )
 			{
 				fermat_base_powers.push_back( fermat_result );
+				std::cout << fermat_result << std::endl;
 				// compute fr = fr^2 mod n, this is b^(2^i * odd_part ) mod n
 				mpz_powm_ui( fermat_result.get_mpz_t(), fermat_result.get_mpz_t(), 2, n.get_mpz_t() );
 			}
 			// fr now holds b^(n-1) mod n.
+			std::cout << fermat_result << std::endl;
 			fermat_result = fermat_result * fermat_base % n;
+			std::cout << fermat_result << std::endl;
 			is_fermat_psp = ( fermat_result	== 	fermat_base );
 
 			if( is_fermat_psp )
@@ -93,7 +98,7 @@ int main()
 		// We have exited the while loop.  So is_fermat_psp is false or current_composites is empty
 		if( !is_fermat_psp )
 		{
-			 std::cout << "the Fermat test detected your number is composite (and so, not a Carmichael number) with the base" << fermat_base << std::endl;
+			 std::cout << "the Fermat test detected your number is composite (and so, not a Carmichael number) with the base " << fermat_base << std::endl;
 		}
 		else
 		{
