@@ -6,6 +6,11 @@
 // A "yes" answer returns the complete prime factorization for verification with Korselt's
 //        A "no" answer can be found with Korselt's criterion, too.  
 
+// Here are a selection of "fun" inputs:
+// See Table 3.2 from Daniel Blechanbachers PhD thesis "Efficiency and Security of Crytposystems based on number theory"
+// the last entry has a strong Fermat pseudoprime all prime bases less than 100
+// 68528663395046912244223605902738356719751082784386681071
+
 // compiled with 
 // g++ CN_query.cpp -lgmpxx -lgmp
 
