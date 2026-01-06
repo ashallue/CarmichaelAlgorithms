@@ -14,22 +14,14 @@
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
-// preprocessing flag.  If enabled, bounds and some other assumptions will change for testing purposes
-// #define TEST
+// Hard coded to B = 10^24 and X = 125000000.  See lines 23-4 and 135
 
 Preproduct::Preproduct()
 {
     mpz_init( P );
     mpz_init( L );
     mpz_init_set_ui( BOUND, 10 );
-
-    #ifdef TEST
-        // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 14 );
-    #else
-        // bound for full computation
-        mpz_pow_ui( BOUND, BOUND, 17 );
-    #endif
+	mpz_pow_ui( BOUND, BOUND, 24 );
 }
 
 Preproduct::~Preproduct()
@@ -82,7 +74,6 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 
 }
 
-
 // assumes prime is admissible to PP
 void Preproduct::appending(Preproduct& PP, uint64_t prime )
 {
@@ -129,14 +120,6 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 //               exactly one prime to append to P
 void Preproduct::CN_multiples_of_P( std::string cars_file )
 {
-    #ifdef TEST
-        //gmp_printf("CN multiples,  P = %Zd, L = %Zd\n", P, L);
-        //if(mpz_cmp_ui(P, 1050914869) == 0){
-        //    std::cout << "else clause\n";
-        //}
-    #endif
-
-	std::cout << "I've been called" << std::endl;
 
     mpz_t early_abort;
     mpz_init_set(  early_abort, P);
@@ -149,11 +132,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     }
     else
     {
-        #ifndef TEST
-            const uint64_t X = 464158;
-        #else
-            const uint64_t X = 46416;
-        #endif
+		const uint64_t X = 125'000'000;
 
         mpz_t BoverP;
         mpz_init( BoverP );
@@ -314,9 +293,6 @@ void Preproduct::CN_search( std::string cars_file )
                 {
                     mpz_divexact( R, n, P);
                     CN_factorization( n, R, cars_file  );
-
-                    // gmp_printf( "n = %Zd = %Zd * %Zd is a base-2 and base-3 Fermat psp. \n", n, P, R);
-                    //gmp_printf( "n = %Zd, P = %Zd, r_star = %Zd, PL = %Zd \n", n, P, r_star, PL);
                 }
             }
         }
@@ -368,15 +344,6 @@ bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, st
         const char* filename;
         filename = cars_file.c_str();
         cars_output = fopen (filename,"a");
-
-        #ifdef TEST
-            // looking for cars that are duplicates
-            if(mpz_cmp_ui(P_temp, 41041) == 0)
-            {
-                std::cout << "41041 found with preproduct: ";
-                gmp_printf("%Zd\n", P);
-            }
-        #endif
 
         gmp_fprintf(cars_output, "%Zd", P_temp );
 
@@ -483,15 +450,11 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     // In this case div_bound1 is smaller, so we search for r* + kL < g*sqrt (script_P) + 1
     else
     {
-
-        
         // we need script_L
         mpz_t script_L;
         mpz_init( script_L );
         mpz_divexact( script_L, L, g );
         
-
-
         // we need to use r_star again
         // prev code was r2 = ( inv128( r1, L1) * scriptP ) % L1 where r1 = (Pqinv - 1)/g
         // Here this becomes r1 = (r* - 1)/g, r2 = (r1^{-1} mod scriptL) * scriptP mod scriptL
@@ -507,13 +470,11 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         mpz_invert( r2, r2, script_L );
         mpz_mul( r2, r2, script_P );
         mpz_mod( r2, r2, script_L );
-
-        
+      
         // Following section 5.3.1 of Advances, scriptR + k scriptL equiv to arithmetic progression r* + kL
         // div_bound1 reflects the transformation: multiply by g and add 1.
         while( mpz_cmp( r_star, div_bound1) <= 0 )
-        {
-            
+        {            
             // primality check.
             if( mpz_probab_prime_p( r_star, 0) > 0 )
             {
@@ -539,12 +500,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
         // resetting div_bound1 to now hold floor sqrt script_P
         mpz_sqrt( div_bound1, script_P );
 
-        #ifdef TEST
-        if (mpz_cmp_ui(P, 1) == 0)
-        {
-            gmp_printf("sqrt(script_P) div_bound1 = %Zd, script_P = %Zd, g = %Zd\n", div_bound1, script_P, g);
-        }
-        #endif
         // check arith progression r2 + k*scriptL < sqrt(script_P)
         while( mpz_cmp( r2, div_bound1) <=  0 )
         {
@@ -673,7 +628,6 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
             appending_is_CN( R_prime_factors , cars_file);
         }
     }
-
         
     mpz_clear( fermat_result );
     mpz_clear( gcd_result );
@@ -682,8 +636,4 @@ bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
     
     return is_fermat_psp;
 }
-
-
-
-
 
