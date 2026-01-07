@@ -42,14 +42,14 @@ public:
 
     // constructor always sets to 10^24
     mpz_t BOUND;
-  
+
+    // In subsection 5.2, we describe a partition of all Carmichael nubmers by (P, \lambda(P), b) 
+    // We now declare these quantities
     // stores P and the primes dividing p in sorted order
     mpz_t P;
     std::vector< uint64_t > P_primes;
-      
-    // stores L
+    // stores L = \lambda(P)
     mpz_t L;
-    
     // primes appended to P need to exceed this bound
     uint64_t append_bound;
 
@@ -59,18 +59,20 @@ public:
     
     // initializing call
     // has to factor init_preproduct
+    // we could write a different version that passes in a vector of primes dividing P
     void initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound );
     
     // appending call
-    // we assume the prime is admissible to PP
+    // we assume the prime is admissible to PP, see next function
     void appending( Preproduct& PP, uint64_t prime );
     
-    // done with no gcd check - checks if input is not 1 mod p for all p | P
+    // checks if q is admissible to P without invoking the Euclidean algorithm - checks q != 1 mod p for all p | P
     bool is_admissible_modchecks( uint64_t prime_to_append );
 
+    // This is Algorithm 3 in Section 5.3
     void CN_multiples_of_P( std::string cars_file );
               
-    // This does *not* create a Preproduct structure
+    // Checks if appending primes to a preproduct results in a Carmichael number
     bool appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file  );
 
     // finds all R = ( P^{-1} mod L ) + k*L satisfying P*R < B
@@ -89,16 +91,9 @@ public:
     // we might not need this
     bool is_CN( );
 
-    
     // passes n and R where n = P*R
     // uses strong Fermat primality tests for fast factorization
-    // if a simple Fermat test detects a composite number, n cannot be a CN
-    // otherwise, it is likely that n will be detected as composite by the strong test
-    // in which case, we may use the strong test to split R
-    // see:  https://crypto.stackexchange.com/questions/5279/carmichael-number-factoring
-    // in the above link they claim a "typical" number is detected as compoiste with probaility  > 3/4
-    // but that for CN the probability is 7/8
-    // I do not know where the 7/8 comes from
+    // This is a custom version of Algorithm 1 in Section 3.4.  See bullet point 3.
     bool CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file );
 
 };
