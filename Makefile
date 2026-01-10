@@ -2,14 +2,14 @@
 
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -O3 -lgmp
+CXXFLAGS = -O3 -lgmp -lgmpxx
 #MPI = mpic++
 
 # Target executables
-TARGETS = CN_search precomputation tab_job test small_tab
+TARGETS = CN_query precomputation tab_job test small_tab
 
 # Source files
-SRCS = rollsieve.cpp CN_search.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp small_tabulation.cpp
+SRCS = rollsieve.cpp CN_query.cpp precomputation.cpp Preproduct.cpp test_functions.cpp tab_job.cpp small_tabulation.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
@@ -17,8 +17,8 @@ OBJS = $(SRCS:.cpp=.o)
 # Default target (build all)
 all: $(TARGETS)
 
-# Rule for compiling CN_search
-CN_search: CN_search.o
+# Rule for compiling CN_query
+CN_query: CN_query.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Rule for compiling precomputation
