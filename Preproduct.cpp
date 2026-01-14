@@ -14,7 +14,7 @@
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
-// Hard coded to B = 10^24 and X = 125000000.  See lines 23-4 and 135
+// Hard coded to B = 10^24 and X = 125000000.  See lines 23-4 and 134
 
 Preproduct::Preproduct()
 {
@@ -34,10 +34,10 @@ Preproduct::~Preproduct()
 // assumes valid inputs: 
 // 1) does not check that init_preproduct is cylic 
 // 2) does not check that init_LofP is actually CarmichaelLambda( init_preproduct )
-// intended use is initializing from precomputation which only generates valid inputs
+// intended use is initializing from parallel_lareg_P.cpp or parallel_small_P.cpp which only generate valid inputs
 // factors P using trial division because the intended use case is relatively small initializing preproducts
-// could consider another version that passes array/vector with primes
-// could also consider faster factorization algorithms
+// 		could consider another version that passes array/vector with primes
+// 		could also consider faster factorization algorithms
 void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uint64_t init_append_bound )
 {
     uint64_t temp;
@@ -55,7 +55,8 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
             temp+= 2;
             if( ( init_preproduct % temp ) == 0 )
             {
-                init_preproduct = init_preproduct / temp;
+				// we do not need to loop over temp b/c we assume P is square-free
+				init_preproduct = init_preproduct / temp;
                 P_primes.push_back(temp);
             }
         }
@@ -71,7 +72,6 @@ void Preproduct::initializing( uint64_t init_preproduct, uint64_t init_LofP, uin
 
     // set append_bound
     append_bound = init_append_bound;
-
 }
 
 // assumes prime is admissible to PP
@@ -93,13 +93,11 @@ void Preproduct::appending(Preproduct& PP, uint64_t prime )
     append_bound = prime;
 }
 
-
 bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 {
     bool return_val = true;
 
-    // can be done with std::all_of or std::any_of or std::none_of
-    uint16_t i = 0;
+	uint16_t i = 0;
     while( return_val && i < P_primes.size() )
     {
         return_val = return_val && (1 != ( prime_to_append % P_primes[i] ) );
@@ -109,8 +107,9 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
     return return_val;
 }
 
+// This is Algorithm 3 in https://arxiv.org/abs/2506.09903
 // Uses two approachs to find CN as multiples of P
-// 1 - lambda-completion in the first branch
+// 1 - lambda-sieving in the first branch
 // 2 - prime by prime completion in the second branch (this has three subcases):
 //      case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is still small enough to recurse
 //               3 or more primes can still be appended to P
@@ -188,11 +187,12 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_clear( early_abort );
 }
 
-
-// Do not call this method on a preproduct of the form (1, 1, b)
-// Calling this method on (1, 1, b) results in a lienar search up to B
-// and *will* return prime numbers as Carmichael numbers because 1*p passes the Korselt check
-// the rule used in complete tabulation should prevent (1,1,b) from being used to call this
+// This is lambda(P)-sieving.  See Section 5.1 of https://arxiv.org/html/2506.09903v3
+// It is possible to call this on triples (P, L(P), b) that will be very difficult to complete in a reasonable time
+// (1, 1, b) is a particularly bad input:  
+// 		1 - does a lienar search up to B
+//  	2 - returns primes b/c 1*p passes our Korselt check
+// we prevent these (and other bad cases) by the structure of Algorthm 3.  
 void Preproduct::CN_search( std::string cars_file )
 {
     mpz_t r_star;
@@ -311,7 +311,6 @@ void Preproduct::CN_search( std::string cars_file )
 
 }
 
-
 // Depends on primes_to_append being a vector of true primes.
 bool Preproduct::appending_is_CN( std::vector< uint64_t >&  primes_to_append, std::string cars_file )
 {
@@ -371,8 +370,8 @@ bool Preproduct::is_CN( )
     return return_val;
 }
 
-
-// see section 5.3 of ANTS 2024 work and the corresponding implementation:
+// See Section 5.3 of ANTS 2024 (https://arxiv.org/html/2401.14495v3)
+// See also the prior implementation
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 {
@@ -388,7 +387,7 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     mpz_t g;
     mpz_init( g );
     mpz_sub_ui( g, r_star, 1);  // it holds r^{\star} - 1
-    mpz_gcd( g, g, L );    // g = gcd ( r^{\star} - 1, L )
+    mpz_gcd( g, g, L );    		// g = gcd ( r^{\star} - 1, L )
     
     // construct script_P = (P - 1)/g.
     // Note that r-1 = r*-1 mod L and r-1 | P-1 by assumption, so P-1 is div by g
@@ -406,10 +405,6 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
     mpz_mul( div_bound1, div_bound1, g );
     mpz_mul( div_bound1, div_bound1, g );
     mpz_sqrt( div_bound1, div_bound1 );
-    // [Andrew]     Does this round down in a way we don't want? sqrt does truncate
-    // [Jonathan]   It is fine to truncate.
-    //              We use less than or equal to account for script_P being a perfect square
-    //              otherwise this is not a big deal
     mpz_add_ui( div_bound1, div_bound1, 1);
     
     // set div_bound2
@@ -538,10 +533,8 @@ void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 }
 
 
+// This is a modified version of Algorithm 1 of https://arxiv.org/abs/2506.09903
 // R is passed as mpz_t type but we assume is that R < 2^64 because it is immediately written put into a uint64_t type
-// minor improvements:
-//  1) break earlier with append bound
-//  2) b^n mod n is, in essence, computed twice for each b - only compute it once
 // Return type is bool.  False means n failed a fermat test, so is not Carmichael.
 // do not pass R = 1
 bool Preproduct::CN_factorization( mpz_t& n, mpz_t& R, std::string cars_file )
