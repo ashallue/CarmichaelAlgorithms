@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
     int my_rank = 0;            // my CPU number for this process
     int proc = 1;               // number of CPUs that we have
 
-    int B_pow = 14;             // B will be 10 to this power
+    int B_pow = 17;             // B will be 10 to this power
     
     //std::string file_name = "nbd4_large_" + std::to_string(my_rank) + ".txt";
     std::string file_name = "cars_large10to" + std::to_string(B_pow) + ".txt";

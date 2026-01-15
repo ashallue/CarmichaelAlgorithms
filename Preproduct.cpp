@@ -15,7 +15,7 @@
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
 
 // preprocessing flag.  If enabled, bounds and some other assumptions will change for testing purposes
-// #define TEST
+#define TEST
 
 Preproduct::Preproduct()
 {
@@ -25,7 +25,7 @@ Preproduct::Preproduct()
 
     #ifdef TEST
         // bound for testing
-        mpz_pow_ui( BOUND, BOUND, 14 );
+        mpz_pow_ui( BOUND, BOUND, 17 );
     #else
         // bound for full computation
         mpz_pow_ui( BOUND, BOUND, 24 );
@@ -142,7 +142,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
     mpz_mul(  early_abort,  early_abort, L);
     mpz_mul(  early_abort,  early_abort, L);
     
-    if( mpz_cmp( early_abort, BOUND ) >= 0 && false )
+    if( mpz_cmp( early_abort, BOUND ) >= 0 && true )
     {
         CN_search( cars_file );
     }
@@ -151,7 +151,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
         #ifndef TEST
             const uint64_t X = 125'000'000;
         #else
-            const uint64_t X = 46416;
+            const uint64_t X = 464159;
         #endif
         
         mpz_t BoverP;
