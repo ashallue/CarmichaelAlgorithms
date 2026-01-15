@@ -152,7 +152,3 @@ bool Rollsieve::isnextprime()
     // 3) n + 1 could be the square of the next unrecorded prime, check that it is not
     return ( (0 == n%2) && T[ (pos+1) % delta ].isempty() && ( s != ( n + 1 ) ) ) ;
 }
-
-
-
-
