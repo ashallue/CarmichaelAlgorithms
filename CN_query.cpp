@@ -126,6 +126,7 @@ int main()
 			mpz_class L = 1;
 			mpz_class L_of_p;
 			std::cout << n << " = 1 " ;
+			std::sort( primes.begin(), primes.end() );
 			for( auto p : primes )
 			{
 				std::cout << " * "  << p ;
