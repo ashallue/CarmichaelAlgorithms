@@ -1,6 +1,8 @@
 //  This file was responsible for tabulating n = PR with omega(P) > 2 and P > 91548
+//  It uses the partitioning strategy of Subsection 5.2 of https://arxiv.org/html/2506.09903v3
+//      Comments interspersed below show how the triples are computed
 //  It was ran on 5 112-core processors and had a separate compiler per machine
-//  line 32 was assigned {0, ... 4} depending on the node.  
+//  lines 33-34 changed depended on depending on the node: {0, 1, 2, 3, 4}.  
 //  Hard-coded constants for 112 and 5*112 = 560 are found below.
 
 #include "Preproduct.h"
@@ -17,7 +19,7 @@
 
 // compiled and run with:
 // mpic++ -o parallel parallel_large_P.cpp Preproduct.o rollsieve.o -lgmp -O3
-// mpirun --hostfile hostfile.txt -n 156 ./parallel &
+// mpirun -n 112 ./parallel &
 
 int main(int argc, char * argv[])
 {
@@ -30,16 +32,19 @@ int main(int argc, char * argv[])
 
     std::string file_name = "nbd4_large_" + std::to_string(my_rank) + ".txt";
     const int node_num = 4;
-    
-    uint64_t P = 91549; // initialize at an odd number
+
+    // initialize the starting preproduct to an odd number:
+    uint64_t P = 91549; 
     Rollsieve incremental_sieve( P );
     std::vector< uint64_t > P_fac ;
-    
+
+    // the constants associted to our two bounds
     __int128 B = 1'000'000'000'000;
     B = B * B;
     const uint64_t X = 125'000'000;
-    
-    uint64_t num_jobs =1;
+
+    // counter for parallel distribution
+    uint64_t num_jobs = 1;
     
     bool is_admissible;
     
@@ -81,10 +86,7 @@ int main(int argc, char * argv[])
                 uint16_t p_count = P_fac.size();
                 uint16_t i = 0;
                 uint16_t j = 1;
-                // check admissibility
-                // we could check gcd( P, phi(P) ) == 1
-                // but that requires computing phi(P) and then the Euclidean algorithm
-                // instead, we check admissibility by congruences with the primes
+                // check admissibility with congruences
                 while( is_admissible && i < (p_count - 1) )
                 {
                     while( is_admissible && j < p_count )
@@ -102,7 +104,6 @@ int main(int argc, char * argv[])
         if( is_admissible )
         {
             // check bounds admissible:  Pp^3 < B
-            
             bool bounds_admiss = ( (__int128) P  <= ( B / ( (__int128) P_fac.back() * (__int128) P_fac.back()* (__int128) P_fac.back() ) ) );
              
             if( bounds_admiss )
@@ -111,13 +112,13 @@ int main(int argc, char * argv[])
                 num_jobs++;
                 if( ( my_rank + ( node_num * 112 ) ) == ( num_jobs % 560 ) )
                 {
-                 //   std::cout << P ;
+                    // compute lambda(P)
                     uint64_t L = 1;
                     for( auto p : P_fac )
                     {
-                        // std::cout << p << " ";
                         L = std::lcm( L , p - 1 );
                     }
+                    // We now have the tuple ( P, lambda(P), max{ X/P, p } )
                     large_P.initializing( P, L, std::max( X/P, P_fac.back() ) );
                     large_P.CN_multiples_of_P( file_name );
                 }
