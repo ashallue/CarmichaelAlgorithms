@@ -3,7 +3,7 @@
 //  These inputs were generated with a magma script that can be found below  
 //  the parallelization is by P*q1, P*q2 ,... where every process shares the same P 
 //      but selectively calls CN_multiples only on it's class of preproducts.  
-//  For P < 200 we did not use lambda-sieving 
+//  For P < 200 we did not use lambda-sieving (so line 128 of Preproduct.cpp had a "false" value instead of "true")
 
 #include "Preproduct.h"
 #include "rollsieve.h"
