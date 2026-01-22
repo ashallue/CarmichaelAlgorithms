@@ -1,3 +1,5 @@
+// Hard coded to B = 10^24 and X = 125000000.  See lines 23-4 and 134
+
 #include "Preproduct.h"
 #include "IncrementalSieve/rollsieve.h"
 #include <algorithm>
@@ -13,8 +15,6 @@
 #include <boost/dynamic_bitset.hpp>
 
 static_assert(sizeof(unsigned long) == 8, "unsigned long must be 8 bytes.  needed for mpz's unsigned longs to take 64 bit inputs in various calls.  LP64 model needed ");
-
-// Hard coded to B = 10^24 and X = 125000000.  See lines 23-4 and 134
 
 Preproduct::Preproduct()
 {
@@ -109,13 +109,13 @@ bool Preproduct::is_admissible_modchecks( uint64_t prime_to_append )
 
 // This is Algorithm 3 in https://arxiv.org/abs/2506.09903
 // Uses two approachs to find CN as multiples of P
-// 1 - lambda-sieving in the first branch
+// 1 - lambda-sieving in the first branch (see line 130)
 // 2 - prime by prime completion in the second branch (this has three subcases):
-//      case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is still small enough to recurse
+//      case 3 - for q in ( append_bound, (B/P)^(1/3) ), Pq is still small enough to recurse (see line 155)
 //               3 or more primes can still be appended to P
-//      case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended
+//      case 2 - if P > X, then for q in  ( (B/P)^(1/3) ,  (B/P)^(1/2) ), Pq can only have a single prime appended (see line 171)
 //               extactly two primes append to P
-//      case 1 - if P > X*p, then find the single prime q so that Pq is a CN
+//      case 1 - if P > X*p, then find the single prime q so that Pq is a CN (see line 181)
 //               exactly one prime to append to P
 void Preproduct::CN_multiples_of_P( std::string cars_file )
 {
@@ -193,6 +193,7 @@ void Preproduct::CN_multiples_of_P( std::string cars_file )
 // 		1 - does a lienar search up to B
 //  	2 - returns primes b/c 1*p passes our Korselt check
 // we prevent these (and other bad cases) by the structure of Algorthm 3.  
+//		- See (P, L(P), b ) creation in the TabulationFiles folder
 void Preproduct::CN_search( std::string cars_file )
 {
     mpz_t r_star;
@@ -218,7 +219,6 @@ void Preproduct::CN_search( std::string cars_file )
     mpz_t small_prime;
     mpz_init( small_prime );
     
-    // maybe consider doing this with an actual prime sieve?
     // position i has the truth value of the statement "(2i + 3) is prime"
     const uint32_t bitset_size = 510;
     std::bitset<bitset_size> small_primes{"110010100000100100010010010100000010010010100010000100010100000000010110100000010110100000010000110110000110000010000100000010100010100100010100100100010000100010000100010010100000110010010110000100000110100100110010010000100110010010000100100000000110000010010100010100010000010110100010010100110000110000100010100010010100100100010010110000100100000010110100000010000110100110010010010000110010110100000100000110110000110010010100100110000110010100000010110110100010010100110100110010010110100110010110110111"};
@@ -371,7 +371,7 @@ bool Preproduct::is_CN( )
 }
 
 // See Section 5.3 of ANTS 2024 (https://arxiv.org/html/2401.14495v3)
-// See also the prior implementation
+// See also the prior implementation:
 // https://github.com/ashallue/tabulate_car/blob/master/LargePreproduct.cpp#L439C1-L500C2
 void Preproduct::completing_with_exactly_one_prime( std::string cars_file )
 {
