@@ -48,7 +48,7 @@ parallel_large: IncrementalSieve/rollsieve.o Preproduct.o
 
 # Rule for compiling parallel_small_P
 parallel_small:  IncrementalSieve/rollsieve.o Preproduct.o
-	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
+	mpic++ -O3 -lgmp -lgmpxx -I. -c TabulationFiles/parallel_small_P.cpp -o TabulationFiles/parallel_small_P.o
 
 # Clean up object files and executables
 clean:
