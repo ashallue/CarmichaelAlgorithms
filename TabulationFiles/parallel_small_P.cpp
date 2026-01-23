@@ -6,7 +6,7 @@
 //  For P < 200 we did not use lambda-sieving (so line 128 of Preproduct.cpp had a "false" value instead of "true")
 
 #include "Preproduct.h"
-#include "rollsieve.h"
+#include "IncrementalSieve/rollsieve.h"
 #include <iostream>
 #include <fstream>
 #include <stdio.h>

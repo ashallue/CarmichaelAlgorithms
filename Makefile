@@ -3,13 +3,14 @@
 # Compiler and flags.  Note that -I. tells compiler to start in current directory for relative paths
 CXX = g++
 CXXFLAGS = -O3 -lgmp -lgmpxx -I.
-#MPI = mpic++
+MPI = mpic++
+PATHS = -I/usr/local/include -L/usr/local/lib
 
 # Target executables
-TARGETS = CN_query precomputation tab_job test small_tab
+TARGETS = CN_query precomputation tab_job test small_tab parallel_large parallel_small
 
 # Source files
-SRCS = IncrementalSieve/rollsieve.cpp CN_query.cpp TabulationFiles/precomputation.cpp Preproduct.cpp TabulationFiles/test_functions.cpp TabulationFiles/tab_job.cpp TabulationFiles/small_tabulation.cpp
+SRCS = IncrementalSieve/rollsieve.cpp CN_query.cpp TabulationFiles/precomputation.cpp Preproduct.cpp TabulationFiles/test_functions.cpp TabulationFiles/tab_job.cpp TabulationFiles/small_tabulation.cpp TabulationFiles/parallel_small_P.cpp TabulationFiles/parallel_large_P.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
@@ -20,6 +21,14 @@ all: $(TARGETS)
 # Generic rule for compiling .cpp to .o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Rule for compiling parallel_large_P
+parallel_large: TabulationFiles/parallel_large_P.o IncrementalSieve/rollsieve.o Preproduct.o
+	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
+
+# Rule for compiling parallel_small_P
+parallel_small: TabulationFiles/parallel_small_P.o IncrementalSieve/rollsieve.o Preproduct.o
+	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
 
 # Rule for compiling CN_query
 CN_query: CN_query.o

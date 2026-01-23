@@ -6,7 +6,7 @@
 //  Hard-coded constants for 112 and 5*112 = 560 are found below.
 
 #include "Preproduct.h"
-#include "rollsieve.h"
+#include "IncrementalSieve/rollsieve.h"
 #include <iostream>
 #include <fstream>
 #include <algorithm>
