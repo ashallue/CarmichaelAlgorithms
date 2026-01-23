@@ -44,7 +44,7 @@ small_tab: TabulationFiles/small_tabulation.o Preproduct.o IncrementalSieve/roll
 
 # Rule for compiling parallel_large_P
 parallel_large: TabulationFiles/parallel_large_P.o IncrementalSieve/rollsieve.o Preproduct.o
-	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
+	mpic++ -O3 -lgmp -lgmpxx -I. -c TabulationFiles/parallel_large_P.cpp -o TabulationFiles/parallel_large_P.o
 
 # Rule for compiling parallel_small_P
 parallel_small: TabulationFiles/parallel_small_P.o IncrementalSieve/rollsieve.o Preproduct.o
