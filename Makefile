@@ -22,14 +22,6 @@ all: $(TARGETS)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule for compiling parallel_large_P
-parallel_large: TabulationFiles/parallel_large_P.o IncrementalSieve/rollsieve.o Preproduct.o
-	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
-
-# Rule for compiling parallel_small_P
-parallel_small: TabulationFiles/parallel_small_P.o IncrementalSieve/rollsieve.o Preproduct.o
-	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
-
 # Rule for compiling CN_query
 CN_query: CN_query.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
@@ -49,6 +41,14 @@ test: TabulationFiles/test_functions.o Preproduct.o IncrementalSieve/rollsieve.o
 # Rule for compiling small serial tabulation
 small_tab: TabulationFiles/small_tabulation.o Preproduct.o IncrementalSieve/rollsieve.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
+
+# Rule for compiling parallel_large_P
+parallel_large: TabulationFiles/parallel_large_P.o IncrementalSieve/rollsieve.o Preproduct.o
+	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
+
+# Rule for compiling parallel_small_P
+parallel_small: TabulationFiles/parallel_small_P.o IncrementalSieve/rollsieve.o Preproduct.o
+	$(MPI) $(PATHS) $^ -o $@ $(CXXFLAGS)
 
 # Clean up object files and executables
 clean:
