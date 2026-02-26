@@ -12,6 +12,8 @@ TARGETS = CN_query precomputation tab_job test small_tab parallel_large parallel
 # Source files
 SRCS = IncrementalSieve/rollsieve.cpp CN_query.cpp TabulationFiles/precomputation.cpp Preproduct.cpp TabulationFiles/test_functions.cpp TabulationFiles/tab_job.cpp TabulationFiles/small_tabulation.cpp TabulationFiles/parallel_small_P.cpp TabulationFiles/parallel_large_P.cpp
 
+# Source files compiled with mpic++
+
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
