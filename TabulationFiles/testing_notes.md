@@ -2,6 +2,12 @@
 
 This file records testing, timings, and other things I want to remember like scripting commands.
 
+# Tests on the Main Table
+
+On Andrew's account on jhub, the main table of all Carmichael numbers up to 10^24 is found at ~/CarmichaelAlgorithms/tables/cars_10to24.txt.  This file is 18 GB, is stored as ascii (so not the most efficient), stores one Carmichael per line.  Each Carmichael is given as n followed by its prime factors, space separated.  The total number of lines (and hence the count of Carmichaels up to 10^24) is 308279939.  May 2026, I performed the following tests on this file:
+* Checked that the file matched our corrected 10^22 file from two years ago.  No discrepancies found, so our table is definitely correct up to 10^22
+* Applied the check_cars_factors function found in ~/tabulate_car/postprocess.h.  This uses pseudosquares to prove primality of all the given prime factors, then checks Korselt's criterion.  Note that 81 * log_10(2) is 24.4, so I can safely use my pseudosquare primality up to 10^24 but not any further.  Of course, I just need the primes to be smaller than 10^24, so we could still use that on further extensions of the cars table.  This function found no mistakes, and the correct file was the same size as the input file, so all the numbers in the 10^24 table are proven to be Carmichael.
+
 # Small Tabulations and Timings
 
 While the project is designed for B = 10^24 only, there is of course a need to do smaller tabulations for timings and other checks.  The file for this is small_tabulation.cpp, which compiles to the executable small_tab.  This file combines work found in precomputation.cpp and Preproduct.cpp into a single serial computation.  These runs were performed with the following steps (deprecated).  
@@ -70,3 +76,4 @@ Timings in seconds, with the new codebase, serial timings, early abort flag turn
 | 10^16 | 16980 | 3699 |
 | 10^17 |  | 18550 |
 | 10^18 |  | 92891 |
+
